@@ -552,7 +552,7 @@ func trySendWebhook(l *logrus.Entry, elem *QueuedElement) (err error) {
 		webhookParams.Embeds = []*discordgo.MessageEmbed{elem.MessageEmbed}
 	}
 
-	err = webhookSession.WebhookExecute(wh.ID, wh.Token, true, webhookParams)
+	_, err = webhookSession.WebhookExecute(wh.ID, wh.Token, true, webhookParams)
 	if code, _ := common.DiscordError(err); code == discordgo.ErrCodeUnknownWebhook {
 		// if the webhook was deleted, then delete the bad boi from the databse and retry
 		const query = `DELETE FROM mqueue_webhooks WHERE id=$1`

@@ -76,6 +76,10 @@ github.com/Pedro-Pessoa/discordgo v1.5.3 h1:ZktklpDZSCzYn7nVotsfdjjsaCdCyqpNvS9N
 github.com/Pedro-Pessoa/discordgo v1.5.3/go.mod h1:AtjBAWqqaBsSj2dgxKaeQ3Gy8GFlDRg+PZiFcsqav00=
 github.com/Pedro-Pessoa/discordgo v1.5.4 h1:Q0H/1FrEWGFDxDmz6HfZ2PbZeqs3Tm7vBma5OcWocxg=
 github.com/Pedro-Pessoa/discordgo v1.5.4/go.mod h1:AtjBAWqqaBsSj2dgxKaeQ3Gy8GFlDRg+PZiFcsqav00=
+github.com/Pedro-Pessoa/discordgo v1.5.5-0.20210105174524-4bf84d10611e h1:hnEmaU8sqNERX3LyoCAu/PkNY1vw+jWq0GgGKcnCHMM=
+github.com/Pedro-Pessoa/discordgo v1.5.5-0.20210105174524-4bf84d10611e/go.mod h1:AtjBAWqqaBsSj2dgxKaeQ3Gy8GFlDRg+PZiFcsqav00=
+github.com/Pedro-Pessoa/discordgo v1.5.5-0.20210105180401-8d57fc5c2d02 h1:KbgTs1bx41FaqhNlZOY2VItnO/zPIjNqKFgvHsTOzYo=
+github.com/Pedro-Pessoa/discordgo v1.5.5-0.20210105180401-8d57fc5c2d02/go.mod h1:AtjBAWqqaBsSj2dgxKaeQ3Gy8GFlDRg+PZiFcsqav00=
 github.com/Pedro-Pessoa/dstate/v2 v2.0.2 h1:9RfbMSfVFw+fIDt3461HkTzwWb5i6mDkfc6jd7L9AwI=
 github.com/Pedro-Pessoa/dstate/v2 v2.0.2/go.mod h1:aRbB9isPSt1goNwKbtUsEtzdqPO1WnGhREUoB/mnE04=
 github.com/Pedro-Pessoa/dstate/v2 v2.0.3 h1:4mrnKy+yLacevNJVjIAoNi6O4UJxFLaLATdY9tnuAp0=

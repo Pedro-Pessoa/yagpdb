@@ -293,7 +293,7 @@ func HandleGuildBanAddRemove(evt *eventsystem.EventData) {
 		}
 
 		var entry *discordgo.AuditLogEntry
-		author, entry = FindAuditLogEntry(guildID, auditlogAction, user.ID, -1)
+		author, entry = FindAuditLogEntry(guildID, int(auditlogAction), user.ID, -1)
 		if entry != nil {
 			reason = entry.Reason
 		}
@@ -336,7 +336,7 @@ func checkAuditLogMemberRemoved(config *Config, data *discordgo.GuildMemberRemov
 	// If we poll the audit log too fast then there sometimes wont be a audit log entry
 	time.Sleep(time.Second * 3)
 
-	author, entry := FindAuditLogEntry(data.GuildID, discordgo.AuditLogActionMemberKick, data.User.ID, time.Second*5)
+	author, entry := FindAuditLogEntry(data.GuildID, int(discordgo.AuditLogActionMemberKick), data.User.ID, time.Second*5)
 	if entry == nil || author == nil {
 		return
 	}

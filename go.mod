@@ -3,7 +3,7 @@ module github.com/jonas747/yagpdb
 go 1.13
 
 replace (
-	github.com/jonas747/discordgo => github.com/Pedro-Pessoa/discordgo v1.5.4
+	github.com/jonas747/discordgo => github.com/Pedro-Pessoa/discordgo v1.5.5-0.20210105180401-8d57fc5c2d02
 	github.com/jonas747/dstate/v2 => github.com/Pedro-Pessoa/dstate/v2 v2.0.3
 	github.com/jonas747/template => github.com/Pedro-Pessoa/template v1.1.4-2
 )
