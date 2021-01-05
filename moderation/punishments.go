@@ -2,6 +2,7 @@ package moderation
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/dstate/v2"
+	"github.com/jonas747/dutil"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/common"
 	"github.com/jonas747/yagpdb/common/scheduledevents2"
@@ -68,7 +70,7 @@ func punish(config *Config, p Punishment, guildID int64, channel *dstate.Channel
 	} else {
 		action = MABanned
 		if duration > 0 {
-			action.Footer = "Expires after: " + common.HumanizeDuration(common.DurationPrecisionMinutes, duration)
+			action.Footer = "Expira em: " + common.HumanizeDuration(common.DurationPrecisionMinutes, duration)
 		}
 	}
 
@@ -113,7 +115,7 @@ func punish(config *Config, p Punishment, guildID int64, channel *dstate.Channel
 		return err
 	}
 
-	logger.Infof("MODERATION: %s %s %s cause %q", author.Username, action.Prefix, user.Username, reason)
+	logger.Infof("MODERAÇÃO: %s %s %s causa %q", author.Username, action.Prefix, user.Username, reason)
 
 	if memberNotFound {
 		// Wait a tiny bit to make sure the audit log is updated
@@ -146,6 +148,14 @@ func punish(config *Config, p Punishment, guildID int64, channel *dstate.Channel
 	return err
 }
 
+var ActionMap = map[string]string{
+	"Silenciado:":   "Mute DM",
+	"Desilenciado:": "Unmute DM",
+	"Quicado:":      "Kick DM",
+	"Banido:":       "Ban DM",
+	"Avisado:":      "Warn DM",
+}
+
 func sendPunishDM(config *Config, dmMsg string, action ModlogAction, gs *dstate.GuildState, channel *dstate.ChannelState, message *discordgo.Message, author *discordgo.User, member *dstate.MemberState, duration time.Duration, reason string) {
 	if dmMsg == "" {
 		dmMsg = DefaultDMMessage
@@ -166,13 +176,17 @@ func sendPunishDM(config *Config, dmMsg string, action ModlogAction, gs *dstate.
 	ctx.Data["Message"] = message
 
 	if duration < 1 {
-		ctx.Data["HumanDuration"] = "permanently"
+		ctx.Data["HumanDuration"] = "permanentemente"
 	}
 
 	executed, err := ctx.Execute(dmMsg)
 	if err != nil {
 		logger.WithError(err).WithField("guild", gs.ID).Warn("Failed executing pusnishment DM")
-		executed = "Failed executing template."
+		executed = "Falha ao executar um template."
+
+		if config.ErrorChannel != "" {
+			_, _, _ = bot.SendMessage(gs.ID, config.IntErrorChannel(), fmt.Sprintf("Falha ao executar uma DM de punição (Ação: `%s`).\nError: `%v`", ActionMap[action.Prefix], err))
+		}
 	}
 
 	if strings.TrimSpace(executed) != "" {
@@ -275,6 +289,203 @@ func BanUserWithDuration(config *Config, guildID int64, channel *dstate.ChannelS
 
 func BanUser(config *Config, guildID int64, channel *dstate.ChannelState, message *discordgo.Message, author *discordgo.User, reason string, user *discordgo.User) error {
 	return BanUserWithDuration(config, guildID, channel, message, author, reason, user, 0, 1)
+}
+
+func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *dstate.ChannelState, authorMember *dstate.MemberState, modlogAuthor *discordgo.User, reason, roleS string, force bool, totalPerms int, dur time.Duration) (interface{}, error) {
+	config, err := getConfigIfNotSet(gs.ID, config)
+	if err != nil {
+		return nil, common.ErrWithCaller(err)
+	}
+
+	if roleS == "" {
+		if config.DefaultLockRole == "" {
+			roleS = "@everyone"
+		} else {
+			roleS = config.DefaultLockRole
+		}
+	}
+	role := FindRole(gs, roleS)
+
+	if role == nil {
+		return "No role with the Name or ID `" + roleS + "` found.", nil
+	}
+
+	gs.RLock()
+	if !bot.IsMemberAboveRole(gs, authorMember, role) {
+		gs.RUnlock()
+		return "You can't lock/unlock roles above you.", nil
+	}
+	gs.RUnlock()
+
+	if dur > 0 && dur < time.Minute {
+		dur = time.Minute
+	}
+
+	var channelID int64
+	if channel != nil {
+		channelID = channel.ID
+	}
+
+	logLink := ""
+	if config.LockIncludeChannelLogs && channelID != 0 {
+		logLink = CreateLogs(gs.ID, channelID, modlogAuthor)
+	}
+
+	// To avoid unexpected things from happening, make sure were only updating the lockdown of the role 1 place at a time
+	LockLockdown(role.ID)
+	defer UnlockLockdown(role.ID)
+
+	// Look for existing lockdown
+	currentLockdown := LockdownModel{}
+	err = common.GORM.Where(&LockdownModel{RoleID: role.ID, GuildID: gs.ID}).First(&currentLockdown).Error
+	alreadyLocked := err != gorm.ErrRecordNotFound
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, common.ErrWithCaller(err)
+	}
+
+	var newPerms int
+	action := MAUnlock
+	outDur := ""
+	outPerms := ""
+	if !alreadyLocked {
+		currentLockdown.GuildID = gs.ID
+		currentLockdown.RoleID = role.ID
+		currentLockdown.PermsOriginal = int64(role.Permissions)
+	}
+
+	// remove all existing unlock events for this role irrespective of lock or unlock event
+	_, err = seventsmodels.ScheduledEvents(
+		qm.Where("event_name='moderation_unlock_role'"),
+		qm.Where("guild_id = ?", gs.ID),
+		qm.Where("(data->>'role_id')::bigint = ?", role.ID),
+		qm.Where("processed = false")).DeleteAll(context.Background(), common.PQ)
+
+	if lock {
+		currentLockdown.PermsToggle = int64(totalPerms)
+		currentLockdown.Overwrite = force
+		newPerms = role.Permissions &^ totalPerms
+		action = MALock
+		outDur = "permanentemente!"
+		action.Footer = "Duração: Permanente"
+		if dur > 0 {
+			humandur := common.HumanizeDuration(common.DurationPrecisionMinutes, dur)
+			outDur = "por `" + humandur + "`!"
+			action.Footer = "Duração: " + humandur
+			currentLockdown.ExpiresAt = time.Now().Add(dur)
+		}
+		err = common.GORM.Save(&currentLockdown).Error
+		if err != nil {
+			return nil, errors.WithMessage(err, "failed inserting/updating lockdown")
+		}
+		reason = reason + "\nPermissões atualmente bloqueadas - `" + strings.Join(common.HumanizePermissions(int64(totalPerms)), ", ") + "`" + "\nForce unlock flag - `" + fmt.Sprint(force) + "`"
+	} else {
+		if totalPerms == 0 { //This happens during scheduled Unlock events
+			totalPerms = int(currentLockdown.PermsToggle)
+			force = currentLockdown.Overwrite
+		}
+		if force {
+			newPerms = role.Permissions | totalPerms
+		} else {
+			newPerms = role.Permissions | (int(currentLockdown.PermsOriginal) & totalPerms)
+		}
+	}
+
+	if newPerms != role.Permissions { //Update only if permissions change
+		_, err = common.BotSession.GuildRoleEdit(gs.ID, role.ID, role.Name, role.Color, role.Hoist, newPerms, role.Mentionable)
+		if err != nil {
+			return nil, err
+		}
+		toggledPerms := newPerms &^ role.Permissions
+		if lock {
+			toggledPerms = role.Permissions &^ newPerms
+		}
+		outPerms = "\nPermissões afetadas - `" + strings.Join(common.HumanizePermissions(int64(toggledPerms)), ", ") + "`"
+	}
+	reason = reason + outPerms
+
+	if dur > 0 && lock {
+		//schedule new unlock
+		err = scheduledevents2.ScheduleEvent("moderation_unlock_role", gs.ID, time.Now().Add(dur), &ScheduledUnlockData{
+			RoleID: role.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if !lock && alreadyLocked {
+		common.GORM.Delete(&currentLockdown)
+	}
+
+	if config.LockdownCmdModlog {
+		err = CreateModlogEmbed(config, modlogAuthor, action, role, reason, logLink)
+	}
+
+	out := role.Name
+	if out == "@everyone" {
+		out = "Server"
+	}
+
+	if config.LockHasResponse {
+		return fmt.Sprintf("%s **%s** agora está **%s** %s\nCargo afetado: %s  -  ID: `%d`%s", action.Emoji, out, action.Prefix, outDur, role.Name, role.ID, outPerms), err
+	}
+
+	return nil, err
+
+}
+
+func UnbanUser(config *Config, guildID int64, author *discordgo.User, reason string, user *discordgo.User) (bool, error) {
+	config, err := getConfigIfNotSet(guildID, config)
+	if err != nil {
+		return false, common.ErrWithCaller(err)
+	}
+	action := MAUnbanned
+
+	//Delete all future Unban Events
+	_, err = seventsmodels.ScheduledEvents(qm.Where("event_name='moderation_unban' AND  guild_id = ? AND (data->>'user_id')::bigint = ?", guildID, user.ID)).DeleteAll(context.Background(), common.PQ)
+	common.LogIgnoreError(err, "[moderation] failed clearing unban events", nil)
+
+	//We need details for user only if unban is to be logged in modlog. Thus we can save a potential api call by directly attempting an unban in other cases.
+	if config.LogUnbans && config.IntActionChannel() != 0 {
+		// check if they're already banned
+		guildBan, err := common.BotSession.GuildBan(guildID, user.ID)
+		if err != nil {
+			notbanned, err := checkErr(err)
+			return notbanned, err
+		}
+		user = guildBan.User
+	}
+
+	// Set a key in redis that marks that this user has appeared in the modlog already
+	common.RedisPool.Do(radix.FlatCmd(nil, "SETEX", RedisKeyUnbannedUser(guildID, user.ID), 30, 2))
+
+	err = common.BotSession.GuildBanDelete(guildID, user.ID)
+	if err != nil {
+		notbanned, err := checkErr(err)
+		return notbanned, err
+	}
+
+	logger.Infof("MODERATION: %s %s %s cause %q", author.Username, action.Prefix, user.Username, reason)
+
+	//modLog Entry handling
+	if config.LogUnbans {
+		err = CreateModlogEmbed(config, author, action, user, reason, "")
+	}
+
+	return false, err
+}
+
+func checkErr(err error) (bool, error) {
+	if err != nil {
+		if cast, ok := err.(*discordgo.RESTError); ok && cast.Response != nil {
+			if cast.Response.StatusCode == 404 {
+				return true, nil // Not found
+			}
+		}
+		return false, err
+	}
+
+	return false, nil
 }
 
 const (
@@ -439,24 +650,38 @@ func AddMemberMuteRole(config *Config, id int64, currentRoles []int64) (removedR
 }
 
 func RemoveMemberMuteRole(config *Config, id int64, currentRoles []int64, mute MuteModel) (err error) {
+	newMemberRoles := decideUnmuteRoles(config, currentRoles, mute)
+	err = common.BotSession.GuildMemberEdit(config.GuildID, id, newMemberRoles)
+	return
+}
 
+func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []string {
 	newMemberRoles := make([]string, 0, len(currentRoles)+len(config.MuteRemoveRoles))
 
+	gs := bot.State.Guild(true, config.GuildID)
+	gs.RLock()
+	defer gs.RUnlock()
+
+	botState := gs.MemberCopy(true, common.BotUser.ID)
+	guildRoles := make([]int64, len(gs.Guild.Roles))
+	for k, e := range gs.Guild.Roles {
+		guildRoles[k] = e.ID
+	}
+	yagHighest := bot.MemberHighestRole(gs, botState)
+
 	for _, v := range currentRoles {
-		if v != config.IntMuteRole() {
+		if v != config.IntMuteRole() && dutil.IsRoleAbove(yagHighest, gs.Role(true, v)) {
 			newMemberRoles = append(newMemberRoles, strconv.FormatInt(v, 10))
 		}
 	}
 
 	for _, v := range mute.RemovedRoles {
-		if !common.ContainsInt64Slice(currentRoles, v) {
+		if !common.ContainsInt64Slice(currentRoles, v) && common.ContainsInt64Slice(guildRoles, v) && dutil.IsRoleAbove(yagHighest, gs.Role(true, v)) {
 			newMemberRoles = append(newMemberRoles, strconv.FormatInt(v, 10))
 		}
 	}
 
-	err = common.BotSession.GuildMemberEdit(config.GuildID, id, newMemberRoles)
-
-	return
+	return newMemberRoles
 }
 
 func WarnUser(config *Config, guildID int64, channel *dstate.ChannelState, msg *discordgo.Message, author *discordgo.User, target *discordgo.User, message string) error {
@@ -505,6 +730,83 @@ func WarnUser(config *Config, guildID int64, channel *dstate.ChannelState, msg *
 	}
 
 	return nil
+}
+
+func SlowModeFunc(config *Config, guildID int64, channel *dstate.ChannelState, author *discordgo.User, duration int, RL int) (interface{}, error) {
+	channels, err := common.BotSession.GuildChannels(guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	var channelData *discordgo.Channel
+	for _, k := range channels {
+		if k.ID == channel.ID {
+			channelData = k
+			break
+		}
+	}
+
+	if channelData == nil {
+		return nil, errors.New("Canal não encontrado.")
+	}
+
+	_, err = seventsmodels.ScheduledEvents(
+		qm.Where("event_name='moderation_set_channel_ratelimit'"),
+		qm.Where("guild_id = ?", guildID),
+		qm.Where("(data->>'channel_id')::bigint = ?", channel.ID)).DeleteAll(context.Background(), common.PQ)
+	common.LogIgnoreError(err, "[moderation] failed clearing slowmode events", nil)
+
+	if channelData.RateLimitPerUser == RL {
+		if RL == 0 {
+			return "Esse canal não esta no modo lento.", nil
+		}
+		return fmt.Sprintf("Esse canal já está em um slow mode de %d mensagens por usuário por segundo.", RL), nil
+	}
+
+	edit := &discordgo.ChannelEdit{
+		RateLimitPerUser: func(i int) *int { return &i }(RL),
+	}
+
+	_, err = common.BotSession.ChannelEditComplex(channel.ID, edit)
+	if err != nil {
+		return nil, err
+	}
+
+	output := "Esse canal agora esta em modo lento."
+	logLink := CreateLogs(guildID, channel.ID, author)
+	action := MASlowmode
+	reason := fmt.Sprintf("Freiou o canal <#%d> para um ratelimit de 1 mensagem por usuário a cada %d segundos.", channel.ID, RL)
+
+	if RL == 0 {
+		action = MARemoveSlow
+		output = "Esse canal não esta mais em modo lento."
+		reason = fmt.Sprintf("Removido o slowmode do canal <#%d>.", channel.ID)
+	}
+
+	action.Footer = "Duração: "
+
+	if duration > 0 {
+		dur := time.Now().Add(time.Minute * time.Duration(duration))
+		durHuman := common.HumanizeDuration(common.DurationPrecisionMinutes, time.Duration(duration)*time.Minute)
+		action.Footer += durHuman
+		output = fmt.Sprintf("Esse canal agora está em modo lento por %s.", durHuman)
+		err = scheduledevents2.ScheduleEvent("moderation_set_channel_ratelimit", guildID, dur, &ChannelRatelimitData{
+			ChannelID:  channel.ID,
+			OriginalRL: channelData.RateLimitPerUser,
+		})
+		if err != nil {
+			return nil, errors.WithMessage(err, "Falha ao agendar a remoção do slowmode")
+		}
+	} else {
+		action.Footer += "permanente"
+	}
+
+	err = CreateModlogEmbed(config, author, action, channelData, reason, logLink)
+	if err != nil {
+		return nil, common.ErrWithCaller(err)
+	}
+
+	return output, nil
 }
 
 func CreateLogs(guildID, channelID int64, user *discordgo.User) string {

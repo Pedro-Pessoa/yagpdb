@@ -16,7 +16,7 @@ var Command = &commands.YAGCommand{
 	Name:        "TopServers",
 	Description: "Responds with the top 20 servers I'm on",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "Skip", Help: "Entries to skip", Type: dcmd.Int, Default: 0},
+		{Name: "Skip", Help: "Entries to skip", Type: dcmd.Int, Default: 0},
 	},
 	ArgSwitches: []*dcmd.ArgDef{
 		{Switch: "id", Name: "serverID", Type: dcmd.Int},

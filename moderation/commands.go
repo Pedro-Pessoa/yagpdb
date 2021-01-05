@@ -36,7 +36,7 @@ func MBaseCmd(cmdData *dcmd.Data, targetID int64) (config *Config, targetUser *d
 			gs.RUnlock()
 
 			if !above {
-				return config, targetMember.DGoUser(), commands.NewUserError("Can't use moderation commands on users ranked the same or higher than you")
+				return config, targetMember.DGoUser(), commands.NewUserError("Você não pode usar comandos de moderação em usuários acima de você.")
 			}
 
 			return config, targetMember.DGoUser(), nil
@@ -55,15 +55,15 @@ func MBaseCmdSecond(cmdData *dcmd.Data, reason string, reasonArgOptional bool, n
 	cmdName := cmdData.Cmd.Trigger.Names[0]
 	oreason = reason
 	if !enabled {
-		return oreason, commands.NewUserErrorf("The **%s** command is disabled on this server. Enable it in the control panel on the moderation page.", cmdName)
+		return oreason, commands.NewUserErrorf("O comando **%s** está desativado.", cmdName)
 	}
 
 	if strings.TrimSpace(reason) == "" {
 		if !reasonArgOptional {
-			return oreason, commands.NewUserError("A reason has been set to be required for this command by the server admins, see help for more info.")
+			return oreason, commands.NewUserError("Você precisa dizer o motivo pela qual está usando esse comando.")
 		}
 
-		oreason = "(No reason specified)"
+		oreason = "(Sem motivo especificado)"
 	}
 
 	member := cmdData.MS
@@ -84,7 +84,7 @@ func MBaseCmdSecond(cmdData *dcmd.Data, reason string, reasonArgOptional bool, n
 		// Fallback to legacy permissions
 		hasPerms, err := bot.AdminOrPermMS(cmdData.CS.ID, member, neededPerm)
 		if err != nil || !hasPerms {
-			return oreason, commands.NewUserErrorf("The **%s** command requires the **%s** permission in this channel or additional roles set up by admins, you don't have it. (if you do contact bot support)", cmdName, common.StringPerms[neededPerm])
+			return oreason, commands.NewUserErrorf("O comando **%s** exige permissão de **%s** nesse canal.", cmdName, common.StringPerms[neededPerm])
 		}
 
 		permsMet = true
@@ -104,10 +104,11 @@ func SafeArgString(data *dcmd.Data, arg int) string {
 }
 
 func GenericCmdResp(action ModlogAction, target *discordgo.User, duration time.Duration, zeroDurPermanent bool, noDur bool) string {
-	durStr := " indefinitely"
+	durStr := " sem prazo para acabar!"
 	if duration > 0 || !zeroDurPermanent {
-		durStr = " for `" + common.HumanizeDuration(common.DurationPrecisionMinutes, duration) + "`"
+		durStr = " por `" + common.HumanizeDuration(common.DurationPrecisionMinutes, duration) + "`"
 	}
+
 	if noDur {
 		durStr = ""
 	}
@@ -121,20 +122,20 @@ func GenericCmdResp(action ModlogAction, target *discordgo.User, duration time.D
 }
 
 var ModerationCommands = []*commands.YAGCommand{
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Ban",
-		Aliases:       []string{"banid"},
-		Description:   "Bans a member, specify a duration with -d and specify number of days of messages to delete with -ddays (0 to 7)",
+		Aliases:       []string{"banid", "banir"},
+		Description:   "Bane um memebro, especifique uma duração com -d e especifique o número de dias de mensagens para deletar com -ddays (de 0 a 7)",
 		RequiredArgs:  1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "d", Default: time.Duration(0), Name: "Duration", Type: &commands.DurationArg{}},
-			&dcmd.ArgDef{Switch: "ddays", Name: "Days", Type: dcmd.Int},
+			{Switch: "d", Default: time.Duration(0), Name: "Duration", Type: &commands.DurationArg{}},
+			{Switch: "ddays", Default: 1, Name: "Days", Type: dcmd.Int},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -152,6 +153,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			if parsed.Switches["ddays"].Value != nil {
 				ddays = parsed.Switches["ddays"].Int()
 			}
+
 			err = BanUserWithDuration(config, parsed.GS.ID, parsed.CS, parsed.Msg, parsed.Msg.Author, reason, target, parsed.Switches["d"].Value.(time.Duration), ddays)
 			if err != nil {
 				return nil, err
@@ -160,15 +162,179 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(MABanned, target, parsed.Switch("d").Value.(time.Duration), true, false), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
+		CustomEnabled: true,
+		CmdCategory:   commands.CategoryModeration,
+		Name:          "Unban",
+		Aliases:       []string{"unbanid", "desbanir"},
+		Description:   "Desbane um usuário.",
+		RequiredArgs:  1,
+		Arguments: []*dcmd.ArgDef{
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
+		},
+
+		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
+			config, _, err := MBaseCmd(parsed, 0) //in most situations, the target will not be a part of server, hence no point in doing unnecessary api calls(i.e. bot.GetMember)
+			if err != nil {
+				return nil, err
+			}
+
+			reason := SafeArgString(parsed, 1)
+			reason, err = MBaseCmdSecond(parsed, reason, config.BanReasonOptional, discordgo.PermissionBanMembers, config.BanCmdRoles, config.BanEnabled)
+			if err != nil {
+				return nil, err
+			}
+			targetID := parsed.Args[0].Int64()
+			target := &discordgo.User{
+				Username:      "unknown",
+				Discriminator: "????",
+				ID:            targetID,
+			}
+
+			targetMem := parsed.GS.MemberCopy(true, targetID)
+			if targetMem != nil {
+				return "Esse usuário não está banido!", nil
+			}
+
+			isNotBanned, err := UnbanUser(config, parsed.GS.ID, parsed.Msg.Author, reason, target)
+
+			if err != nil {
+				return nil, err
+			}
+			if isNotBanned {
+				return "Esse usuário não está banido!", nil
+			}
+
+			return GenericCmdResp(MAUnbanned, target, 0, true, true), nil
+		},
+	},
+	{
+		CmdCategory:        commands.CategoryModeration,
+		Name:               "LockDown",
+		Aliases:            []string{"ld", "lock", "trancar"},
+		Description:        "Bloqueia o servidor ou algum cargo específico.",
+		LongDescription:    "Requer permissão de gerenciamento de cargos. Esse comando vai retirar a permissão do \"everyone\" de enviar mensagens.\nVocê pode escolher um cargo para ser bloqueado usando o nome ou o ID dele.\n\nVocê também pode usar flags para retirar mais permissões:\n**-reaction** -> Retira a permissão de adicionar reações\n**-voicespeak** -> Retira a permissão de falar\n**-voiceconnect** -> Retira a permissão de se conectar a uma canal de voz\n**-all* -> Retira todas as permissões anteriores\n**-force** -> As permissões originais do cargo são sobrepostas durante o unlock",
+		GuildScopeCooldown: 10,
+		RequiredArgs:       0,
+		Arguments: []*dcmd.ArgDef{
+			{Name: "Cargo", Help: "Cargo opcional", Type: dcmd.String},
+		},
+		ArgSwitches: []*dcmd.ArgDef{
+			{Switch: "reaction", Name: "Reações"},
+			{Switch: "voicespeak", Name: "Permissão de fala"},
+			{Switch: "voiceconnect", Name: "Permissão de conexão"},
+			{Switch: "all", Name: "Todas as Flags"},
+			{Switch: "force", Name: "Força sobreposição de permissões", Default: false},
+			{Switch: "d", Name: "Duração", Type: &commands.DurationArg{}},
+		},
+		RunFunc: func(data *dcmd.Data) (interface{}, error) {
+			config, _, err := MBaseCmd(data, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = MBaseCmdSecond(data, "", true, discordgo.PermissionManageRoles, config.LockdownCmdRoles, config.LockdownCmdEnabled)
+			if err != nil {
+				return nil, err
+			}
+
+			totalPerms := discordgo.PermissionSendMessages
+
+			if data.Switches["all"].Value != nil && data.Switches["all"].Value.(bool) {
+				totalPerms = totalPerms | discordgo.PermissionAddReactions | discordgo.PermissionVoiceSpeak | discordgo.PermissionVoiceConnect
+			} else {
+				if data.Switches["reaction"].Value != nil && data.Switches["reaction"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionAddReactions
+				}
+
+				if data.Switches["voicespeak"].Value != nil && data.Switches["voicespeak"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionVoiceSpeak
+				}
+
+				if data.Switches["voiceconnect"].Value != nil && data.Switches["voiceconnect"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionVoiceConnect
+				}
+			}
+
+			dur := time.Duration(config.DefaultLockdownDuration.Int64) * time.Minute
+			if d := data.Switches["d"].Value; d != nil {
+				dur = d.(time.Duration)
+			}
+
+			out, err := LockUnlockRole(config, true, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), totalPerms, dur)
+			if err != nil {
+				return nil, err
+			}
+
+			return out, nil
+		},
+	},
+	{
+		CmdCategory:        commands.CategoryModeration,
+		Name:               "UnLock",
+		Aliases:            []string{"ul", "destrancar"},
+		Description:        "Unlocks the server or a specific role.",
+		LongDescription:    "Requer permissão de gerenciamento de cargos.\nEsse comando vai adicionar a permissão do \"everyone\" de enviar mensagens.\nVocê pode escolher um cargo para ser bloqueado usando o nome ou o ID dele.\n\nVocê também pode usar flags para adicionar mais permissões:\n**-reaction** -> Adiciona a permissão de adicionar reações\n**-voicespeak** -> Adiciona a permissão de falar\n**-voiceconnect** -> Adiciona a permissão de se conectar a uma canal de voz\n**-all* -> Adiciona todas as permissões anteriores\n**-force** -> As permissões originais do cargo são sobrepostas.",
+		GuildScopeCooldown: 10,
+		RequiredArgs:       0,
+		Arguments: []*dcmd.ArgDef{
+			{Name: "Cargo", Help: "Optional role", Type: dcmd.String},
+		},
+		ArgSwitches: []*dcmd.ArgDef{
+			{Switch: "reaction", Name: "Reações"},
+			{Switch: "voicespeak", Name: "Permissão de fala"},
+			{Switch: "voiceconnect", Name: "Permissão de conexão"},
+			{Switch: "all", Name: "Todas as Flags"},
+			{Switch: "force", Name: "Força sobreposição de permissões", Default: false},
+		},
+		RunFunc: func(data *dcmd.Data) (interface{}, error) {
+			config, _, err := MBaseCmd(data, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = MBaseCmdSecond(data, "", true, discordgo.PermissionManageRoles, config.LockdownCmdRoles, config.LockdownCmdEnabled)
+			if err != nil {
+				return nil, err
+			}
+
+			totalPerms := discordgo.PermissionSendMessages
+
+			if data.Switches["all"].Value != nil && data.Switches["all"].Value.(bool) {
+				totalPerms = totalPerms | discordgo.PermissionAddReactions | discordgo.PermissionVoiceSpeak | discordgo.PermissionVoiceConnect
+			} else {
+				if data.Switches["reaction"].Value != nil && data.Switches["reaction"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionAddReactions
+				}
+
+				if data.Switches["voicespeak"].Value != nil && data.Switches["voicespeak"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionVoiceSpeak
+				}
+
+				if data.Switches["voiceconnect"].Value != nil && data.Switches["voiceconnect"].Value.(bool) {
+					totalPerms = totalPerms | discordgo.PermissionVoiceConnect
+				}
+			}
+
+			out, err := LockUnlockRole(config, false, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), totalPerms, time.Duration(0))
+			if err != nil {
+				return nil, err
+			}
+
+			return out, nil
+		},
+	},
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Kick",
-		Description:   "Kicks a member",
+		Aliases:       []string{"kikar", "expulsar"},
+		Description:   "Expulsa um membro",
 		RequiredArgs:  1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -190,17 +356,18 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(MAKick, target, 0, true, true), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Mute",
-		Description:   "Mutes a member",
+		Aliases:       []string{"silenciar", "mutar"},
+		Description:   "Silencia um membro",
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Duration", Type: &commands.DurationArg{}},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Duração", Type: &commands.DurationArg{}},
+			{Name: "Motivo", Type: dcmd.String},
 		},
-		ArgumentCombos: [][]int{[]int{0, 1, 2}, []int{0, 2, 1}, []int{0, 1}, []int{0, 2}, []int{0}},
+		ArgumentCombos: [][]int{{0, 1, 2}, {0, 2, 1}, {0, 1}, {0, 2}, {0}},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
 			if err != nil {
@@ -208,7 +375,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			if config.MuteRole == "" {
-				return "No mute role set up, assign a mute role in the control panel", nil
+				return "O cargo de silenciado não foi configurado, por favor configure no painel de controle.", nil
 			}
 
 			reason := parsed.Args[2].Str()
@@ -221,6 +388,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			if parsed.Args[1].Value != nil {
 				d = parsed.Args[1].Value.(time.Duration)
 			}
+
 			if d > 0 && d < time.Minute {
 				d = time.Minute
 			}
@@ -229,7 +397,7 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			member, err := bot.GetMember(parsed.GS.ID, target.ID)
 			if err != nil || member == nil {
-				return "Member not found", err
+				return "Membro não encontrado", err
 			}
 
 			err = MuteUnmuteUser(config, true, parsed.GS.ID, parsed.CS, parsed.Msg, parsed.Msg.Author, reason, member, int(d.Minutes()))
@@ -240,15 +408,16 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(MAMute, target, d, true, false), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Unmute",
-		Description:   "Unmutes a member",
+		Aliases:       []string{"desmutar", "desilenciar"},
+		Description:   "Dessilencia um membro",
 		RequiredArgs:  1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -257,7 +426,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			if config.MuteRole == "" {
-				return "No mute role set up, assign a mute role in the control panel", nil
+				return "O cargo de silenciado não foi configurado, por favor configure no painel de controle.", nil
 			}
 
 			reason := parsed.Args[1].Str()
@@ -268,7 +437,7 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			member, err := bot.GetMember(parsed.GS.ID, target.ID)
 			if err != nil || member == nil {
-				return "Member not found", err
+				return "Membro não encontrado.", err
 			}
 
 			err = MuteUnmuteUser(config, false, parsed.GS.ID, parsed.CS, parsed.Msg, parsed.Msg.Author, reason, member, 0)
@@ -279,16 +448,17 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(MAUnmute, target, 0, false, true), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		Cooldown:      5,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Report",
-		Description:   "Reports a member to the server's staff",
+		Aliases:       []string{"reportar"},
+		Description:   "Reporta um membro para o staff do servidor.",
 		RequiredArgs:  2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0)
@@ -303,14 +473,18 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			target := parsed.Args[0].Int64()
 
+			if target == parsed.Msg.Author.ID {
+				return "Você não pode se reportar, bobão.", nil
+			}
+
 			logLink := CreateLogs(parsed.GS.ID, parsed.CS.ID, parsed.Msg.Author)
 
 			channelID := config.IntReportChannel()
 			if channelID == 0 {
-				return "No report channel set up", nil
+				return "O canel de reports não foi configurado.", nil
 			}
 
-			reportBody := fmt.Sprintf("<@%d> Reported <@%d> in <#%d> For `%s`\nLast 100 messages from channel: <%s>", parsed.Msg.Author.ID, target, parsed.Msg.ChannelID, parsed.Args[1].Str(), logLink)
+			reportBody := fmt.Sprintf("<@%d> Reportou <@%d> in <#%d> For `%s`\nÚltimas 100 mensagens do canal: <%s>", parsed.Msg.Author.ID, target, parsed.Msg.ChannelID, parsed.Args[1].Str(), logLink)
 
 			_, err = common.BotSession.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
 				Content: reportBody,
@@ -325,32 +499,33 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			// don't bother sending confirmation if it's in the same channel
 			if channelID != parsed.Msg.ChannelID {
-				return "User reported to the proper authorities", nil
+				return "Usuário reportado para as autoridades!", nil
 			}
+
 			return nil, nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled:   true,
 		CmdCategory:     commands.CategoryModeration,
 		Name:            "Clean",
-		Description:     "Delete the last number of messages from chat, optionally filtering by user, max age and regex or ignoring pinned messages.",
-		LongDescription: "Specify a regex with \"-r regex_here\" and max age with \"-ma 1h10m\"\nNote: Will only look in the last 1k messages",
-		Aliases:         []string{"clear", "cl"},
+		Description:     "Deleta as últimas mensagens do chat pela quantidade especificada (no máximo 100). Opcionalmente filtrado por usuário.",
+		LongDescription: "Você também pode usar essas flags:\n**-r** Especifique um regex\n**-ma** Duração máxima\n**-minage** Duração mínima\nOBS: Somente as últimas 1000 mensagens serão verificadas.\n**-i** Faz o regex ignorar capitalização\n**-nopin** Não deleta mensagens fixadas\n**-to** Para a execução do clean quando chegar nessa mensagem.",
+		Aliases:         []string{"clear", "cl", "limpar"},
 		RequiredArgs:    1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Num", Type: &dcmd.IntArg{Min: 1, Max: 100}},
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID, Default: 0},
+			{Name: "Número", Type: &dcmd.IntArg{Min: 1, Max: 100}},
+			{Name: "Usuário", Type: dcmd.UserID, Default: 0},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "r", Name: "Regex", Type: dcmd.String},
-			&dcmd.ArgDef{Switch: "ma", Default: time.Duration(0), Name: "Max age", Type: &commands.DurationArg{}},
-			&dcmd.ArgDef{Switch: "minage", Default: time.Duration(0), Name: "Min age", Type: &commands.DurationArg{}},
-			&dcmd.ArgDef{Switch: "i", Name: "Regex case insensitive"},
-			&dcmd.ArgDef{Switch: "nopin", Name: "Ignore pinned messages"},
-			&dcmd.ArgDef{Switch: "to", Name: "Stop at this msg ID", Type: dcmd.Int},
+			{Switch: "r", Name: "Regex", Type: dcmd.String},
+			{Switch: "ma", Default: time.Duration(0), Name: "Max age", Type: &commands.DurationArg{}},
+			{Switch: "minage", Default: time.Duration(0), Name: "Min age", Type: &commands.DurationArg{}},
+			{Switch: "i", Name: "Regex case insensitive"},
+			{Switch: "nopin", Name: "Ignore pinned messages"},
+			{Switch: "to", Name: "Stop at this msg ID", Type: dcmd.Int},
 		},
-		ArgumentCombos: [][]int{[]int{0}, []int{0, 1}, []int{1, 0}},
+		ArgumentCombos: [][]int{{0}, {0, 1}, {1, 0}},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0)
 			if err != nil {
@@ -375,9 +550,9 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			if num < 1 {
 				if num < 0 {
-					return errors.New("Bot is having a stroke <https://www.youtube.com/watch?v=dQw4w9WgXcQ>"), nil
+					return errors.New("O bot não está se sentindo bem"), nil
 				}
-				return errors.New("Can't delete nothing"), nil
+				return errors.New("Não deu pra deletar nada!"), nil
 			}
 
 			filtered := false
@@ -408,7 +583,7 @@ var ModerationCommands = []*commands.YAGCommand{
 				filtered = true
 			}
 
-			// Check if set to break at a certain ID
+			// Break if it gets to this msg ID
 			toID := int64(0)
 			if parsed.Switches["to"].Value != nil {
 				filtered = true
@@ -436,18 +611,19 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, toID, ma, minAge, pe, num, limitFetch)
 
-			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Deleted %d message(s)! :')", numDeleted), true), err
+			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), err
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Reason",
-		Description:   "Add/Edit a modlog reason",
+		Aliases:       []string{"motivo"},
+		Description:   "Adiciona/Edita uma razão no modlog",
 		RequiredArgs:  2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Message ID", Type: dcmd.Int},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "ID da mensagem", Type: dcmd.Int},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0)
@@ -461,7 +637,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			if config.ActionChannel == "" {
-				return "No mod log channel set up", nil
+				return "O canal de modlog não foi definido no painel de controle.", nil
 			}
 
 			msg, err := common.BotSession.ChannelMessage(config.IntActionChannel(), parsed.Args[0].Int64())
@@ -470,11 +646,11 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			if msg.Author.ID != common.BotUser.ID {
-				return "I didn't make that message", nil
+				return "Não fui eu quem fiz essa mensagem.", nil
 			}
 
 			if len(msg.Embeds) < 1 {
-				return "This entry is either too old or you're trying to mess with me...", nil
+				return "Essa mensagem é muito antiga ou você está me zoando ;)", nil
 			}
 
 			embed := msg.Embeds[0]
@@ -487,15 +663,16 @@ var ModerationCommands = []*commands.YAGCommand{
 			return "👌", nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Warn",
-		Description:   "Warns a user, warnings are saved using the bot. Use -warnings to view them.",
+		Aliases:       []string{"notificar", "avisar"},
+		Description:   "Notifica um usuário. Use `-warnings` para ver as notificações.",
 		RequiredArgs:  2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Reason", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -515,19 +692,19 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(MAWarned, target, 0, false, true), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "Warnings",
-		Description:   "Lists warning of a user.",
-		Aliases:       []string{"Warns"},
+		Aliases:       []string{"Avisos", "Warns"},
+		Description:   "Lista as notificações de um usuário",
 		RequiredArgs:  0,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID, Default: 0},
-			&dcmd.ArgDef{Name: "Page", Type: &dcmd.IntArg{Max: 10000}, Default: 0},
+			{Name: "Usuário", Type: dcmd.UserID, Default: 0},
+			{Name: "Página", Type: &dcmd.IntArg{Max: 10000}, Default: 0},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "id", Name: "Warning ID", Type: dcmd.Int},
+			{Switch: "id", Name: "ID da notificação", Type: dcmd.Int},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			var err error
@@ -548,35 +725,39 @@ var ModerationCommands = []*commands.YAGCommand{
 					return nil, err
 				}
 				if len(warn) == 0 {
-					return fmt.Sprintf("Warning with given id : `%d` does not exist.", parsed.Switches["id"].Int()), nil
+					return fmt.Sprintf("O aviso com id : `%d` não existe", parsed.Switches["id"].Int()), nil
 				}
 
 				return &discordgo.MessageEmbed{
-					Title:       fmt.Sprintf("Warning#%d - User : %s", warn[0].ID, warn[0].UserID),
-					Description: fmt.Sprintf("`%20s` - **Reason** : %s", warn[0].CreatedAt.UTC().Format(time.RFC822), warn[0].Message),
+					Title:       fmt.Sprintf("Aviso#%d - Usuário : %s", warn[0].ID, warn[0].UserID),
+					Description: fmt.Sprintf("`%20s` - **Motivo** : %s", warn[0].CreatedAt.UTC().Format(time.RFC822), warn[0].Message),
 					Footer:      &discordgo.MessageEmbedFooter{Text: fmt.Sprintf("By: %s (%13s)", warn[0].AuthorUsernameDiscrim, warn[0].AuthorID)},
 				}, nil
 			}
+
 			page := parsed.Args[1].Int()
 			if page < 1 {
 				page = 1
 			}
+
 			if parsed.Context().Value(paginatedmessages.CtxKeyNoPagination) != nil {
 				return PaginateWarnings(parsed)(nil, page)
 			}
+
 			_, err = paginatedmessages.CreatePaginatedMessage(parsed.GS.ID, parsed.CS.ID, page, 0, PaginateWarnings(parsed))
 			return nil, err
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "EditWarning",
-		Description:   "Edit a warning, id is the first number of each warning from the warnings command",
+		Aliases:       []string{"EditarWarning", "EditarNotificacao"},
+		Description:   "Edita uma notificação. O ID é o primeiro número de cada notificação no comando `warnings`.",
 		RequiredArgs:  2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Id", Type: dcmd.Int},
-			&dcmd.ArgDef{Name: "NewMessage", Type: dcmd.String},
+			{Name: "ID", Type: dcmd.Int},
+			{Name: "NovaMensagem", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0)
@@ -590,24 +771,24 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			rows := common.GORM.Model(WarningModel{}).Where("guild_id = ? AND id = ?", parsed.GS.ID, parsed.Args[0].Int()).Update(
-				"message", fmt.Sprintf("%s (updated by %s#%s (%d))", parsed.Args[1].Str(), parsed.Msg.Author.Username, parsed.Msg.Author.Discriminator, parsed.Msg.Author.ID)).RowsAffected
+				"message", fmt.Sprintf("%s (modificado por %s#%s (%d))", parsed.Args[1].Str(), parsed.Msg.Author.Username, parsed.Msg.Author.Discriminator, parsed.Msg.Author.ID)).RowsAffected
 
 			if rows < 1 {
-				return "Failed updating, most likely couldn't find the warning", nil
+				return "Falha ao atualizar, provavelmente não consegui encontrar a notificação.", nil
 			}
 
 			return "👌", nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "DelWarning",
 		Aliases:       []string{"dw"},
-		Description:   "Deletes a warning, id is the first number of each warning from the warnings command",
+		Description:   "Deleta uma notificação. O ID é o primeiro número de cada notificação no comando `warnings`.",
 		RequiredArgs:  1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Id", Type: dcmd.Int},
+			{Name: "ID", Type: dcmd.Int},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0)
@@ -622,21 +803,21 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			rows := common.GORM.Where("guild_id = ? AND id = ?", parsed.GS.ID, parsed.Args[0].Int()).Delete(WarningModel{}).RowsAffected
 			if rows < 1 {
-				return "Failed deleting, most likely couldn't find the warning", nil
+				return "Falha ao deletar, provavelmente não consegui encontrar a notificação.", nil
 			}
 
 			return "👌", nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "ClearWarnings",
 		Aliases:       []string{"clw"},
-		Description:   "Clears the warnings of a user",
+		Description:   "Apaga todas as notificações do usuário.",
 		RequiredArgs:  1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
+			{Name: "Usuário", Type: dcmd.UserID},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 
@@ -653,22 +834,65 @@ var ModerationCommands = []*commands.YAGCommand{
 			userID := parsed.Args[0].Int64()
 
 			rows := common.GORM.Where("guild_id = ? AND user_id = ?", parsed.GS.ID, userID).Delete(WarningModel{}).RowsAffected
-			return fmt.Sprintf("Deleted %d warnings.", rows), nil
+			return fmt.Sprintf("Deletei %d notificações.", rows), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
+		CmdCategory:  commands.CategoryModeration,
+		Name:         "Slowmode",
+		Aliases:      []string{"sm"},
+		Description:  "Muda o slowmode do canal durante uma duração opcional.",
+		RequiredArgs: 1,
+		Cooldown:     10,
+		Arguments: []*dcmd.ArgDef{
+			{Name: "RateLimit", Type: dcmd.Int},
+			{Name: "Duração", Type: &commands.DurationArg{}},
+		},
+		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
+			config, _, err := MBaseCmd(parsed, 0)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = MBaseCmdSecond(parsed, "", true, discordgo.PermissionManageMessages, nil, config.SlowmodeCommandEnabled)
+			if err != nil {
+				return nil, err
+			}
+
+			duration := time.Duration(0)
+			if parsed.Args[1].Value != nil {
+				duration = parsed.Args[1].Value.(time.Duration)
+			}
+
+			if duration > 0 && duration < time.Minute {
+				duration = time.Minute
+			}
+
+			RL := parsed.Args[0].Int()
+			if RL > 21600 {
+				RL = 21600
+			}
+
+			out, err := SlowModeFunc(config, parsed.GS.ID, parsed.CS, parsed.Msg.Author, int(duration.Minutes()), RL)
+			if err != nil {
+				return nil, err
+			}
+
+			return out, nil
+		},
+	},
+	{
 		CmdCategory: commands.CategoryModeration,
 		Name:        "TopWarnings",
-		Aliases:     []string{"topwarns"},
-		Description: "Shows ranked list of warnings on the server",
+		Aliases:     []string{"topwarns", "topnotificacoes"},
+		Description: "Mostra uma lista de notificaçoes do server.",
 		Arguments: []*dcmd.ArgDef{
-			{Name: "Page", Type: dcmd.Int, Default: 0},
+			{Name: "Página", Type: dcmd.Int, Default: 0},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "id", Name: "List userIDs"},
+			{Switch: "ID", Name: "List userIDs"},
 		},
 		RunFunc: paginatedmessages.PaginatedCommand(0, func(parsed *dcmd.Data, p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
-
 			showUserIDs := false
 			config, _, err := MBaseCmd(parsed, 0)
 			if err != nil {
@@ -695,7 +919,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			embed := &discordgo.MessageEmbed{
-				Title: "Ranked list of warnings",
+				Title: "Lista ranqueada de notificações",
 			}
 
 			out := "```\n# - Warns - User\n"
@@ -718,20 +942,20 @@ var ModerationCommands = []*commands.YAGCommand{
 
 		}),
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "GiveRole",
 		Aliases:       []string{"grole", "arole", "addrole"},
-		Description:   "Gives a role to the specified member, with optional expiry",
+		Description:   "Dá um cargo para o usuário especificado, com uma duração opcional.",
 
 		RequiredArgs: 2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Role", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Cargo", Type: dcmd.String},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "d", Default: time.Duration(0), Name: "Duration", Type: &commands.DurationArg{}},
+			{Switch: "d", Default: time.Duration(0), Name: "Duração", Type: &commands.DurationArg{}},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -746,18 +970,18 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			member, err := bot.GetMember(parsed.GS.ID, target.ID)
 			if err != nil || member == nil {
-				return "Member not found", err
+				return "Membro não encontrado.", err
 			}
 
 			role := FindRole(parsed.GS, parsed.Args[1].Str())
 			if role == nil {
-				return "Couldn't find the specified role", nil
+				return "Não encontrei o cargo especificado.", nil
 			}
 
 			parsed.GS.RLock()
 			if !bot.IsMemberAboveRole(parsed.GS, parsed.MS, role) {
 				parsed.GS.RUnlock()
-				return "Can't give roles above you", nil
+				return "Não pode dar cargos acima dos seus.", nil
 			}
 			parsed.GS.RUnlock()
 
@@ -765,7 +989,7 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			// no point if the user has the role and is not updating the expiracy
 			if common.ContainsInt64Slice(member.Roles, role.ID) && dur <= 0 {
-				return "That user already has that role", nil
+				return "Esse usuário já tem esse cargo.", nil
 			}
 
 			err = common.AddRoleDS(member, role.ID)
@@ -773,7 +997,7 @@ var ModerationCommands = []*commands.YAGCommand{
 				return nil, err
 			}
 
-			// schedule the expiry
+			// schedule the expirey
 			if dur > 0 {
 				err := scheduledevents2.ScheduleRemoveRole(parsed.Context(), parsed.GS.ID, target.ID, role.ID, time.Now().Add(dur))
 				if err != nil {
@@ -785,10 +1009,10 @@ var ModerationCommands = []*commands.YAGCommand{
 			scheduledevents2.CancelAddRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
 
 			action := MAGiveRole
-			action.Prefix = "Gave the role " + role.Name + " to "
+			action.Prefix = "Cargo " + role.Name + " adicionado a(o) "
 			if config.GiveRoleCmdModlog && config.IntActionChannel() != 0 {
 				if dur > 0 {
-					action.Footer = "Duration: " + common.HumanizeDuration(common.DurationPrecisionMinutes, dur)
+					action.Footer = "Duração: " + common.HumanizeDuration(common.DurationPrecisionMinutes, dur)
 				}
 				CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
 			}
@@ -796,17 +1020,17 @@ var ModerationCommands = []*commands.YAGCommand{
 			return GenericCmdResp(action, target, dur, true, dur <= 0), nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "RemoveRole",
-		Aliases:       []string{"rrole", "takerole", "trole"},
-		Description:   "Removes the specified role from the target",
+		Aliases:       []string{"rrole", "takerole", "trole", "tirarcargo"},
+		Description:   "Retira o cargo especificado do usuário especificado.",
 
 		RequiredArgs: 2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "User", Type: dcmd.UserID},
-			&dcmd.ArgDef{Name: "Role", Type: dcmd.String},
+			{Name: "Usuário", Type: dcmd.UserID},
+			{Name: "Cargo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, target, err := MBaseCmd(parsed, parsed.Args[0].Int64())
@@ -821,18 +1045,18 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			member, err := bot.GetMember(parsed.GS.ID, target.ID)
 			if err != nil || member == nil {
-				return "Member not found", err
+				return "Membro não encontrado", err
 			}
 
 			role := FindRole(parsed.GS, parsed.Args[1].Str())
 			if role == nil {
-				return "Couldn't find the specified role", nil
+				return "Cargo não encontrado", nil
 			}
 
 			parsed.GS.RLock()
 			if !bot.IsMemberAboveRole(parsed.GS, parsed.MS, role) {
 				parsed.GS.RUnlock()
-				return "Can't remove roles above you", nil
+				return "Você não pode remover cargos mais altos que o seu.", nil
 			}
 			parsed.GS.RUnlock()
 
@@ -845,7 +1069,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			scheduledevents2.CancelRemoveRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
 
 			action := MARemoveRole
-			action.Prefix = "Removed the role " + role.Name + " from "
+			action.Prefix = "Cargo " + role.Name + " removido de "
 			if config.GiveRoleCmdModlog && config.IntActionChannel() != 0 {
 				CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
 			}
@@ -922,7 +1146,7 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, toI
 
 		// Continue only if current msg ID is < toID
 		if toID > msgs[i].ID {
-			continue
+			break
 		}
 
 		toDelete = append(toDelete, msgs[i].ID)
@@ -949,35 +1173,41 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, toI
 
 func FindRole(gs *dstate.GuildState, roleS string) *discordgo.Role {
 	parsedNumber, parseErr := strconv.ParseInt(roleS, 10, 64)
+	var name string
+	var id int64
+	var err error
+
+	if parseErr != nil { // it's a mention or a name
+		if strings.HasPrefix(roleS, "<@&") && strings.HasSuffix(roleS, ">") && len(roleS) > 4 {
+			id, err = strconv.ParseInt(roleS[3:len(roleS)-1], 10, 64) // if no error, it's the id
+			if err != nil {                                           // it's the name
+				name = roleS
+			}
+		}
+	} else {
+		id = parsedNumber
+	}
 
 	gs.RLock()
 	defer gs.RUnlock()
-	if parseErr == nil {
-
-		// was a number, try looking by id
-		r := gs.RoleCopy(false, parsedNumber)
+	if name != "" { // it was a name
+		for _, v := range gs.Guild.Roles {
+			if strings.EqualFold(strings.TrimSpace(v.Name), name) {
+				return v
+			}
+		}
+	} else { // was a number, try looking by id
+		r := gs.RoleCopy(false, id)
 		if r != nil {
 			return r
 		}
 	}
 
-	// otherwise search by name
-	for _, v := range gs.Guild.Roles {
-		trimmed := strings.TrimSpace(v.Name)
-
-		if strings.EqualFold(trimmed, roleS) {
-			return v
-		}
-	}
-
-	// couldn't find the role :(
-	return nil
+	return nil // couldn't find the role :(
 }
 
 func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
-
 	return func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
-
 		var err error
 		skip := (page - 1) * 6
 		userID := parsed.Args[0].Int64()
@@ -1006,10 +1236,8 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 		}
 		fields = append(fields, currentField)
 		if len(result) > 0 {
-
 			for _, entry := range result {
-
-				entry_formatted := fmt.Sprintf("#%d: `%20s` - By: **%s** (%13s) \n **Reason:** %s", entry.ID, entry.CreatedAt.UTC().Format(time.RFC822), entry.AuthorUsernameDiscrim, entry.AuthorID, entry.Message)
+				entry_formatted := fmt.Sprintf("#%d: `%20s` - Por: **%s** (%13s) \n **Motivo:** %s", entry.ID, entry.CreatedAt.UTC().Format(time.RFC822), entry.AuthorUsernameDiscrim, entry.AuthorID, entry.Message)
 				if len([]rune(entry_formatted)) > 900 {
 					entry_formatted = common.CutStringShort(entry_formatted, 900)
 				}
@@ -1030,7 +1258,7 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 			}
 
 		} else {
-			currentField.Value = "No Warnings"
+			currentField.Value = "Sem notificações"
 		}
 
 		return &discordgo.MessageEmbed{

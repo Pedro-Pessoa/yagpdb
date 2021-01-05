@@ -6,7 +6,7 @@ jobs: # basic units of work in a run
       - image: circleci/golang:1.14 #
 
     # directory where steps are run. Path must conform to the Go Workspace requirements
-    working_directory: /go/src/github.com/jonas747/yagpdb
+    working_directory: /go/src/github.com/Pedro-Pessoa/yagpdb
 
     steps: # steps that comprise the `build` job
       - checkout # check out source code to working directory
@@ -17,13 +17,13 @@ jobs: # basic units of work in a run
       # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
           keys:
             - v1-pkg-cache
-     
-      - run: 
+
+      - run:
           name: main yagpdb binary build
           command: |
             VERSION=$(git describe --tags)
             cd cmd/yagpdb
-            go install -i -ldflags "-X github.com/jonas747/yagpdb/common.VERSION=${VERSION}"
+            go install -i -ldflags "-X github.com/Pedro-Pessoa/yagpdb/common.VERSION=${VERSION}"
             cd -
       - run: cd cmd/shardorchestrator && go install -i && cd -
       - run: cd cmd/capturepanics && go install -i && cd -
@@ -42,7 +42,7 @@ jobs: # basic units of work in a run
             cp */assets/* cmd/yagpdb/templates/plugins/
 
             tar -cvf misc_artifacts.tar cmd/yagpdb/templates/ cmd/yagpdb/static/
-            
+
       - store_artifacts:
           path: misc_artifacts.tar
           destination: misc

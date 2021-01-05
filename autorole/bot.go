@@ -51,7 +51,7 @@ func (p *Plugin) StopBot(wg *sync.WaitGroup) {
 }
 
 var roleCommands = []*commands.YAGCommand{
-	&commands.YAGCommand{
+	{
 		CmdCategory: commands.CategoryDebug,
 		Name:        "Roledbg",
 		Description: "Debug debug debug autorole assignment",
@@ -129,7 +129,7 @@ func onMemberJoin(evt *eventsystem.EventData) (retry bool, err error) {
 	// 	return
 	// }
 
-	if config.RequiredDuration < 1 && config.CanAssignTo(addEvt.Roles, time.Now()) {
+	if config.RequiredDuration < 1 && config.CanAssignTo(addEvt.Roles, time.Now(), addEvt.Pending) {
 		_, retry, err = assignRole(config, addEvt.GuildID, addEvt.User.ID)
 		return retry, err
 	}
@@ -164,7 +164,11 @@ func assignRole(config *GeneralConfig, guildID int64, targetID int64) (disabled 
 	return false, false, nil
 }
 
-func (conf *GeneralConfig) CanAssignTo(currentRoles []int64, joinedAt time.Time) bool {
+func (conf *GeneralConfig) CanAssignTo(currentRoles []int64, joinedAt time.Time, pending bool) bool {
+	if pending {
+		return false
+	}
+
 	if time.Since(joinedAt) < time.Duration(conf.RequiredDuration)*time.Minute {
 		return false
 	}
@@ -228,7 +232,7 @@ func assignFromGuildChunk(guildID int64, config *GeneralConfig, members []*disco
 			}
 		}
 
-		if !config.CanAssignTo(m.Roles, joinedAt) {
+		if !config.CanAssignTo(m.Roles, joinedAt, m.Pending) {
 			continue
 		}
 
@@ -337,7 +341,7 @@ func handleAssignRole(evt *scheduledEventsModels.ScheduledEvent, data interface{
 		return bot.CheckDiscordErrRetry(err), err
 	}
 
-	if !config.CanAssignTo(member.Roles, member.JoinedAt) {
+	if !config.CanAssignTo(member.Roles, member.JoinedAt, member.Pending) {
 		// some other reason they can't get the role, such as whitelist or ignore roles
 		return false, nil
 	}
@@ -363,7 +367,7 @@ func handleGuildMemberUpdate(evt *eventsystem.EventData) (retry bool, err error)
 		return false, nil
 	}
 
-	if !config.CanAssignTo(update.Member.Roles, time.Time{}) {
+	if !config.CanAssignTo(update.Member.Roles, time.Time{}, update.Member.Pending) {
 		return false, nil
 	}
 

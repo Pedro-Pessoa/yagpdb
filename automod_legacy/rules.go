@@ -284,21 +284,21 @@ type WordsRule struct {
 	BaseRule          `valid:"traverse"`
 	BuiltinSwearWords bool
 	BannedWords       string          `valid:",25000"`
-	compiledWords     map[string]bool `json:"-"`
+	CompiledWords     map[string]bool `json:"-"`
 }
 
 func (w *WordsRule) GetCompiled() map[string]bool {
-	if w.compiledWords != nil {
-		return w.compiledWords
+	if w.CompiledWords != nil {
+		return w.CompiledWords
 	}
 
-	w.compiledWords = make(map[string]bool)
+	w.CompiledWords = make(map[string]bool)
 	fields := strings.Fields(w.BannedWords)
 	for _, word := range fields {
-		w.compiledWords[strings.ToLower(word)] = true
+		w.CompiledWords[strings.ToLower(word)] = true
 	}
 
-	return w.compiledWords
+	return w.CompiledWords
 }
 
 func (w *WordsRule) Check(evt *discordgo.Message, cs *dstate.ChannelState) (del bool, punishment Punishment, msg string, err error) {

@@ -45,6 +45,19 @@ var (
 	confReadOnlyAccessRole = config.RegisterOption("yagpdb.readonly.access.role", "People with this role on the main server has global read only access to configs", int64(0))
 )
 
+func MainGuildID() int64 {
+	return int64(confMainServer.GetInt())
+}
+
+func IsGuildWhiteListed(id int64) bool {
+	switch id {
+	case MainGuildID(), 647293762154004490, 741395967638634496:
+		return true
+	default:
+		return false
+	}
+}
+
 func loopCheckAdmins() {
 	mainServer = int64(confMainServer.GetInt())
 	adminRole = int64(confAdminRole.GetInt())

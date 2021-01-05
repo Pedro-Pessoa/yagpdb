@@ -110,7 +110,7 @@ func TestValidationChannel(t *testing.T) {
 
 	g := &discordgo.Guild{
 		Channels: []*discordgo.Channel{
-			&discordgo.Channel{
+			{
 				ID: 1,
 			},
 		},

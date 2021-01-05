@@ -60,6 +60,13 @@ var (
 		HelpEmoji:   "🖥",
 		EmbedColor:  0,
 	}
+
+	CategoryTibia = &dcmd.Category{
+		Name:        "Tibia",
+		Description: "Comandos relacionados a Tibia.",
+		HelpEmoji:   "🎲",
+		EmbedColor:  0xff4600,
+	}
 )
 
 var (
@@ -237,20 +244,20 @@ func (yc *YAGCommand) humanizeError(err error) string {
 
 	switch t := cause.(type) {
 	case PublicError:
-		return "The command returned an error: " + t.Error()
+		return "O comando retornou um erro: " + t.Error()
 	case UserError:
-		return "Unable to run the command: " + t.Error()
+		return "Não foi possível executar o comando: " + t.Error()
 	case *discordgo.RESTError:
 		if t.Message != nil && t.Message.Message != "" {
 			if t.Response != nil && t.Response.StatusCode == 403 {
-				return "The bot permissions has been incorrectly set up on this server for it to run this command: " + t.Message.Message
+				return "As permissões do bot não foram setadas correctamente nesse servidor para usar esse comando: " + t.Message.Message
 			}
 
-			return "The bot was not able to perform the action, discord responded with: " + t.Message.Message
+			return "O bot nao conseguiu executar a ação, o discord respondeu com: " + t.Message.Message
 		}
 	}
 
-	return "Something went wrong when running this command, either discord or the bot may be having issues."
+	return "Algo deu errado ao executar esse comando. O bot e/ou o discord devem estar tendo dificuldades."
 }
 
 // PostCommandExecuted sends the response and handles the trigger and response deletions
@@ -288,7 +295,7 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 		switch resp.(type) {
 		case *discordgo.MessageEmbed, []*discordgo.MessageEmbed:
 			if !bot.BotProbablyHasPermissionGS(cmdData.GS, cmdData.CS.ID, discordgo.PermissionEmbedLinks) {
-				resp = "This command returned an embed but the bot does not have embed links permissions in this channel, cannot send the response."
+				resp = "Esse comando retornou uma embed mas o bot não tem permissão de enviar embeds, impossível enviar a resposta."
 			}
 		}
 	}
@@ -336,12 +343,12 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 }
 
 const (
-	ReasonError                    = "An error occured"
-	ReasonCommandDisabaledSettings = "Command is disabled in the settings"
-	ReasonMissingRole              = "Missing a required role for this command"
-	ReasonIgnoredRole              = "Has a ignored role for this command"
-	ReasonUserMissingPerms         = "User is missing one or more permissions to run this command"
-	ReasonCooldown                 = "This command is on cooldown"
+	ReasonError                    = "Ocorreu um erro"
+	ReasonCommandDisabaledSettings = "O comando está desabilitado nas configurações"
+	ReasonMissingRole              = "Falta uma carga para esse comando"
+	ReasonIgnoredRole              = "Ignorou um cargo para esse comando"
+	ReasonUserMissingPerms         = "Usuário não tem permissões suficientes para usar esse comando"
+	ReasonCooldown                 = "Esse comando está em cooldown"
 )
 
 // checks if the specified user can execute the command, and if so returns the settings for said command

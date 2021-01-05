@@ -17,10 +17,10 @@
 <meta name="msapplication-config" content="/static/icons/browserconfig.xml?v=6">
 <meta name="theme-color" content="#ffffff">
 
-  <meta property="og:title" content="YAGPDB" />
-  <meta property="og:description" content="Yet Another General Purpose Discord Bot" />
+  <meta property="og:title" content="Tid Tibia Bot" />
+  <meta property="og:description" content="Um bot de discord para o MMORPG Tibia" />
   <!-- For Social Media -->
-  <meta property="description" content="Yet Another General Purpose Discord Bot" />
+  <meta property="description" content="Um bot de discord para o MMORPG Tibia" />
   <!-- For search engines -->
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/static/css/landing-page-min.css">
   <!-- Custom Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Lato:300,400,500,700|Poppins:500,700" rel="stylesheet">
-  <title>YAGPDB</title>
+  <title>TID TIBIA BOT</title>
 </head>
 
 <body>
@@ -45,23 +45,23 @@
     <div class="collapse navbar-collapse poppins" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a id="link_to_about" class="nav-link js-anchor-link" href="#about">About</a>
+          <a id="link_to_about" class="nav-link js-anchor-link" href="#about">Sobre</a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link js-anchor-link" href="#features">Features</a>
+          <a class="nav-link js-anchor-link" href="#features">Funcionalidades</a>
         </li>
         <li class="nav-item active">
           <a class="nav-link" href="/status">Status</a>
         </li>
         <li class="nav-item active">
-          <a class="nav-link" href="https://discordapp.com/oauth2/authorize?client_id={{.ClientID}}&scope=bot&permissions=2146827775&response_type=code&redirect_uri={{urlquery (joinStr ""  "https://" .Host "/manage")}}">Add to server</a>
+          <a class="nav-link" href="https://discordapp.com/oauth2/authorize?client_id={{.ClientID}}&scope=bot&permissions=2146827775&response_type=code&redirect_uri={{urlquery (joinStr ""  "https://" .Host "/manage")}}">Adicione ao servidor</a>
         </li>
         <li class="nav-item active">
           <a class="nav-link" href="/premium">Premium</a>
         </li>
       </ul>
       <form class="form-inline my-2 my-lg-0 mr-2">
-        <a class="btn btn-outline-danger my-2 my-sm-0" href="/manage">Control Panel</a>
+        <a class="btn btn-outline-danger my-2 my-sm-0" href="/manage">Painel de Controle</a>
       </form>
       {{if .User}}
       <form class="form-inline my-2 my-lg-0">
@@ -78,27 +78,27 @@
           <div class="row justify-content-md-center">
             <div class="col col-md-10">
               <h1 class="brand-heading bold intro_head">
-                <br/>YAGPDB</h1>
-              <p class="intro_headline">Yet Another General Purpose Discord Bot</p>
+                <br/>Tid Tibia Bot</h1>
+              <p class="intro_headline">Um bot de discord para o MMORPG Tibia</p>
             </div>
           </div>
           {{if ne .DemoServerID "0"}}<div class="row justify-content-md-center">
             <div class="col col-md-10">
-              <p class="intro-text poppins"><a href="/manage/{{.DemoServerID}}/home">Click here for a live demo of the control panel</a></p>
+              <p class="intro-text poppins"><a href="/manage/{{.DemoServerID}}/home">Clique aqui para uma demonstração do Painel de Controle</a></p>
             </div>
           </div>{{end}}
           <div class="row justify-content-md-center">
             <div class="col col-md-5">
               <div class="numberbutton">
                 <img src="/static/img/button.png" alt="" class="btn_img">
-                <p class="intro-text poppins bold numbercentered">Joined Servers
+                <p class="intro-text poppins bold numbercentered">Servers comigo
                   <br> {{.JoinedServers}}</p>
               </div>
             </div>
             <div class="col col-md-5">
               <div class="numberbutton">
                 <img src="/static/img/button.png" alt="" class="btn_img">
-                <p class="intro-text poppins bold numbercentered">Commands ran today
+                <p class="intro-text poppins bold numbercentered">Comandos utilizados hoje
                   <br> {{.Commands}}</p>
               </div>
             </div>
@@ -116,15 +116,15 @@
       <img class="img-responsive about aboutlogo" src="/static/img/logo_y.png" alt="logo of yagpdb">
       <div class="row justify-content-md-center">
         <div class="col col-lg-8 abouttext" style="padding-bottom: 3%;">
-          <h2 class="about poppins semibold">About YAGPDB</h2>
-          <p class="about">YAGPDB is a multi-purpose Discord bot that I've worked on for quite some time now. What does it do? Well, it does
-            a bunch of stuff right now, the best way to figure out what it does is to try it out by adding it onto a testing
-            server and see what it provides for yourself.</p>
+          <h2 class="about poppins semibold">Sobre o Tid Bot</h2>
+          <p class="about">Tid Tibia Bot é um bot para discord desenvolvido através do código do YAGPDB.
+          A sua principal função é interagir com dados do MMORPG Tibia.
+          Facilita a organização de guild, ajuda MUITO em wars, possui um sistema de respawn, avisa se sair notícia nova no tibia, entre muitas outras funcionalidades.
+          Além disso, possui todas as funções do YAGPDB oficial, menos os feeds.</p>
           <p class="about">
-            <b>Who am I?</b> I go by the name Jonas747 online and (unsurprisingly) my real name is also Jonas, although not 747,
-            I'm not a plane. YAGPDB is a project that I have been developing in my spare time for roughly 3 years now, it
-            started out because MEE6 (which I was currently using for my server) was lacking a lot of stuff that I wanted,
-            so I decided to make my own bot, and here I am.</p>
+            <b>Quem sou eu?</b> Meu nome é Pedro Pessoa. Esse bot foi desenvolvido através do código do YAGPDB que é um bot open source muito famoso do discord.
+            A única coisa que eu fiz foi implementar funções extras no bot.
+            O criador original do bot é o Jonas747(Jonas747#0001).</p>
         </div>
       </div>
     </section>
@@ -136,18 +136,18 @@
       <div class="row justify-content-md-center">
         <div class="col col-lg-12">
           <h2 class="feature_title semibold">
-            <b>FEATURES</b>
+            <b>FUNCIONALIDADES</b>
           </h2>
         </div>
       </div>
       <div id="reddit_feed" class="feature_element_l">
         <div class="text-left redbox first">
-          <h3>Feeds</h3>
+          <h3>Respawn List</h3>
           <ul>
-            <li>Fast Reddit feeds (within one minute)</li>
-            <li>Fast YouTube feeds (within a few minutes)</li>
-            <li>Join / Leave messages in a specific channel (configurable)</li>
-            <li>Direct messages on join (configurable)</li>
+            <li>Controle os respawns do servidor com muita eficiência</li>
+            <li>Nunca esqueça da sua hunt! O bot enviará uma notificação quando chegar a sua vez</li>
+            <li>Chegou a hora do pelego? Sem problema! Os moderadores poderão pausar a resp list!</li>
+            <li>Completamente personalizavel! Você escolhe quem pode usar a resplist, por quanto tempo, a formatação da mensagem e tudo mais!</li>
           </ul>
         </div>
         <img src="/static/img/reddit feed1.png" class="img-fluid f_image_r second" alt="Example of Reddit Feed from r/discordapp">
@@ -156,27 +156,21 @@
       <div id="rolemenu" class="feature_element_r">
         <img src="/static/img/rolemenu1.png" class="img-fluid f_image_l second" alt="Role Menu with reactions">
         <div class="redbox text_right first">
-          <h3>Self-assignable Roles</h3>
-          <p>This feature is very advanced. You can either give yourself a role with a command or with a role menu:</p>
+          <h3>Acompanhamento de chars</h3>
+          <p>Receba notificações de tudo que acontece com os chars da sua friend list ou da sua hunted list!</p>
           <ul>
-            <li>Group in several groups for multiple menus</li>
-            <li>Assign the roles via reactions on a message (role menu)</li>
-            <li>Different modes like single or multiple roles at once</li>
-            <li>Advanced options like require role or ignore role per group or role</li>
+            <li>O char upou de level? Eu vou te avisar!</li>
+            <li>O char morreu? Eu vou te avisar!</li>
+            <li>O char saiu da guild? Eu vou te avisar!</li>
+            <li>O char se casou? Sim! Até isso eu vou te avisar!</li>
           </ul>
         </div>
         <img src="/static/img/line4.png" class="img-fluid line_image line2" alt="line">
       </div>
       <div id="automod" class="feature_element_l">
         <div class="text-left redbox first">
-          <h3>Automatic Moderator</h3>
-          <p>YAGPDB has a very configurable automoderator, for each rule you can set automoderator to mute, kick or ban after
-            a certain number of violations within a certain timeframe.</p>
-          <p>
-            <b>
-              <a href="https://docs.yagpdb.xyz/tools-and-utilities/automoderator-v2" target="_blank" rel="noopener" class="link">Click here for a list of rules, conditions, and effects</a>
-            </b>
-          </p>
+          <h3>Busque um char na hora!</h3>
+          <p>Use o comando !char -nome do char- para saber tudo sobre ele! Não só isso, use também o comando !mortes para ver as mortes mais recentes do personagem!</p>
         </div>
         <img src="/static/img/automod1.png" class="img-fluid f_image_r second" alt="Auto Moderator in action">
         <img src="/static/img/line1.png" class="img-fluid line_image line3" alt="line">
@@ -184,28 +178,21 @@
       <div id="customcommands" class="feature_element_r">
         <img src="/static/img/custom commands1.png" class="img-fluid f_image_l second" alt="Custom Command example with invite">
         <div class="redbox text_right first">
-          <h3>Custom Commands</h3>
+          <h3>Online Tracker</h3>
           <ul>
-            <li>Triggers: Starts with, Contains, Exact match or Regex</li>
-            <li>Dynamic response</li>
-            <li>Useful for automatic responses to questions, command aliases or other fun stuff</li>
+            <li>Hunted/Friend List! Saiba quem está online!</li>
+            <li>Muito útil em uma guerra para você saber quem está online e caçando!</li>
+            <li>Além disso, eu também vou te avisar dos avanças dos seus inimigos! Se eles morrerem, uparem, etc</li>
           </ul>
-          <p>
-            <b>
-              <a href="https://docs.yagpdb.xyz/other-1/custom-command-examples" target="_blank" rel="noopener" class="link">Click here for custom command examples</a>
-            </b>
-          </p>
         </div>
         <img src="/static/img/line4.png" class="img-fluid line_image line4" alt="line">
       </div>
       <div id="serverstats" class="feature_element_l">
         <div class="text-left redbox first">
-          <h3>Server Stats (
-            <a href="http://yagpdb.xyz/public/140847179043569664/stats" target="_blank" rel="noopener" class="link">Example</a>)</h3>
+          <h3>Notícias!</h3>
           <ul>
-            <li>Stats: Members joined / left, messages in the last 24h per channel, members online</li>
-            <li>Optionally make stats public</li>
-            <li>Graphs with message overview on the control panel</li>
+            <li>Se sair uma notícia nova no Tibia pode deixar que eu aviso vocês!</li>
+            <li>Além disso, você pode usar o comando !news para checar a notícia mais recente do Tibia.</li>
           </ul>
         </div>
         <img src="/static/img/stats1.png" class="img-fluid f_image_r second" alt="Example of the status command">
@@ -214,30 +201,21 @@
       <div id="general_moderation" class="feature_element_r">
         <img src="/static/img/moderation1.png" class="img-fluid f_image_l second" alt="Example of Moderation with YAGPDB">
         <div class="redbox text_right first">
-          <h3>General Moderation</h3>
-          <ul>
-            <li>Kick, Ban and Clean</li>
-            <li>Advanced cleaning parameters</li>
-            <li>Timed mutes and bans</li>
-            <li>Modlog with kicks, bans, mutes and warnings</li>
-            <li>Message to the person being warned / kicked / muted / banned</li>
-            <li>Message logs</li>
-            <li>Warnings</li>
-          </ul>
+          <h3>Lembrete de bosses</h3>
+          <p>Você nunca mais vai perder a hora de um boss! Pode deixar que eu pingo você te avisando que chegou a hora de pegar aquele rare de novo ;)</p>
         </div>
       </div>
       <div class="row feature_item">
         <div class="col-lg-12">
-          <h2 class="centered big_margin">And finally, the feature I'm most proud of:</h2>
+          <h2 class="centered big_margin">E a função mais incrível de todas!</h2>
         </div>
       </div>
       <div id="catfacts" class="feature_element_r">
         <img src="/static/img/cat fact1.png" class="img-fluid f_image_l second" alt="A random cat fact">
         <div class="redbox text_right first">
-          <h3>Cat Facts</h3>
-          <p>This feature made me spend days and nights sitting in a horrible chair in a basement staring at an old monitor
-            fetching new facts. It includes
-            <b>over 250</b> different cat facts!</p>
+          <h3>Crie seus próprios comandos e funcionalidades</h3>
+          <p>O bot conta com um sistema extremamente avançado de Custom Commands que utiliza o package "text/templates" da golang.
+          Com esses comandos você pode fazer basicamente o que você quiser! É incrível!</p>
         </div>
       </div>
     </section>
@@ -246,16 +224,16 @@
       <section id="other" class="container content-section ">
         <div class="row justify-content-md-center">
           <div class="col col-lg-12 ">
-            <h2>Have questions? Check out these links!</h2>
+            <h2>Tá com alguma dúvida? Checa esses links!</h2>
             <ul>
-              <li>The documentation can be found at
-                <a class="link" href="https://docs.yagpdb.xyz/">docs.yagpdb.xyz</a>
+              <li>Documentação original do YAGPDB para aprender sobre custom commands
+                <a class="link" href="https://learn.yagpdb.xyz/">clica em mim!</a>
               </li>
-              <li>The YAGPDB Community Server for support, suggestions, feedback and general talk can be joined
-                <a class="link" href="https://discord.gg/4udtcA5">here</a>
+              <li>Entra no nosso servidor e tire suas duvidas por la
+                <a class="link" href="https://discord.gg/5HTJVHQ">clica aqui!</a>
               </li>
-              <li>If you want to donate using Patreon or cryptocurrencies, check out
-                <a class="link" href="https://docs.yagpdb.xyz/donating">this page</a>
+              <li>Se você quiser saber mais sobre as funcionalidades originais do bot
+                <a class="link" href="https://docs.yagpdb.xyz/">saca só!</a>
               </li>
             </ul>
           </div>
@@ -269,7 +247,8 @@
           <p>
             <b>YAGPDB</b> created by
             <a class="link" href="https://github.com/jonas747" rel="noopener" target="_blank">Jonas747</a> | Landing Page by
-            <a class="link" href="https://github.com/michelhn/" rel="noopener" target="_blank">Michdi</a>
+            <a class="link" href="https://github.com/michelhn/" rel="noopener" target="_blank">Michdi</a> | Modificado por
+            <a class="link" href="https://github.com/Pedro-Pessoa" rel="noopener" target="_blank">Pedro Pessoa</a>
           </p>
         </div>
       </div>

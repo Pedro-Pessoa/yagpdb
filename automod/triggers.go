@@ -37,7 +37,7 @@ func (r BaseRegexTrigger) DataType() interface{} {
 
 func (r BaseRegexTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "Regex",
 			Key:  "Regex",
 			Kind: SettingTypeString,
@@ -75,7 +75,7 @@ func (mc *MentionsTrigger) Description() string {
 
 func (mc *MentionsTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Threshold",
 			Key:     "Treshold",
 			Kind:    SettingTypeInt,
@@ -172,7 +172,7 @@ func (wl *WordListTrigger) Description() (description string) {
 
 func (wl *WordListTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "List",
 			Key:  "ListID",
 			Kind: SettingTypeList,
@@ -251,7 +251,7 @@ func (dt *DomainTrigger) Description() (description string) {
 
 func (dt *DomainTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "List",
 			Key:  "ListID",
 			Kind: SettingTypeList,
@@ -347,7 +347,7 @@ func (vt *ViolationsTrigger) Description() string {
 
 func (vt *ViolationsTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Violation name",
 			Key:     "Name",
 			Kind:    SettingTypeString,
@@ -355,19 +355,19 @@ func (vt *ViolationsTrigger) UserSettings() []*SettingDef {
 			Min:     1,
 			Max:     50,
 		},
-		&SettingDef{
+		{
 			Name:    "Number of violations",
 			Key:     "Treshold",
 			Kind:    SettingTypeInt,
 			Default: 4,
 		},
-		&SettingDef{
+		{
 			Name:    "Within (minutes)",
 			Key:     "Interval",
 			Kind:    SettingTypeInt,
 			Default: 60,
 		},
-		&SettingDef{
+		{
 			Name:    "Ignore if a higher violation trigger of this name was activated",
 			Key:     "IgnoreIfLesser",
 			Kind:    SettingTypeBool,
@@ -431,13 +431,13 @@ func (caps *AllCapsTrigger) Description() string {
 
 func (caps *AllCapsTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Min number of all caps",
 			Key:     "MinLength",
 			Kind:    SettingTypeInt,
 			Default: 3,
 		},
-		&SettingDef{
+		{
 			Name:    "Percentage of all caps",
 			Key:     "Percentage",
 			Kind:    SettingTypeInt,
@@ -628,13 +628,13 @@ func (s *SlowmodeTrigger) UserSettings() []*SettingDef {
 	}
 
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Messages",
 			Key:     "Treshold",
 			Kind:    SettingTypeInt,
 			Default: defaultMessages,
 		},
-		&SettingDef{
+		{
 			Name:    "Within (seconds)",
 			Key:     "Interval",
 			Kind:    SettingTypeInt,
@@ -733,19 +733,19 @@ func (mt *MultiMsgMentionTrigger) Description() string {
 
 func (mt *MultiMsgMentionTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Mentions",
 			Key:     "Treshold",
 			Kind:    SettingTypeInt,
 			Default: 20,
 		},
-		&SettingDef{
+		{
 			Name:    "Within (seconds)",
 			Key:     "Interval",
 			Kind:    SettingTypeInt,
 			Default: 10,
 		},
-		&SettingDef{
+		{
 			Name: "Count multiple mentions to the same user",
 			Key:  "CountDuplicates",
 			Kind: SettingTypeBool,
@@ -889,7 +889,7 @@ func (spam *SpamTrigger) Description() string {
 
 func (spam *SpamTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Threshold",
 			Key:     "Treshold",
 			Kind:    SettingTypeInt,
@@ -897,7 +897,7 @@ func (spam *SpamTrigger) UserSettings() []*SettingDef {
 			Max:     250,
 			Default: 4,
 		},
-		&SettingDef{
+		{
 			Name:    "Within seconds (0 = infinity)",
 			Key:     "TimeLimit",
 			Kind:    SettingTypeInt,
@@ -1047,7 +1047,7 @@ func (nwl *NicknameWordlistTrigger) Description() (description string) {
 
 func (nwl *NicknameWordlistTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "List",
 			Key:  "ListID",
 			Kind: SettingTypeList,
@@ -1180,7 +1180,7 @@ func (uwl *UsernameWordlistTrigger) Description() (description string) {
 
 func (uwl *UsernameWordlistTrigger) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "List",
 			Key:  "ListID",
 			Kind: SettingTypeList,

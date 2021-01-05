@@ -3,13 +3,13 @@ package run
 import (
 	"bytes"
 	"fmt"
-	"github.com/jonas747/yagpdb/common/config"
 	"os"
 	"sort"
 	"strings"
 
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/common/config"
 )
 
 func GenCommandsDocs() {
@@ -86,7 +86,7 @@ func GenCommandsDocs() {
 func GenConfigDocs() {
 
 	keys := make([]string, 0, len(config.Singleton.Options))
-	for k, _ := range config.Singleton.Options {
+	for k := range config.Singleton.Options {
 		keys = append(keys, k)
 	}
 

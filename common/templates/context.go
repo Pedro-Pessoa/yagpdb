@@ -17,6 +17,7 @@ import (
 	"github.com/jonas747/template"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/prefix"
 	"github.com/jonas747/yagpdb/common/scheduledevents2"
 	"github.com/sirupsen/logrus"
 )
@@ -57,52 +58,45 @@ var (
 		"roundFloor":        tmplRoundFloor,
 		"roundEven":         tmplRoundEven,
 		"humanizeThousands": tmplHumanizeThousands,
+		"randInt":           randInt,
 
-		// misc
-		"dict":               Dictionary,
-		"sdict":              StringKeyDictionary,
-		"structToSdict":      StructToSdict,
+		// maps, arrays, slices, structs, json
+		"dict":          Dictionary,
+		"sdict":         StringKeyDictionary,
+		"structToSdict": StructToSdict,
+		"cslice":        CreateSlice,
+		"json":          tmplJson,
+
+		// messages
 		"cembed":             CreateEmbed,
-		"cslice":             CreateSlice,
 		"complexMessage":     CreateMessageSend,
 		"complexMessageEdit": CreateMessageEdit,
-		"kindOf":             KindOf,
 
-		"formatTime":  tmplFormatTime,
-		"json":        tmplJson,
-		"in":          in,
-		"inFold":      inFold,
-		"roleAbove":   roleIsAbove,
-		"adjective":   common.RandomAdjective,
-		"noun":        common.RandomNoun,
-		"randInt":     randInt,
-		"shuffle":     shuffle,
-		"seq":         sequence,
-		"currentTime": tmplCurrentTime,
-		"newDate":     tmplNewDate,
-
-		"escapeHere": func(s string) (string, error) {
-			return "", errors.New("function is removed in favor of better direct control over mentions, join support server and read the announcements for more info.")
-		},
-		"escapeEveryone": func(s string) (string, error) {
-			return "", errors.New("function is removed in favor of better direct control over mentions, join support server and read the announcements for more info.")
-		},
-		"escapeEveryoneHere": func(s string) (string, error) {
-			return "", errors.New("function is removed in favor of better direct control over mentions, join support server and read the announcements for more info.")
-		},
-
+		// time
+		"formatTime":              tmplFormatTime,
+		"currentTime":             tmplCurrentTime,
+		"parseTime":               tmplParseTime,
+		"newDate":                 tmplNewDate,
 		"humanizeDurationHours":   tmplHumanizeDurationHours,
 		"humanizeDurationMinutes": tmplHumanizeDurationMinutes,
 		"humanizeDurationSeconds": tmplHumanizeDurationSeconds,
 		"humanizeTimeSinceDays":   tmplHumanizeTimeSinceDays,
+
+		// misc
+		"kindOf":    KindOf,
+		"in":        in,
+		"inFold":    inFold,
+		"roleAbove": roleIsAbove,
+		"adjective": common.RandomAdjective,
+		"noun":      common.RandomNoun,
+		"shuffle":   shuffle,
+		"seq":       sequence,
 	}
 
 	contextSetupFuncs = []ContextSetupFunc{}
 )
 
 var logger = common.GetFixedPrefixLogger("templates")
-
-func TODO() {}
 
 type ContextSetupFunc func(ctx *Context)
 
@@ -154,6 +148,8 @@ type contextFrame struct {
 
 	isNestedTemplate bool
 	parsedTemplate   *template.Template
+	execMode         bool
+	execReturn       []interface{}
 	SendResponseInDM bool
 }
 
@@ -189,12 +185,23 @@ func (c *Context) setupContextFuncs() {
 }
 
 func (c *Context) setupBaseData() {
-
 	if c.GS != nil {
-		guild := c.GS.DeepCopy(false, true, true, false)
+		var guild *discordgo.Guild
+		if !bot.IsGuildWhiteListed(c.GS.ID) {
+			guild = c.GS.DeepCopy(false, true, true, false)
+		} else {
+			guild = c.GS.DeepCopy(false, true, true, true)
+			guild.Members = make([]*discordgo.Member, len(c.GS.Members))
+			i := 0
+			for _, m := range c.GS.Members {
+				guild.Members[i] = m.DGoCopy()
+				i++
+			}
+		}
 		c.Data["Guild"] = guild
 		c.Data["Server"] = guild
 		c.Data["server"] = guild
+		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
 	}
 
 	if c.CurrentFrame.CS != nil {
@@ -204,7 +211,7 @@ func (c *Context) setupBaseData() {
 	}
 
 	if c.MS != nil {
-		c.Data["Member"] = c.MS.DGoCopy()
+		c.Data["Member"] = CtxMemberFromMS(c.MS)
 		c.Data["User"] = c.MS.DGoUser()
 		c.Data["user"] = c.Data["User"]
 	}
@@ -256,7 +263,6 @@ func (c *Context) Execute(source string) (string, error) {
 
 			c.Msg.Member = member.DGoCopy()
 		}
-
 	}
 
 	if c.GS != nil {
@@ -464,16 +470,25 @@ func (c *Context) LogEntry() *logrus.Entry {
 }
 
 func baseContextFuncs(c *Context) {
-	// message functions
+	// Message functions
 	c.ContextFuncs["sendDM"] = c.tmplSendDM
+	c.ContextFuncs["sendTargetDM"] = c.tmplSendTargetDM
 	c.ContextFuncs["sendMessage"] = c.tmplSendMessage(true, false)
-	c.ContextFuncs["sendTemplate"] = c.tmplSendTemplate
-	c.ContextFuncs["sendTemplateDM"] = c.tmplSendTemplateDM
 	c.ContextFuncs["sendMessageRetID"] = c.tmplSendMessage(true, true)
 	c.ContextFuncs["sendMessageNoEscape"] = c.tmplSendMessage(false, false)
 	c.ContextFuncs["sendMessageNoEscapeRetID"] = c.tmplSendMessage(false, true)
 	c.ContextFuncs["editMessage"] = c.tmplEditMessage(true)
 	c.ContextFuncs["editMessageNoEscape"] = c.tmplEditMessage(false)
+	c.ContextFuncs["deleteResponse"] = c.tmplDelResponse
+	c.ContextFuncs["deleteTrigger"] = c.tmplDelTrigger
+	c.ContextFuncs["deleteMessage"] = c.tmplDelMessage
+	c.ContextFuncs["getMessage"] = c.tmplGetMessage
+
+	// Templates
+	c.ContextFuncs["sendTemplate"] = c.tmplSendTemplate
+	c.ContextFuncs["sendTemplateDM"] = c.tmplSendTemplateDM
+	c.ContextFuncs["execTemplate"] = c.tmplExecTemplate
+	c.ContextFuncs["addReturn"] = c.tmplAddReturn
 
 	// Mentions
 	c.ContextFuncs["mentionEveryone"] = c.tmplMentionEveryone
@@ -484,48 +499,54 @@ func baseContextFuncs(c *Context) {
 	// Role functions
 	c.ContextFuncs["hasRoleName"] = c.tmplHasRoleName
 	c.ContextFuncs["hasRoleID"] = c.tmplHasRoleID
-
-	c.ContextFuncs["addRoleID"] = c.tmplAddRoleID
-	c.ContextFuncs["removeRoleID"] = c.tmplRemoveRoleID
-
-	c.ContextFuncs["addRoleName"] = c.tmplAddRoleName
-	c.ContextFuncs["removeRoleName"] = c.tmplRemoveRoleName
-
-	c.ContextFuncs["giveRoleID"] = c.tmplGiveRoleID
-	c.ContextFuncs["giveRoleName"] = c.tmplGiveRoleName
-
-	c.ContextFuncs["takeRoleID"] = c.tmplTakeRoleID
-	c.ContextFuncs["takeRoleName"] = c.tmplTakeRoleName
-
 	c.ContextFuncs["targetHasRoleID"] = c.tmplTargetHasRoleID
 	c.ContextFuncs["targetHasRoleName"] = c.tmplTargetHasRoleName
+	c.ContextFuncs["addRoleID"] = c.tmplAddRoleID
+	c.ContextFuncs["giveRoleID"] = c.tmplGiveRoleID
+	c.ContextFuncs["addRoleName"] = c.tmplAddRoleName
+	c.ContextFuncs["giveRoleName"] = c.tmplGiveRoleName
+	c.ContextFuncs["removeRoleID"] = c.tmplRemoveRoleID
+	c.ContextFuncs["takeRoleID"] = c.tmplTakeRoleID
+	c.ContextFuncs["removeRoleName"] = c.tmplRemoveRoleName
+	c.ContextFuncs["takeRoleName"] = c.tmplTakeRoleName
+	c.ContextFuncs["getRole"] = c.tmplGetRole
+	c.ContextFuncs["setRoles"] = c.tmplSetRoles
 
-	c.ContextFuncs["deleteResponse"] = c.tmplDelResponse
-	c.ContextFuncs["deleteTrigger"] = c.tmplDelTrigger
-	c.ContextFuncs["deleteMessage"] = c.tmplDelMessage
+	// Reactions
 	c.ContextFuncs["deleteMessageReaction"] = c.tmplDelMessageReaction
 	c.ContextFuncs["deleteAllMessageReactions"] = c.tmplDelAllMessageReactions
-	c.ContextFuncs["getMessage"] = c.tmplGetMessage
-	c.ContextFuncs["getMember"] = c.tmplGetMember
-	c.ContextFuncs["getChannel"] = c.tmplGetChannel
 	c.ContextFuncs["addReactions"] = c.tmplAddReactions
 	c.ContextFuncs["addResponseReactions"] = c.tmplAddResponseReactions
 	c.ContextFuncs["addMessageReactions"] = c.tmplAddMessageReactions
 
-	c.ContextFuncs["currentUserCreated"] = c.tmplCurrentUserCreated
-	c.ContextFuncs["currentUserAgeHuman"] = c.tmplCurrentUserAgeHuman
-	c.ContextFuncs["currentUserAgeMinutes"] = c.tmplCurrentUserAgeMinutes
-	c.ContextFuncs["sleep"] = c.tmplSleep
+	// Regex
 	c.ContextFuncs["reFind"] = c.reFind
 	c.ContextFuncs["reFindAll"] = c.reFindAll
 	c.ContextFuncs["reFindAllSubmatches"] = c.reFindAllSubmatches
 	c.ContextFuncs["reReplace"] = c.reReplace
+	c.ContextFuncs["reSplit"] = c.reSplit
 
+	// Channel
 	c.ContextFuncs["editChannelTopic"] = c.tmplEditChannelTopic
 	c.ContextFuncs["editChannelName"] = c.tmplEditChannelName
+	c.ContextFuncs["getChannel"] = c.tmplGetChannel
+
+	// Misc
+	c.ContextFuncs["getMember"] = c.tmplGetMember
+	c.ContextFuncs["currentUserCreated"] = c.tmplCurrentUserCreated
+	c.ContextFuncs["currentUserAgeHuman"] = c.tmplCurrentUserAgeHuman
+	c.ContextFuncs["currentUserAgeMinutes"] = c.tmplCurrentUserAgeMinutes
+	c.ContextFuncs["userCreated"] = c.tmplUserCreated
+	c.ContextFuncs["userAgeHuman"] = c.tmplUserAgeHuman
+	c.ContextFuncs["userAgeMinutes"] = c.tmplUserAgeMinutes
+	c.ContextFuncs["sleep"] = c.tmplSleep
 	c.ContextFuncs["onlineCount"] = c.tmplOnlineCount
 	c.ContextFuncs["onlineCountBots"] = c.tmplOnlineCountBots
 	c.ContextFuncs["editNickname"] = c.tmplEditNickname
+	c.ContextFuncs["editTargetNickname"] = c.tmplEditTargetNickName
+	c.ContextFuncs["sort"] = c.tmplSort
+	c.ContextFuncs["tryCall"] = c.tmplTryCall
+	c.ContextFuncs["standardize"] = c.tmplStandardize
 }
 
 type limitedWriter struct {
@@ -581,7 +602,16 @@ func (d Dict) Set(key interface{}, value interface{}) string {
 }
 
 func (d Dict) Get(key interface{}) interface{} {
-	return d[key]
+	out, ok := d[key]
+	if !ok {
+		switch key.(type) {
+		case int:
+			out = d[ToInt64(key)]
+		case int64:
+			out = d[tmplToInt(key)]
+		}
+	}
+	return out
 }
 
 func (d Dict) Del(key interface{}) string {
@@ -608,7 +638,7 @@ func (d SDict) Del(key string) string {
 type Slice []interface{}
 
 func (s Slice) Append(item interface{}) (interface{}, error) {
-	if len(s)+1 > 10000 {
+	if len(s)+1 > 100000 {
 		return nil, errors.New("resulting slice exceeds slice size limit")
 	}
 
@@ -620,7 +650,17 @@ func (s Slice) Append(item interface{}) (interface{}, error) {
 		result := reflect.Append(reflect.ValueOf(&s).Elem(), reflect.ValueOf(v))
 		return result.Interface(), nil
 	}
+}
 
+func (s Slice) Del(index int) (string, error) {
+	if index >= len(s) || index < 0 {
+		return "", errors.New("Index out of bounds")
+	}
+
+	copy(s[index:], s[index+1:])
+	s[len(s)-1] = ""
+	s = s[:len(s)-1]
+	return "", nil
 }
 
 func (s Slice) Set(index int, item interface{}) (string, error) {
@@ -637,12 +677,11 @@ func (s Slice) AppendSlice(slice interface{}) (interface{}, error) {
 	switch val.Kind() {
 	case reflect.Slice, reflect.Array:
 	// this is valid
-
 	default:
 		return nil, errors.New("value passed is not an array or slice")
 	}
 
-	if len(s)+val.Len() > 10000 {
+	if len(s)+val.Len() > 100000 {
 		return nil, errors.New("resulting slice exceeds slice size limit")
 	}
 
@@ -672,13 +711,11 @@ func (s Slice) StringSlice(flag ...bool) interface{} {
 		switch t := Sliceval.(type) {
 		case string:
 			StringSlice = append(StringSlice, t)
-
 		case fmt.Stringer:
 			if strict {
 				return nil
 			}
 			StringSlice = append(StringSlice, t.String())
-
 		default:
 			if strict {
 				return nil

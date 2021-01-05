@@ -1,6 +1,8 @@
 package moderation
 
 import (
+	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -20,6 +22,7 @@ import (
 	"github.com/jonas747/yagpdb/common/scheduledevents2"
 	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
 	"github.com/mediocregopher/radix/v3"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
 var (
@@ -47,11 +50,15 @@ func (p *Plugin) BotInit() {
 	// scheduledevents.RegisterEventHandler("mod_unban", handleUnbanLegacy)
 	scheduledevents2.RegisterHandler("moderation_unmute", ScheduledUnmuteData{}, handleScheduledUnmute)
 	scheduledevents2.RegisterHandler("moderation_unban", ScheduledUnbanData{}, handleScheduledUnban)
+	scheduledevents2.RegisterHandler("moderation_unlock_role", ScheduledUnlockData{}, handleScheduledUnlock)
+	scheduledevents2.RegisterHandler("moderation_set_channel_ratelimit", ChannelRatelimitData{}, handleResetChannelRatelimit)
 	scheduledevents2.RegisterLegacyMigrater("unmute", handleMigrateScheduledUnmute)
 	scheduledevents2.RegisterLegacyMigrater("mod_unban", handleMigrateScheduledUnban)
 
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleGuildBanAddRemove), eventsystem.EventGuildBanAdd, eventsystem.EventGuildBanRemove)
 	eventsystem.AddHandlerAsyncLast(p, HandleGuildMemberRemove, eventsystem.EventGuildMemberRemove)
+	eventsystem.AddHandlerAsyncLast(p, LockRoleLockdownMW(HandleGuildRoleDelete), eventsystem.EventGuildRoleDelete)
+	eventsystem.AddHandlerAsyncLast(p, LockRoleLockdownMW(HandleGuildRoleUpdate), eventsystem.EventGuildRoleUpdate)
 	eventsystem.AddHandlerAsyncLast(p, LockMemberMuteMW(HandleMemberJoin), eventsystem.EventGuildMemberAdd)
 	eventsystem.AddHandlerAsyncLast(p, LockMemberMuteMW(HandleGuildMemberUpdate), eventsystem.EventGuildMemberUpdate)
 
@@ -67,6 +74,15 @@ type ScheduledUnmuteData struct {
 
 type ScheduledUnbanData struct {
 	UserID int64 `json:"user_id"`
+}
+
+type ScheduledUnlockData struct {
+	RoleID int64 `json:"role_id"`
+}
+
+type ChannelRatelimitData struct {
+	ChannelID  int64 `json:"channel_id"`
+	OriginalRL int
 }
 
 func (p *Plugin) ShardMigrationReceive(evt dshardorchestrator.EventType, data interface{}) {
@@ -224,7 +240,6 @@ func HandleGuildBanAddRemove(evt *eventsystem.EventData) {
 
 	switch evt.Type {
 	case eventsystem.EventGuildBanAdd:
-
 		user = evt.GuildBanAdd().User
 		action = MABanned
 
@@ -235,9 +250,7 @@ func HandleGuildBanAddRemove(evt *eventsystem.EventData) {
 			common.RedisPool.Do(radix.Cmd(nil, "DEL", RedisKeyBannedUser(guildID, user.ID)))
 			return
 		}
-
 	case eventsystem.EventGuildBanRemove:
-
 		action = MAUnbanned
 		user = evt.GuildBanRemove().User
 
@@ -246,9 +259,13 @@ func HandleGuildBanAddRemove(evt *eventsystem.EventData) {
 		if i > 0 {
 			// The bot was the one that performed the unban
 			common.RedisPool.Do(radix.Cmd(nil, "DEL", RedisKeyUnbannedUser(guildID, user.ID)))
+			if i == 2 {
+				//Bot perfrmed non-scheduled unban, don't make duplicate entries in the modlog
+				return
+			}
+			// Bot perfermed scheduled unban, modlog entry must be handled
 			botPerformed = true
 		}
-
 	default:
 		return
 	}
@@ -329,10 +346,94 @@ func checkAuditLogMemberRemoved(config *Config, data *discordgo.GuildMemberRemov
 		return
 	}
 
+	if !config.LogKicks {
+		// User doesn't want us to log kicks not made through yag
+		return
+	}
+
 	err := CreateModlogEmbed(config, author, MAKick, data.User, entry.Reason, "")
 	if err != nil {
 		logger.WithError(err).WithField("guild", data.GuildID).Error("Failed sending kick log message")
 	}
+}
+
+// Since updating mutes are now a complex operation with removing roles and whatnot,
+// to avoid weird bugs from happening we lock it so it can only be updated one place per user
+func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int) (retry bool, err error)) eventsystem.HandlerFunc {
+	return func(evt *eventsystem.EventData) (retry bool, err error) {
+		var roleID int64
+		roleUpdate := false
+		rolePerms := 0
+		// TODO: add utility functions to the eventdata struct for fetching things like these?
+		if evt.Type == eventsystem.EventGuildRoleDelete {
+			roleID = evt.GuildRoleDelete().RoleID
+		} else if evt.Type == eventsystem.EventGuildRoleUpdate {
+			roleID = evt.GuildRoleUpdate().Role.ID
+			roleUpdate = true
+			rolePerms = evt.GuildRoleUpdate().Role.Permissions
+		} else {
+			panic("Unknown event in lock member lockdown middleware")
+		}
+
+		LockLockdown(roleID)
+		defer UnlockLockdown(roleID)
+
+		guildID := evt.GS.ID
+
+		var currentLockdown LockdownModel
+		err = common.GORM.Where(LockdownModel{RoleID: roleID, GuildID: guildID}).First(&currentLockdown).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return false, nil
+			}
+
+			return false, errors.WithStackIf(err)
+		}
+
+		// Don't bother doing anything if this lockdown is almost up and its a role update event
+		if roleUpdate && !currentLockdown.ExpiresAt.IsZero() && currentLockdown.ExpiresAt.Sub(time.Now()) < 5*time.Second {
+			return false, nil
+		}
+
+		// If it's a role update update event and locked perms remain locked, dont do anything
+		if roleUpdate && int(currentLockdown.PermsToggle)&rolePerms == 0 {
+			return false, nil
+		}
+
+		return next(evt, int(currentLockdown.PermsToggle))
+	}
+}
+
+func HandleGuildRoleDelete(evt *eventsystem.EventData, togglePerms int) (retry bool, err error) {
+	data := evt.GuildRoleDelete()
+	// remove all existing unlock events for this role irrespective of lock or unlock event
+	_, err = seventsmodels.ScheduledEvents(
+		qm.Where("event_name='moderation_unlock_role'"),
+		qm.Where("guild_id = ?", data.GuildID),
+		qm.Where("(data->>'role_id')::bigint = ?", data.RoleID),
+		qm.Where("processed = false")).DeleteAll(context.Background(), common.PQ)
+	if err != nil {
+		return true, errors.WithStackIf(err)
+	}
+
+	err = common.GORM.Where("guild_id = ? AND role_id = ?", data.GuildID, data.RoleID).Delete(LockdownModel{}).Error
+	if err != nil {
+		return true, errors.WithStackIf(err)
+	}
+
+	return false, nil
+}
+
+func HandleGuildRoleUpdate(evt *eventsystem.EventData, togglePerms int) (retry bool, err error) {
+	role := evt.GuildRoleUpdate().Role
+	newPerms := role.Permissions &^ togglePerms
+
+	_, err = common.BotSession.GuildRoleEdit(evt.GS.ID, role.ID, role.Name, role.Color, role.Hoist, newPerms, role.Mentionable)
+	if err != nil {
+		return bot.CheckDiscordErrRetry(err), errors.WithStackIf(err)
+	}
+
+	return false, nil
 }
 
 // Since updating mutes are now a complex operation with removing roles and whatnot,
@@ -399,11 +500,11 @@ func HandleMemberJoin(evt *eventsystem.EventData) (retry bool, err error) {
 
 func HandleGuildMemberUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 	c := evt.GuildMemberUpdate()
-
 	config, err := GetConfig(c.GuildID)
 	if err != nil {
 		return true, errors.WithStackIf(err)
 	}
+
 	if config.MuteRole == "" {
 		return false, nil
 	}
@@ -541,6 +642,91 @@ func handleScheduledUnban(evt *seventsmodels.ScheduledEvent, data interface{}) (
 	if err != nil {
 		logger.WithField("guild", guildID).WithError(err).Error("failed unbanning user")
 		return scheduledevents2.CheckDiscordErrRetry(err), err
+	}
+
+	return false, nil
+}
+
+func handleScheduledUnlock(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
+	unlockData := data.(*ScheduledUnlockData)
+
+	guildID := evt.GuildID
+	roleID := int(unlockData.RoleID)
+
+	g := bot.State.Guild(true, guildID)
+	if g == nil {
+		logger.WithField("guild", guildID).Error("Unlock scheduled for guild not in state")
+		return false, nil
+	}
+
+	reason := "Acabou o período de lockdown."
+
+	_, err = LockUnlockRole(nil, false, g, nil, g.MemberCopy(true, common.BotUser.ID), common.BotUser, reason, strconv.Itoa(roleID), false, 0, 0)
+
+	if err != nil {
+		logger.WithField("guild", guildID).WithError(err).Error("failed role unlock")
+		return scheduledevents2.CheckDiscordErrRetry(err), err
+	}
+
+	return false, nil
+}
+
+func handleResetChannelRatelimit(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
+	dataCast := data.(*ChannelRatelimitData)
+
+	g := bot.State.Guild(true, evt.GuildID)
+	if g == nil {
+		logger.WithField("guild", evt.GuildID).Error("Reset slowmode scheduled for guild not in state")
+		return false, nil
+	}
+
+	channels, err := common.BotSession.GuildChannels(evt.GuildID)
+	if err != nil {
+		return false, err
+	}
+
+	var channel *discordgo.Channel
+	for _, e := range channels {
+		if e.ID == dataCast.ChannelID {
+			channel = e
+			break
+		}
+	}
+
+	if channel == nil {
+		logger.WithField("guild", evt.GuildID).Error("Reset slowmode scheduled for non existent channel")
+		return false, nil
+	}
+
+	if channel.RateLimitPerUser != dataCast.OriginalRL {
+		edit := &discordgo.ChannelEdit{
+			RateLimitPerUser: &dataCast.OriginalRL,
+		}
+
+		_, err = common.BotSession.ChannelEditComplex(dataCast.ChannelID, edit)
+		if err != nil {
+			return scheduledevents2.CheckDiscordErrRetry(err), err
+		}
+	}
+
+	config, err := GetConfig(evt.GuildID)
+	if err != nil {
+		logger.WithError(err).WithField("guild", evt.GuildID).Error("Failed retrieving config")
+		return false, nil
+	}
+
+	author := common.BotUser
+	reason := "Slowmode programado expirado"
+	action := MARemoveSlow
+
+	if dataCast.OriginalRL != 0 {
+		action = MASlowmode
+		reason = fmt.Sprintf("O slowmode no canal <#%d> voltou ao estado original de %d mensagens por segundo por usuário, porque o slowmode programado expirou.", dataCast.ChannelID, dataCast.OriginalRL)
+	}
+
+	err = CreateModlogEmbed(config, author, action, channel, reason, "")
+	if err != nil {
+		logger.WithError(err).WithField("guild", evt.GuildID).Error("Failed sending " + action.Prefix + " log message")
 	}
 
 	return false, nil

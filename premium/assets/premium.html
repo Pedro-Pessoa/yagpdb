@@ -15,37 +15,29 @@
             </header>
 
             <div class="card-body">
-                <p>Here you can redeem codes from giveaways and assign premium slots to servers.</p>
-                <p>Keeping Discord bots running isn't cheap when they're on tens of thousands of servers, and Patreon
-                    donations alone without any benefits aside from priority support didn't get enough income to run
-                    YAGPDB without a loss, therefore I've had implement a premium functionality to increase the
-                    incentive to support the bot. You can find the features behind the paywall in the list below.</p>
-                <p><b>If you come across any issues with premium, please let me know!</b></p>
-                <p><b>Note:</b> This is still a hobby project run by 1 guy in his spare time with occasional code
-                    contributions here and there and support provided by unpaid volunteers in their free time. The
-                    premium functionality is just a bonus for supporting the bot and not a "product".</p>
-
+                <p>Aqui você pode usar seus códigos de sorteios e transformar seu servidor em Premium!</p>
+                <p>Manter um bot de discord rodando 24 horas por dia não é barato. Além disso, o bot funciona principalmente gerando requests http
+                que se usados de forma errada podem ser considerados spam. Devido a isso, alguma funções são exclusivas para servidores premium.
+                Além disso, pegando 2 slots premium eu vou te dar alguns códigos que eu mesmo fiz que são excelentes pra quem tem uma guild grande!
+                Pegando 3 slots premium, ou mais, e vou te dar todos os meus códigos personalizados e montar o servidor inteiro pra você! E não só isso, esses códigos são até 10 vezes mais rápidos e eficientes que os códigos de quem só tem 2 slots premium.</p>
+                <p><b>Se você tiver qualquer problema com seu premium me avisa!</b></p>
+                <p><b>OBS:</b>Esse bot ainda é um hobby desenvolvido por 1 cara no tempo livre. Com isso em mente, saiba que o premium é so um suporte para mim e não um produto.</p>
                 <button class="btn btn-primary mb-2" type="button" data-toggle="collapse"
                     data-target="#premium-how-to-get" aria-expanded="false" aria-controls="premium-how-to-get">
-                    How to get premium?
+                    Como eu consigo premium?
                 </button>
                 <div class="collapse" id="premium-how-to-get">
                     <section class="card">
                         <div class="card-body">
                             <ul>
-                                <li>Make a pledge on my <a href="https://patreon.com/yagpdb">Patreon</a>. Tiers above $3
-                                    will grant you premium slots. It will take 2 minutes from you make a pledge to it
-                                    being processed here.</li>
-                                <li>Other payment methods are also accepted, but requires manual intervention from me.
-                                    Full list: Paypal, Bitcoin, Bitcoin Cash, Ethereum, Litecoin and IOTA. Please see
-                                    the pricing below and contact me if you wanna donate using one of these methods
-                                    (pricing is monthly).
+                                <li>Me chama no <a href="https://discord.gg/5HTJVHQ">servidor oficial</a> ou me manda uma DM!</li>
+                                <li>Preços:
                                     <ul>
-                                        <li>$3 = 1 premium slot</li>
-                                        <li>$5 = 2 premium slots</li>
-                                        <li>$7.50 = 3 premium slots</li>
-                                        <li>$10 = 5 premium slots</li>
-                                        <li>Anything above $10: 1 premium slot per $2</li>
+                                        <li>R$ 15,00 = 1 slot premium</li>
+                                        <li>R$ 25,00 = 2 slots premium + alguns códigos personalizados</li>
+                                        <li>R$ 50,00 = 3 slots premium + todos os meus códigos personalizados</li>
+                                        <li>R$ 60,00 = 5 slort premium</li>
+                                        <li>Acima disso, + 1 slot premium a cada 10 reais.</li>
                                     </ul>
                                 </li>
                             </ul>
@@ -54,30 +46,34 @@
                 </div><br>
                 <button class="btn btn-primary" type="button" data-toggle="collapse"
                     data-target="#premium-full-benefits" aria-expanded="false" aria-controls="premium-full-benefits">
-                    Full list of premium benefits
+                    Lista de benefícios premium
                 </button>
                 <div class="collapse" id="premium-full-benefits">
                     <section class="card">
                         <div class="card-body">
-                            <b>General goodies</b>
+                            <b>Geral</b>
                             <ul>
-                                <li>Infinite server stats retention (not that this is not retroactive, i do not store
-                                    your stats at all if you don't have premium)</li>
-                                <li>Twitter feeds</li>
-                                <li>Priority support</li>
+                                <li>Retenção infinita dos status do seu servidor!</li>
+                                <li>Suporte prioritário</li>
                             </ul>
 
-                            <b>Extended limits:</b>
+                            <b>Limites extendidos</b>
                             <ul>
-                                <li>Message cache duration increased from 1 hour to 12 hours, which means you will be
-                                    able to see the removed messages in the logs if the message was sent in the previous
-                                    12 hours</li>
-                                <li>Max custom commands increased from 100 to 250</li>
-                                <li>Max Reddit feeds increased from 100 to 1000</li>
-                                <li>Max Youtube feeds increased from 50 to 250 (Possibly higher if needed)</li>
-                                <li>Max Soundboard sounds increased from 50 to 250 (Possibly higher if needed)</li>
-                                <li>Increased database storage and interaction limits.</li>
-                                <li>Various custom command function limits increased</li>
+                                <li>Aumento do armazenamento de mensagens de 1 para 12 horas. O que significa que você pode buscar mensagens apagadas no servidor nas últimas 12 horas</li>
+                                <li>Limite de custom commands aumentado de 100 para 250</li>
+                                <li>Aumento de 10 vezes no limite de databases</li>
+                                <li><b>Permissão de usar as funções de simultaniedade que são até 10 vezes mais rápidas que as funções padrões.</li>
+                                <li>Aumento de limite de várias funções:</li>
+                                <ul>
+                                    <li>getChar -> 40 calls por CC.</li>
+                                    <li>getDeaths -> 40 calls por CC.</li>
+                                    <li>getDeath -> 40 calls por CC.</li>
+                                    <li>getGuild -> 5 calls por CC.</li>
+                                    <li>getGuildMembers -> 2 calls por CC.</li>
+                                    <li>checkOnline -> 5 calls por CC.</li>
+                                    <li>getNews -> 3 calls por CC.</li>
+                                    <li>libera as funções getMultipleChars e getMultipleCharsDeath</li>
+                                </ul>
                             </ul>
                         </div>
                     </section>
@@ -93,23 +89,23 @@
     <div class="col-lg-12">
         <section class="card">
             <header class="card-header">
-                <h2 class="card-title">Redeem code</h2>
+                <h2 class="card-title">Código</h2>
             </header>
 
             <div class="card-body">
                 <form method="post" data-async-form>
                     <input type="text" class="form-control" name="code">
                     <button type="submit" value="Redeem code" class="btn btn-success"
-                        formaction="/premium/redeemcode">Redeem code</button>
+                        formaction="/premium/redeemcode">Código</button>
                     <button type="submit" value="Check code" class="btn btn-primary"
-                        formaction="/premium/lookupcode">Check code</button>
+                        formaction="/premium/lookupcode">Verificar código</button>
                 </form>
 
                 {{if .QueriedCode}}
                 <ul>
-                    <li>Code: <code>{{.QueriedCode.Code}}</code></li>
-                    <li>Permanent: <code>{{.QueriedCode.Permanent}}</code></li>
-                    <li>Duration: <code>{{.QueriedCode.Duration}}</code></li>
+                    <li>Cóigo: <code>{{.QueriedCode.Code}}</code></li>
+                    <li>Permanente: <code>{{.QueriedCode.Permanent}}</code></li>
+                    <li>Duração: <code>{{.QueriedCode.Duration}}</code></li>
                 </ul>
                 {{end}}
             </div>
@@ -129,18 +125,18 @@
 
             <div class="card-body">
                 <ul>
-                    <li>{{if not .Permanent}}Expires in:
-                        <code>{{humanizeDurationHours (call $dot.PremiumSlotDurationRemaining .)}}</code>{{else}}Expires
-                        never{{end}}.</li>
+                    <li>{{if not .Permanent}}Expira em:
+                        <code>{{humanizeDurationHours (call $dot.PremiumSlotDurationRemaining .)}}</code>{{else}}Nunca
+                        expira{{end}}.</li>
                     {{if .Message}}<li>{{.Message}}</li>{{end}}
                 </ul>
 
                 <form action="/premium/updateslot/{{.ID}}" method="post" data-async-form>
                     <div class="form-group">
-                        <label for="slot-{{.ID}}">Assign this premium slot to a server</label>
+                        <label for="slot-{{.ID}}">Escolha o servidor</label>
                         <select name="GuildID" class="form-control" id="slot-{{.ID}}">
                             {{$found := false}}
-                            <option value="0" {{if not .GuildID.Valid}}{{$found = true}} selected{{end}}>None</option>
+                            <option value="0" {{if not .GuildID.Valid}}{{$found = true}} selected{{end}}>Nenhum</option>
 
 
                             {{$selected := .GuildID.Int64}}
@@ -150,12 +146,12 @@
                             {{end}}{{end}}
 
                             {{if not $found}}
-                            <option value="{{.GuildID.Int64}}" selected>Unknown server ({{.GuildID.Int64}})</option>
+                            <option value="{{.GuildID.Int64}}" selected>Servidor desconhecido ({{.GuildID.Int64}})</option>
                             {{end}}
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-success mt-2">Update premium slot</button>
+                    <button type="submit" class="btn btn-success mt-2">Update slot premium</button>
                 </form>
             </div>
         </section>

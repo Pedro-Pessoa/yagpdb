@@ -89,6 +89,19 @@ func LookupCode(ctx context.Context, code string) (*models.PremiumCode, error) {
 	return c, nil
 }
 
+func LookUpSlot(ctx context.Context, sourceID int64) (*models.PremiumSlot, error) {
+	p, err := models.PremiumSlots(qm.Where("source_id = ?", sourceID)).OneG(ctx)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrCodeNotFound
+		}
+
+		return nil, errors.WithMessage(err, "models.PremiumSlots")
+	}
+
+	return p, nil
+}
+
 var (
 	ErrCodeCollision = errors.New("Code collision")
 )
@@ -193,4 +206,61 @@ var cmdGenerateCode = &commands.YAGCommand{
 		bot.SendDM(data.Msg.Author.ID, dm)
 		return "Check yer dms", nil
 	}),
+}
+
+var cmdDeleteCode = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryDebug,
+	HideFromCommandsPage: true,
+	Name:                 "deletepremiumcode",
+	Aliases:              []string{"dpc"},
+	Description:          "Deletes a premium codes",
+	HideFromHelp:         true,
+	RequiredArgs:         1,
+	RunInDM:              true,
+	Arguments: []*dcmd.ArgDef{
+		{Name: "Code", Type: dcmd.String},
+	},
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		code := data.Args[0].Str()
+		amount, err := DeletePremiumCode(data.Context(), code)
+		if err != nil {
+			if err == ErrCodeNotFound {
+				return "Código não encontrado", nil
+			}
+			return amount, err
+		}
+
+		return "Code " + code + " deleted.\nTotal amount: " + fmt.Sprintln(amount), nil
+	}),
+}
+
+func DeletePremiumCode(ctx context.Context, code string) (amount int64, err error) {
+	dbCode, err := LookupCode(ctx, code)
+	if err != nil {
+		return 0, err
+	}
+
+	amount, err = dbCode.DeleteG(ctx)
+	if err != nil {
+		return amount, err
+	}
+
+	slot, err := LookUpSlot(ctx, dbCode.ID)
+	if err != nil && err != ErrCodeNotFound {
+		return 0, errors.WithMessage(err, "error 1")
+	}
+
+	if err == nil {
+		err = DetachSlotFromGuild(ctx, slot.ID, slot.UserID)
+		if err != nil {
+			return 0, errors.WithMessage(err, "error detaching from guild")
+		}
+
+		_, err = slot.DeleteG(ctx)
+		if err != nil {
+			return 0, errors.WithMessage(err, "error 2")
+		}
+	}
+
+	return amount, nil
 }

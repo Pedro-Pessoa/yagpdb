@@ -16,7 +16,6 @@ type Postgres struct{}
 
 // conf is requried to be a pointer value
 func (p *Postgres) GetGuildConfig(ctx context.Context, guildID int64, conf GuildConfig) error {
-
 	currentRetries := 0
 	for {
 		err := common.GORM.Where("guild_id = ?", guildID).First(conf).Error
@@ -42,8 +41,6 @@ func (p *Postgres) GetGuildConfig(ctx context.Context, guildID int64, conf Guild
 
 		return err
 	}
-
-	return nil
 }
 
 // conf is requried to be a pointer value

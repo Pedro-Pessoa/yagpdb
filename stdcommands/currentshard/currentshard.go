@@ -16,7 +16,7 @@ var Command = &commands.YAGCommand{
 	Aliases:     []string{"cshard"},
 	Description: "Shows the current shard this server is on (or the one specified",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "serverid", Type: dcmd.Int, Default: int64(0)},
+		{Name: "serverid", Type: dcmd.Int, Default: int64(0)},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		gID := data.GS.ID

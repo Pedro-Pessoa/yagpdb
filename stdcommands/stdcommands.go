@@ -5,20 +5,19 @@ import (
 	"github.com/jonas747/yagpdb/bot/eventsystem"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/stdcommands/advice"
 	"github.com/jonas747/yagpdb/stdcommands/allocstat"
 	"github.com/jonas747/yagpdb/stdcommands/banserver"
-	"github.com/jonas747/yagpdb/stdcommands/calc"
-	"github.com/jonas747/yagpdb/stdcommands/catfact"
 	"github.com/jonas747/yagpdb/stdcommands/ccreqs"
+	"github.com/jonas747/yagpdb/stdcommands/covidstats"
 	"github.com/jonas747/yagpdb/stdcommands/createinvite"
 	"github.com/jonas747/yagpdb/stdcommands/currentshard"
-	"github.com/jonas747/yagpdb/stdcommands/currenttime"
 	"github.com/jonas747/yagpdb/stdcommands/customembed"
 	"github.com/jonas747/yagpdb/stdcommands/dcallvoice"
-	"github.com/jonas747/yagpdb/stdcommands/define"
-	"github.com/jonas747/yagpdb/stdcommands/dogfact"
+	"github.com/jonas747/yagpdb/stdcommands/editrole"
+	edtn "github.com/jonas747/yagpdb/stdcommands/edittargetnickname"
+	"github.com/jonas747/yagpdb/stdcommands/exportcustomcommands"
 	"github.com/jonas747/yagpdb/stdcommands/findserver"
+	"github.com/jonas747/yagpdb/stdcommands/getiplocation"
 	"github.com/jonas747/yagpdb/stdcommands/globalrl"
 	"github.com/jonas747/yagpdb/stdcommands/guildunavailable"
 	"github.com/jonas747/yagpdb/stdcommands/info"
@@ -30,24 +29,19 @@ import (
 	"github.com/jonas747/yagpdb/stdcommands/mentionrole"
 	"github.com/jonas747/yagpdb/stdcommands/ping"
 	"github.com/jonas747/yagpdb/stdcommands/poll"
-	"github.com/jonas747/yagpdb/stdcommands/roll"
 	"github.com/jonas747/yagpdb/stdcommands/setstatus"
 	"github.com/jonas747/yagpdb/stdcommands/simpleembed"
 	"github.com/jonas747/yagpdb/stdcommands/sleep"
 	"github.com/jonas747/yagpdb/stdcommands/stateinfo"
-	"github.com/jonas747/yagpdb/stdcommands/throw"
+	"github.com/jonas747/yagpdb/stdcommands/tibiacmds"
 	"github.com/jonas747/yagpdb/stdcommands/toggledbg"
 	"github.com/jonas747/yagpdb/stdcommands/topcommands"
 	"github.com/jonas747/yagpdb/stdcommands/topevents"
 	"github.com/jonas747/yagpdb/stdcommands/topgames"
-	"github.com/jonas747/yagpdb/stdcommands/topic"
 	"github.com/jonas747/yagpdb/stdcommands/topservers"
 	"github.com/jonas747/yagpdb/stdcommands/unbanserver"
 	"github.com/jonas747/yagpdb/stdcommands/undelete"
 	"github.com/jonas747/yagpdb/stdcommands/viewperms"
-	"github.com/jonas747/yagpdb/stdcommands/weather"
-	"github.com/jonas747/yagpdb/stdcommands/wouldyourather"
-	"github.com/jonas747/yagpdb/stdcommands/xkcd"
 	"github.com/jonas747/yagpdb/stdcommands/yagstatus"
 )
 
@@ -73,28 +67,63 @@ func (p *Plugin) AddCommands() {
 		invite.Command,
 
 		// Standard
-		define.Command,
-		weather.Command,
-		calc.Command,
-		topic.Command,
-		catfact.Command,
-		dogfact.Command,
-		advice.Command,
 		ping.Command,
-		throw.Command,
-		roll.Command,
 		customembed.Command,
 		simpleembed.Command,
-		currenttime.Command,
-		mentionrole.Command,
+		editrole.Command,
 		listroles.Command,
 		memstats.Command,
-		wouldyourather.Command,
 		poll.Command,
 		undelete.Command,
 		viewperms.Command,
 		topgames.Command,
-		xkcd.Command,
+		exportcustomcommands.Command,
+		getiplocation.Command,
+		covidstats.Command,
+		edtn.Command,
+
+		//Tibia
+		//Chars
+		tibiacmds.MainCharCommand,
+		tibiacmds.DeathsCommand,
+		tibiacmds.CheckOnlineCommand,
+
+		//News
+		tibiacmds.NewsCommand,
+		tibiacmds.NewsTickerCommand,
+
+		//Guilds
+		tibiacmds.SpecificGuildCommand,
+
+		//GlobalServerValues
+		tibiacmds.TibiaSetWorld,
+		tibiacmds.TibiaSetGuild,
+		tibiacmds.TibiaGetWorld,
+		tibiacmds.TibiaGetGuild,
+		tibiacmds.TibiaSetDeathChannel,
+		tibiacmds.TibiaSetUpdatesChannel,
+
+		//Bot Owner Commands
+		tibiacmds.TibiaDelWorld,
+		tibiacmds.TibiaDelGuild,
+		tibiacmds.TibiaAdmSetWorld,
+		tibiacmds.TibiaAdmSetGuild,
+		tibiacmds.AdminTrackCommand,
+		tibiacmds.AdminTrackHuntedCommand,
+		tibiacmds.AdminUntrackHuntedCommand,
+		tibiacmds.AdminUntrackGuildCommand,
+		tibiacmds.AdminUntrackCommand,
+		tibiacmds.AdminDellAllCommand,
+		tibiacmds.AdminStartTrackingCommand,
+		tibiacmds.AdminStopTrackingCommand,
+		tibiacmds.AdminDeleteTracksCommand,
+
+		//Tracking Commands
+		tibiacmds.TrackCommand,
+		tibiacmds.UnTrackCommand,
+		tibiacmds.TrackHuntedCommand,
+		tibiacmds.UnTrackHuntedCommand,
+		tibiacmds.UnTrackGuildCommand,
 
 		// Maintenance
 		stateinfo.Command,

@@ -7,7 +7,7 @@ import (
 	"github.com/jonas747/yagpdb/common"
 )
 
-func isExecedByCC(data *dcmd.Data) bool {
+func IsExecedByCC(data *dcmd.Data) bool {
 	if v := data.Context().Value(commands.CtxKeyExecutedByCC); v != nil {
 		if cast, _ := v.(bool); cast {
 			return true
@@ -19,7 +19,7 @@ func isExecedByCC(data *dcmd.Data) bool {
 
 func RequireBotAdmin(inner dcmd.RunFunc) dcmd.RunFunc {
 	return func(data *dcmd.Data) (interface{}, error) {
-		if isExecedByCC(data) {
+		if IsExecedByCC(data) {
 			return "", nil
 		}
 
@@ -33,7 +33,7 @@ func RequireBotAdmin(inner dcmd.RunFunc) dcmd.RunFunc {
 
 func RequireOwner(inner dcmd.RunFunc) dcmd.RunFunc {
 	return func(data *dcmd.Data) (interface{}, error) {
-		if isExecedByCC(data) {
+		if IsExecedByCC(data) {
 			return "", nil
 		}
 

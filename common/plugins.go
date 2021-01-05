@@ -14,6 +14,7 @@ var (
 	PluginCategoryModeration = &PluginCategory{Name: "Moderation", Order: 10}
 	PluginCategoryMisc       = &PluginCategory{Name: "Misc", Order: 20}
 	PluginCategoryFeeds      = &PluginCategory{Name: "Feeds", Order: 30}
+	PluginCategoryTibia      = &PluginCategory{Name: "Tibia", Order: 40}
 )
 
 // PluginInfo represents basic plugin information

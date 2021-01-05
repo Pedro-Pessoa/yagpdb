@@ -91,7 +91,7 @@ func (del *DeleteMessagesEffect) Description() (description string) {
 
 func (del *DeleteMessagesEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Number of messages",
 			Key:     "NumMessages",
 			Kind:    SettingTypeInt,
@@ -99,7 +99,7 @@ func (del *DeleteMessagesEffect) UserSettings() []*SettingDef {
 			Max:     100,
 			Default: 3,
 		},
-		&SettingDef{
+		{
 			Name:    "Max age (seconds)",
 			Key:     "TimeLimit",
 			Kind:    SettingTypeInt,
@@ -213,7 +213,7 @@ func (vio *AddViolationEffect) Description() (description string) {
 
 func (vio *AddViolationEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Name",
 			Key:     "Name",
 			Kind:    SettingTypeString,
@@ -274,7 +274,7 @@ func (kick *KickUserEffect) Description() (description string) {
 
 func (kick *KickUserEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "Custom message (empty for default)",
 			Key:  "CustomReason",
 			Min:  0,
@@ -287,7 +287,7 @@ func (kick *KickUserEffect) UserSettings() []*SettingDef {
 func (kick *KickUserEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
 	settingsCast := settings.(*KickUserEffectData)
 
-	reason := "Automoderator:\n"
+	reason := "Moderador automático:\n"
 	if settingsCast.CustomReason != "" {
 		reason += settingsCast.CustomReason
 	} else {
@@ -330,20 +330,20 @@ func (ban *BanUserEffect) Description() (description string) {
 
 func (ban *BanUserEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Duration (minutes, 0 for permanent)",
 			Key:     "Duration",
 			Kind:    SettingTypeInt,
 			Default: 0,
 		},
-		&SettingDef{
+		{
 			Name: "Custom message (empty for default)",
 			Key:  "CustomReason",
 			Min:  0,
 			Max:  150,
 			Kind: SettingTypeString,
 		},
-		&SettingDef{
+		{
 			Name:    "Number of days of messages to delete (0 to 7)",
 			Key:     "MessageDeleteDays",
 			Kind:    SettingTypeInt,
@@ -357,7 +357,7 @@ func (ban *BanUserEffect) UserSettings() []*SettingDef {
 func (ban *BanUserEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
 	settingsCast := settings.(*BanUserEffectData)
 
-	reason := "Automoderator:\n"
+	reason := "Moderador automático:\n"
 	if settingsCast.CustomReason != "" {
 		reason += settingsCast.CustomReason
 	} else {
@@ -392,14 +392,14 @@ func (mute *MuteUserEffect) DataType() interface{} {
 
 func (mute *MuteUserEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Duration (minutes, 0 for permanent)",
 			Key:     "Duration",
 			Min:     0,
 			Kind:    SettingTypeInt,
 			Default: 10,
 		},
-		&SettingDef{
+		{
 			Name: "Custom message (empty for default)",
 			Key:  "CustomReason",
 			Min:  0,
@@ -420,7 +420,7 @@ func (mute *MuteUserEffect) Description() (description string) {
 func (mute *MuteUserEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
 	settingsCast := settings.(*MuteUserEffectData)
 
-	reason := "Automoderator:\n"
+	reason := "Moderador automático:\n"
 	if settingsCast.CustomReason != "" {
 		reason += settingsCast.CustomReason
 	} else {
@@ -453,7 +453,7 @@ func (warn *WarnUserEffect) DataType() interface{} {
 
 func (warn *WarnUserEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "Custom message (empty for default)",
 			Key:  "CustomReason",
 			Min:  0,
@@ -474,7 +474,7 @@ func (warn *WarnUserEffect) Description() (description string) {
 func (warn *WarnUserEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
 	settingsCast := settings.(*WarnUserEffectData)
 
-	reason := "Automoderator:\n"
+	reason := "Moderador automático:\n"
 	if settingsCast.CustomReason != "" {
 		reason += settingsCast.CustomReason
 	} else {
@@ -507,7 +507,7 @@ func (sn *SetNicknameEffect) DataType() interface{} {
 
 func (sn *SetNicknameEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name: "New Nickname (empty for removal)",
 			Key:  "NewName",
 			Min:  0,
@@ -565,7 +565,7 @@ func (rv *ResetViolationsEffect) DataType() interface{} {
 
 func (rv *ResetViolationsEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Name",
 			Key:     "Name",
 			Default: "name",
@@ -609,7 +609,7 @@ func (gf *GiveRoleEffect) DataType() interface{} {
 
 func (gf *GiveRoleEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Duration in seconds, 0 for permanent",
 			Key:     "Duration",
 			Default: 0,
@@ -617,7 +617,7 @@ func (gf *GiveRoleEffect) UserSettings() []*SettingDef {
 			Max:     604800,
 			Kind:    SettingTypeInt,
 		},
-		&SettingDef{
+		{
 			Name: "Role",
 			Key:  "Role",
 			Kind: SettingTypeRole,
@@ -674,7 +674,7 @@ func (rf *RemoveRoleEffect) DataType() interface{} {
 
 func (rf *RemoveRoleEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Duration in seconds, 0 for permanent",
 			Key:     "Duration",
 			Default: 0,
@@ -682,7 +682,7 @@ func (rf *RemoveRoleEffect) UserSettings() []*SettingDef {
 			Max:     604800,
 			Kind:    SettingTypeInt,
 		},
-		&SettingDef{
+		{
 			Name: "Role",
 			Key:  "Role",
 			Kind: SettingTypeRole,
@@ -746,7 +746,7 @@ func (slow *EnableChannelSlowmodeEffect) DataType() interface{} {
 
 func (slow *EnableChannelSlowmodeEffect) UserSettings() []*SettingDef {
 	return []*SettingDef{
-		&SettingDef{
+		{
 			Name:    "Duration in seconds, 0 for permanent",
 			Key:     "Duration",
 			Default: 0,
@@ -754,7 +754,7 @@ func (slow *EnableChannelSlowmodeEffect) UserSettings() []*SettingDef {
 			Max:     604800,
 			Kind:    SettingTypeInt,
 		},
-		&SettingDef{
+		{
 			Name:    "Ratelimit in seconds between messages per user",
 			Key:     "Ratelimit",
 			Default: 0,
@@ -789,7 +789,20 @@ func (slow *EnableChannelSlowmodeEffect) Apply(ctxData *TriggeredRuleData, setti
 		RateLimitPerUser: &rl,
 	}
 
-	_, err := common.BotSession.ChannelEditComplex(ctxData.CS.ID, edit)
+	channels, err := common.BotSession.GuildChannels(ctxData.GS.ID)
+	if err != nil {
+		return nil
+	}
+
+	var channelData *discordgo.Channel
+	for _, k := range channels {
+		if k.ID == ctxData.CS.ID {
+			channelData = k
+			break
+		}
+	}
+
+	_, err = common.BotSession.ChannelEditComplex(ctxData.CS.ID, edit)
 	if err != nil {
 		return err
 	}
@@ -811,7 +824,8 @@ func (slow *EnableChannelSlowmodeEffect) Apply(ctxData *TriggeredRuleData, setti
 
 	// add the scheduled event for it
 	err = scheduledevents2.ScheduleEvent("amod2_reset_channel_ratelimit", ctxData.GS.ID, time.Now().Add(time.Second*time.Duration(s.Duration)), &ResetChannelRatelimitData{
-		ChannelID: ctxData.CS.ID,
+		ChannelID:  ctxData.CS.ID,
+		OriginalRL: channelData.RateLimitPerUser,
 	})
 
 	if err != nil {

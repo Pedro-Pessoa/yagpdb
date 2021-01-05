@@ -30,7 +30,7 @@ const (
 type CreateForm struct {
 	Subreddit  string `schema:"subreddit" valid:",1,100"`
 	Slow       bool   `schema:"slow"`
-	Channel    int64  `schema:"channel" valid:"channel,false`
+	Channel    int64  `schema:"channel" valid:"channel,false"`
 	ID         int64  `schema:"id"`
 	UseEmbeds  bool   `schema:"use_embeds"`
 	NSFWMode   int    `schema:"nsfw_filter"`
@@ -38,7 +38,7 @@ type CreateForm struct {
 }
 
 type UpdateForm struct {
-	Channel    int64 `schema:"channel" valid:"channel,false`
+	Channel    int64 `schema:"channel" valid:"channel,false"`
 	ID         int64 `schema:"id"`
 	UseEmbeds  bool  `schema:"use_embeds"`
 	NSFWMode   int   `schema:"nsfw_filter"`

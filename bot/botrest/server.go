@@ -267,7 +267,7 @@ func HandleNodeStatus(w http.ResponseWriter, r *http.Request) {
 		sumEvents := int64(0)
 		sumPeriodEvents := int64(0)
 
-		for j, _ := range totalEventStats[shardID] {
+		for j := range totalEventStats[shardID] {
 			sumEvents += totalEventStats[shardID][j]
 			sumPeriodEvents += periodEventStats[shardID][j]
 		}

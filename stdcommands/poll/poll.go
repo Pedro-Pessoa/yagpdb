@@ -16,21 +16,21 @@ var (
 		Description:  "Create very simple reaction poll. Example: `poll \"favorite color?\" blue red pink`",
 		RequiredArgs: 3,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{
+			{
 				Name: "Topic",
 				Type: dcmd.String,
 				Help: "Description of the poll",
 			},
-			&dcmd.ArgDef{Name: "Option1", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option2", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option3", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option4", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option5", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option6", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option7", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option8", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option9", Type: dcmd.String},
-			&dcmd.ArgDef{Name: "Option10", Type: dcmd.String},
+			{Name: "Option1", Type: dcmd.String},
+			{Name: "Option2", Type: dcmd.String},
+			{Name: "Option3", Type: dcmd.String},
+			{Name: "Option4", Type: dcmd.String},
+			{Name: "Option5", Type: dcmd.String},
+			{Name: "Option6", Type: dcmd.String},
+			{Name: "Option7", Type: dcmd.String},
+			{Name: "Option8", Type: dcmd.String},
+			{Name: "Option9", Type: dcmd.String},
+			{Name: "Option10", Type: dcmd.String},
 		},
 		RunFunc: createPoll,
 	}
@@ -74,7 +74,7 @@ func createPoll(data *dcmd.Data) (interface{}, error) {
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to add poll description")
 	}
-	for i, _ := range options {
+	for i := range options {
 		common.BotSession.MessageReactionAdd(pollMsg.ChannelID, pollMsg.ID, pollReactions[i])
 	}
 	return nil, nil

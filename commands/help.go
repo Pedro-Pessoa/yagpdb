@@ -17,7 +17,7 @@ var cmdHelp = &YAGCommand{
 	CmdCategory: CategoryGeneral,
 	RunInDM:     true,
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "command", Type: dcmd.String},
+		{Name: "command", Type: dcmd.String},
 	},
 
 	RunFunc:  cmdFuncHelp,
@@ -25,7 +25,7 @@ var cmdHelp = &YAGCommand{
 }
 
 func CmdNotFound(search string) string {
-	return fmt.Sprintf("Couldn't find command '%s'", search)
+	return fmt.Sprintf("Não pude encontrar o comando: '%s'", search)
 }
 
 func cmdFuncHelp(data *dcmd.Data) (interface{}, error) {
@@ -59,7 +59,7 @@ func cmdFuncHelp(data *dcmd.Data) (interface{}, error) {
 		return nil, nil
 	}
 
-	return "You've got mail!", nil
+	return "Verifique suas DMs!", nil
 }
 
 func createInteractiveHelp(userID int64, helpEmbeds []*discordgo.MessageEmbed) (interface{}, error) {
@@ -70,12 +70,13 @@ func createInteractiveHelp(userID int64, helpEmbeds []*discordgo.MessageEmbed) (
 
 	// prepend a introductionairy first page
 	firstPage := &discordgo.MessageEmbed{
-		Title: "YAGPDB Help!",
-		Description: `YAGPDB is a multipurpose discord bot that is configured through the web interface at https://yagpdb.xyz.
-For more in depth help and information you should visit https://docs.yagpdb.xyz/ as this command only shows information about commands.
-		
-		
-**Use the emojis under to change pages**`,
+		Title: "TidBot Help!",
+		Description: `TidBot é um bot multipropósito que pode ser configurado pelo site https://tidbot.com.br
+Esse bot é um fork do YAGPDB, criado pelo Jonas747. http://yagpdb.xyz
+Para mais informações, acesse https://docs.yagpdb.xyz e acesse o servidor de suporte: https://discord.gg/46sV2yqbVH
+
+
+**Use os emojis abaixo para mudar de páginas**`,
 	}
 
 	var pageLayout strings.Builder

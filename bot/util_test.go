@@ -12,10 +12,10 @@ func TestMemberHighestRole(t *testing.T) {
 	gs := &dstate.GuildState{
 		Guild: &discordgo.Guild{
 			Roles: []*discordgo.Role{
-				&discordgo.Role{ID: 10, Position: 10},
-				&discordgo.Role{ID: 5, Position: 5},
-				&discordgo.Role{ID: 100, Position: 1},
-				&discordgo.Role{ID: 102, Position: 1},
+				{ID: 10, Position: 10},
+				{ID: 5, Position: 5},
+				{ID: 100, Position: 1},
+				{ID: 102, Position: 1},
 			},
 		},
 	}
@@ -48,10 +48,10 @@ func TestIsMemberAbove(t *testing.T) {
 		Guild: &discordgo.Guild{
 			OwnerID: 99,
 			Roles: []*discordgo.Role{
-				&discordgo.Role{ID: 10, Position: 10},
-				&discordgo.Role{ID: 5, Position: 5},
-				&discordgo.Role{ID: 100, Position: 1},
-				&discordgo.Role{ID: 102, Position: 1},
+				{ID: 10, Position: 10},
+				{ID: 5, Position: 5},
+				{ID: 100, Position: 1},
+				{ID: 102, Position: 1},
 			},
 		},
 	}

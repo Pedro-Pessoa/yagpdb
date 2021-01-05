@@ -8,7 +8,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"emperror.dev/errors"
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/bot"
@@ -30,12 +29,12 @@ func (d *DurationArg) Matches(def *dcmd.ArgDef, part string) bool {
 		return false
 	}
 
-	_, err := ParseDuration(part)
+	_, err := common.ParseDuration(part)
 	return err == nil
 }
 
 func (d *DurationArg) Parse(def *dcmd.ArgDef, part string, data *dcmd.Data) (interface{}, error) {
-	dur, err := ParseDuration(part)
+	dur, err := common.ParseDuration(part)
 	if err != nil {
 		return nil, err
 	}
@@ -53,86 +52,6 @@ func (d *DurationArg) Parse(def *dcmd.ArgDef, part string, data *dcmd.Data) (int
 
 func (d *DurationArg) HelpName() string {
 	return "Duration"
-}
-
-// Parses a time string like 1day3h
-func ParseDuration(str string) (time.Duration, error) {
-	var dur time.Duration
-
-	currentNumBuf := ""
-	currentModifierBuf := ""
-
-	// Parse the time
-	for _, v := range str {
-		// Ignore whitespace
-		if unicode.Is(unicode.White_Space, v) {
-			continue
-		}
-
-		if unicode.IsNumber(v) {
-			// If we reached a number and the modifier was also set, parse the last duration component before starting a new one
-			if currentModifierBuf != "" {
-				if currentNumBuf == "" {
-					currentNumBuf = "1"
-				}
-				d, err := parseDurationComponent(currentNumBuf, currentModifierBuf)
-				if err != nil {
-					return d, err
-				}
-
-				dur += d
-
-				currentNumBuf = ""
-				currentModifierBuf = ""
-			}
-
-			currentNumBuf += string(v)
-
-		} else {
-			currentModifierBuf += string(v)
-		}
-	}
-
-	if currentNumBuf != "" {
-		d, err := parseDurationComponent(currentNumBuf, currentModifierBuf)
-		if err != nil {
-			return dur, errors.WrapIf(err, "not a duration")
-		}
-
-		dur += d
-	}
-
-	return dur, nil
-}
-
-func parseDurationComponent(numStr, modifierStr string) (time.Duration, error) {
-	parsedNum, err := strconv.ParseInt(numStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	parsedDur := time.Duration(parsedNum)
-
-	if strings.HasPrefix(modifierStr, "s") {
-		parsedDur = parsedDur * time.Second
-	} else if modifierStr == "" || (strings.HasPrefix(modifierStr, "m") && (len(modifierStr) < 2 || modifierStr[1] != 'o')) {
-		parsedDur = parsedDur * time.Minute
-	} else if strings.HasPrefix(modifierStr, "h") {
-		parsedDur = parsedDur * time.Hour
-	} else if strings.HasPrefix(modifierStr, "d") {
-		parsedDur = parsedDur * time.Hour * 24
-	} else if strings.HasPrefix(modifierStr, "w") {
-		parsedDur = parsedDur * time.Hour * 24 * 7
-	} else if strings.HasPrefix(modifierStr, "mo") {
-		parsedDur = parsedDur * time.Hour * 24 * 30
-	} else if strings.HasPrefix(modifierStr, "y") {
-		parsedDur = parsedDur * time.Hour * 24 * 365
-	} else {
-		return parsedDur, errors.New("couldn't figure out what '" + numStr + modifierStr + "` was")
-	}
-
-	return parsedDur, nil
-
 }
 
 type DurationOutOfRangeError struct {
@@ -328,4 +247,88 @@ func (ma *MemberArg) ExtractID(part string, data *dcmd.Data) int64 {
 
 func (ma *MemberArg) HelpName() string {
 	return "Member"
+}
+
+// RoleArg matches an id or name and returns a discordgo.Role
+type RoleArg struct{}
+
+func (ra *RoleArg) Matches(def *dcmd.ArgDef, part string) bool {
+	/*if len(part) < 1 {
+		return false
+	}
+	return true*/
+
+	// Check for mention
+	if strings.HasPrefix(part, "<@&") && strings.HasSuffix(part, ">") {
+		return true
+	}
+
+	// Check for ID
+	_, err := strconv.ParseInt(part, 10, 64)
+	if err == nil {
+		return true
+	}
+
+	if len(part) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (ra *RoleArg) Parse(def *dcmd.ArgDef, part string, data *dcmd.Data) (interface{}, error) {
+	id := ra.ExtractID(part, data)
+
+	/*if len(id) < 1 {
+		return nil, dcmd.NewSimpleUserError("Invalid role mention or id")
+	}*/
+	var idName string
+	switch t := id.(type) {
+	case int, int32, int64:
+		idName = strconv.FormatInt(t.(int64), 10)
+	case string:
+		idName = t
+	default:
+		idName = ""
+	}
+	roles := data.GS.Guild.Roles
+	var role *discordgo.Role
+	for _, v := range roles {
+		if v.ID == id {
+			role = v
+			return role, nil
+		} else if v.Name == idName {
+			role = v
+			return role, nil
+		}
+
+	}
+
+	return nil, dcmd.NewSimpleUserError("Invalid role mention or id")
+
+}
+
+func (ra *RoleArg) ExtractID(part string, data *dcmd.Data) interface{} {
+	if strings.HasPrefix(part, "<@&") && len(part) > 3 {
+		// Direct mention
+		id := part[3 : len(part)-1]
+
+		parsed, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return -1
+		}
+
+		return parsed
+	}
+
+	id, err := strconv.ParseInt(part, 10, 64)
+	if err == nil {
+		return id
+	}
+
+	return part
+}
+
+func (ra *RoleArg) HelpName() string {
+	return "Role"
 }

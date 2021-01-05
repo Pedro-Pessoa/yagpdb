@@ -49,7 +49,7 @@ var cmdLogs = &commands.YAGCommand{
 	Description:     "Creates a log of the last messages in the current channel.",
 	LongDescription: "This includes deleted messages within an hour (or 12 hours for premium servers)",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "Count", Default: 100, Type: &dcmd.IntArg{Min: 2, Max: 250}},
+		{Name: "Count", Default: 100, Type: &dcmd.IntArg{Min: 2, Max: 250}},
 	},
 	RunFunc: func(cmd *dcmd.Data) (interface{}, error) {
 		num := cmd.Args[0].Int()
@@ -122,7 +122,7 @@ var cmdWhois = &commands.YAGCommand{
 		var memberStatus string
 		state := [4]string{"Playing", "Streaming", "Listening", "Watching"}
 		if !member.PresenceSet || member.PresenceGame == nil {
-			memberStatus = fmt.Sprintf("Has no active status, is invisible/offline or is not in the bot's cache.")
+			memberStatus = fmt.Sprintf("Has no activity status, is invisible/offline or is not in the bot's cache.")
 		} else {
 			if member.PresenceGame.Type == 4 {
 				memberStatus = fmt.Sprintf("%s: %s", member.PresenceGame.Name, member.PresenceGame.State)
@@ -131,40 +131,53 @@ var cmdWhois = &commands.YAGCommand{
 			}
 		}
 
+		var onlineStatus string
+		switch member.PresenceStatus {
+		case 1:
+			onlineStatus = "Online"
+		case 2:
+			onlineStatus = "Idle"
+		case 3:
+			onlineStatus = "DND"
+		default:
+			onlineStatus = "Offline/Invisible"
+
+		}
+
 		embed := &discordgo.MessageEmbed{
-			Title: fmt.Sprintf("%s#%04d%s", member.Username, member.Discriminator, nick),
+			Title: fmt.Sprintf("%s#%04d%s (%s)", member.Username, member.Discriminator, nick, onlineStatus),
 			Fields: []*discordgo.MessageEmbedField{
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "ID",
 					Value:  discordgo.StrID(member.ID),
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Avatar",
 					Value:  "[Link](" + discordgo.EndpointUserAvatar(member.ID, member.StrAvatar()) + ")",
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Account Created",
 					Value:  t.UTC().Format(time.RFC822),
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Account Age",
 					Value:  createdDurStr,
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
+				{
 					Name:   "Joined Server At",
 					Value:  joinedAtStr,
 					Inline: true,
-				}, &discordgo.MessageEmbedField{
+				}, {
 					Name:   "Join Server Age",
 					Value:  joinedAtDurStr,
 					Inline: true,
 				},
-				&discordgo.MessageEmbedField{
-					Name:   "Status",
+				{
+					Name:   "Activity Status",
 					Value:  memberStatus,
 					Inline: true,
 				},

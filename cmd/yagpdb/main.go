@@ -19,7 +19,6 @@ import (
 	"github.com/jonas747/yagpdb/automod_legacy"
 	"github.com/jonas747/yagpdb/autorole"
 	"github.com/jonas747/yagpdb/aylien"
-	"github.com/jonas747/yagpdb/cah"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/customcommands"
 	"github.com/jonas747/yagpdb/discordlogger"
@@ -32,14 +31,12 @@ import (
 	"github.com/jonas747/yagpdb/reminders"
 	"github.com/jonas747/yagpdb/reputation"
 	"github.com/jonas747/yagpdb/rolecommands"
-	"github.com/jonas747/yagpdb/rsvp"
 	"github.com/jonas747/yagpdb/safebrowsing"
 	"github.com/jonas747/yagpdb/serverstats"
-	"github.com/jonas747/yagpdb/soundboard"
 	"github.com/jonas747/yagpdb/stdcommands"
 	"github.com/jonas747/yagpdb/streaming"
+	"github.com/jonas747/yagpdb/tibia"
 	"github.com/jonas747/yagpdb/tickets"
-	"github.com/jonas747/yagpdb/timezonecompanion"
 	"github.com/jonas747/yagpdb/twitter"
 	"github.com/jonas747/yagpdb/verification"
 	"github.com/jonas747/yagpdb/youtube"
@@ -65,6 +62,7 @@ func main() {
 	customcommands.RegisterPlugin()
 	reddit.RegisterPlugin()
 	moderation.RegisterPlugin()
+	tibia.RegisterPlugin()
 	reputation.RegisterPlugin()
 	aylien.RegisterPlugin()
 	streaming.RegisterPlugin()
@@ -73,18 +71,14 @@ func main() {
 	logs.RegisterPlugin()
 	autorole.RegisterPlugin()
 	reminders.RegisterPlugin()
-	soundboard.RegisterPlugin()
 	youtube.RegisterPlugin()
 	rolecommands.RegisterPlugin()
-	cah.RegisterPlugin()
 	tickets.RegisterPlugin()
 	verification.RegisterPlugin()
 	premium.RegisterPlugin()
 	patreonpremiumsource.RegisterPlugin()
 	scheduledevents2.RegisterPlugin()
 	twitter.RegisterPlugin()
-	rsvp.RegisterPlugin()
-	timezonecompanion.RegisterPlugin()
 	admin.RegisterPlugin()
 	internalapi.RegisterPlugin()
 	prom.RegisterPlugin()

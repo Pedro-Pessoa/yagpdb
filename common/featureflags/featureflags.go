@@ -30,7 +30,7 @@ type flagCache struct {
 
 func initCaches() []*flagCache {
 	result := make([]*flagCache, 10)
-	for i, _ := range result {
+	for i := range result {
 		result[i] = &flagCache{
 			cache: make(map[int64][]string),
 		}

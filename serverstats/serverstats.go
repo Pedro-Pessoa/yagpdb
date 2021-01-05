@@ -16,7 +16,7 @@ import (
 	"github.com/jonas747/yagpdb/serverstats/models"
 )
 
-var confDeprecated = config.RegisterOption("yagpdb.serverstats.deprecated", "Wether to mark server stats as disabled or not, this will disable recording of new stats", false)
+var confDeprecated = config.RegisterOption("yagpdb.serverstats.deprecated", "Wether to mark server stats as disabled or not, this will disable recording of new stats", true)
 
 type Plugin struct {
 	stopStatsLoop chan *sync.WaitGroup

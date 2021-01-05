@@ -302,7 +302,7 @@ func HandleLogsHTML(w http.ResponseWriter, r *http.Request) interface{} {
 	// Convert into views with formatted dates and colors
 	const TimeFormat = "2006 Jan 02 15:04"
 	messageViews := make([]*MessageView, len(messages))
-	for i, _ := range messageViews {
+	for i := range messageViews {
 		m := messages[i]
 		v := &MessageView{
 			Model:     m,

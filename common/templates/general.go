@@ -21,6 +21,30 @@ import (
 // walking the parameters and treating them as key-value pairs.  The number
 // of parameters must be even.
 func Dictionary(values ...interface{}) (Dict, error) {
+	if len(values) == 1 {
+		val, isNil := indirect(reflect.ValueOf(values[0]))
+		if isNil || values[0] == nil {
+			return nil, errors.New("dict: nil value passed")
+		}
+
+		if Dict, ok := val.Interface().(Dict); ok {
+			return Dict, nil
+		}
+
+		switch val.Kind() {
+		case reflect.Map:
+			iter := val.MapRange()
+			mapCopy := make(map[interface{}]interface{})
+			for iter.Next() {
+				mapCopy[iter.Key().Interface()] = iter.Value().Interface()
+			}
+			return Dict(mapCopy), nil
+		default:
+			return nil, errors.New("cannot convert data of type: " + reflect.TypeOf(values[0]).String())
+		}
+
+	}
+
 	if len(values)%2 != 0 {
 		return nil, errors.New("invalid dict call")
 	}
@@ -35,7 +59,6 @@ func Dictionary(values ...interface{}) (Dict, error) {
 }
 
 func StringKeyDictionary(values ...interface{}) (SDict, error) {
-
 	if len(values) == 1 {
 		val, isNil := indirect(reflect.ValueOf(values[0]))
 		if isNil || values[0] == nil {
@@ -72,6 +95,7 @@ func StringKeyDictionary(values ...interface{}) (SDict, error) {
 	if len(values)%2 != 0 {
 		return nil, errors.New("invalid dict call")
 	}
+
 	dict := make(map[string]interface{}, len(values)/2)
 	for i := 0; i < len(values); i += 2 {
 		key := values[i]
@@ -87,9 +111,7 @@ func StringKeyDictionary(values ...interface{}) (SDict, error) {
 }
 
 func KindOf(input interface{}, flag ...bool) (string, error) { //flag used only for indirect vs direct for now.
-
 	switch len(flag) {
-
 	case 0:
 		return reflect.ValueOf(input).Kind().String(), nil
 	case 1:
@@ -107,7 +129,6 @@ func KindOf(input interface{}, flag ...bool) (string, error) { //flag used only 
 }
 
 func StructToSdict(value interface{}) (SDict, error) {
-
 	val, isNil := indirect(reflect.ValueOf(value))
 	typeOfS := val.Type()
 	if isNil || value == nil {
@@ -125,8 +146,8 @@ func StructToSdict(value interface{}) (SDict, error) {
 			fields[typeOfS.Field(i).Name] = curr.Interface()
 		}
 	}
-	return SDict(fields), nil
 
+	return SDict(fields), nil
 }
 
 func CreateSlice(values ...interface{}) (Slice, error) {
@@ -187,11 +208,14 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 		return nil, err
 	}
 
-	msg := &discordgo.MessageSend{}
+	msg := &discordgo.MessageSend{
+		AllowedMentions: discordgo.AllowedMentions{
+			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+		},
+	}
 
 	for key, val := range messageSdict {
-
-		switch key {
+		switch strings.ToLower(key) {
 		case "content":
 			msg.Content = fmt.Sprint(val)
 		case "embed":
@@ -205,7 +229,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			msg.Embed = embed
 		case "file":
 			stringFile := fmt.Sprint(val)
-			if len(stringFile) > 100000 {
+			if len(stringFile) > 1000000 {
 				return nil, errors.New("file length for send message builder exceeded size limit")
 			}
 			var buf bytes.Buffer
@@ -216,10 +240,19 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 				ContentType: "text/plain",
 				Reader:      &buf,
 			}
+		case "allowed_mentions":
+			if val == nil {
+				msg.AllowedMentions = discordgo.AllowedMentions{}
+				continue
+			}
+			parsed, err := parseAllowedMentions(val)
+			if err != nil {
+				return nil, err
+			}
+			msg.AllowedMentions = *parsed
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
-
 	}
 
 	return msg, nil
@@ -233,6 +266,7 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 	if m, ok := values[0].(*discordgo.MessageEdit); len(values) == 1 && ok {
 		return m, nil
 	}
+
 	messageSdict, err := StringKeyDictionary(values...)
 	if err != nil {
 		return nil, err
@@ -240,8 +274,7 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 	msg := &discordgo.MessageEdit{}
 
 	for key, val := range messageSdict {
-
-		switch key {
+		switch strings.ToLower(key) {
 		case "content":
 			temp := fmt.Sprint(val)
 			msg.Content = &temp
@@ -255,14 +288,92 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 				return nil, err
 			}
 			msg.Embed = embed
+		case "allowed_mentions":
+			if val == nil {
+				msg.AllowedMentions = &discordgo.AllowedMentions{}
+				continue
+			}
+			parsed, err := parseAllowedMentions(val)
+			if err != nil {
+				return nil, err
+			}
+			msg.AllowedMentions = parsed
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to message edit builder`)
 		}
-
 	}
 
 	return msg, nil
+}
 
+func parseAllowedMentions(Data interface{}) (*discordgo.AllowedMentions, error) {
+	if m, ok := Data.(discordgo.AllowedMentions); ok {
+		return &m, nil
+	}
+
+	converted, err := StringKeyDictionary(Data)
+	if err != nil {
+		return nil, err
+	}
+
+	allowedMentions := &discordgo.AllowedMentions{}
+	for k, v := range converted {
+		switch strings.ToLower(k) {
+		case "parse":
+			var parseMentions []discordgo.AllowedMentionType
+			var parseSlice Slice
+			conv, err := parseSlice.AppendSlice(v)
+			if err != nil {
+				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Parse"`)
+			}
+			for _, elem := range conv.(Slice) {
+				elem_conv, _ := elem.(string)
+				if elem_conv != "users" && elem_conv != "roles" && elem_conv != "everyone" {
+					return nil, errors.New(`Allowed Mentions Parsing: invalid slice element in "Parse"`)
+				}
+				parseMentions = append(parseMentions, discordgo.AllowedMentionType(elem_conv))
+			}
+			allowedMentions.Parse = parseMentions
+		case "users":
+			var newslice discordgo.IDSlice
+			var parseSlice Slice
+			conv, err := parseSlice.AppendSlice(v)
+			if err != nil {
+				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Users"`)
+			}
+			for _, elem := range conv.(Slice) {
+				if (ToInt64(elem)) == 0 {
+					return nil, errors.New(`Allowed Mentions Parsing: "Users" IDSlice: invalid ID passed -` + fmt.Sprint(elem))
+				}
+				newslice = append(newslice, ToInt64(elem))
+			}
+			if len(newslice) > 100 {
+				newslice = newslice[:100]
+			}
+			allowedMentions.Users = newslice
+		case "roles":
+			var newslice discordgo.IDSlice
+			var parseSlice Slice
+			conv, err := parseSlice.AppendSlice(v)
+			if err != nil {
+				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Roles"`)
+			}
+			for _, elem := range conv.(Slice) {
+				if (ToInt64(elem)) == 0 {
+					return nil, errors.New(`Allowed Mentions Parsing: "Roles" IDSlice: invalid ID passed -` + fmt.Sprint(elem))
+				}
+				newslice = append(newslice, ToInt64(elem))
+			}
+			if len(newslice) > 100 {
+				newslice = newslice[:100]
+			}
+			allowedMentions.Roles = newslice
+		default:
+			return nil, errors.New(`Allowed Mentios Parsing : invalid key "` + k + `" for Allowed Mentions`)
+		}
+	}
+
+	return allowedMentions, nil
 }
 
 // indirect is taken from 'text/template/exec.go'
@@ -516,20 +627,24 @@ func tmplLog(arguments ...interface{}) (float64, error) {
 
 	x = ToFloat64(arguments[0])
 
-	if len(arguments) < 1 || len(arguments) > 2 {
+	l := len(arguments)
+	switch {
+	case l < 1, l > 2:
 		return 0, errors.New("wrong number of arguments")
-	} else if len(arguments) == 1 {
+	case l == 1:
 		base = math.E
-	} else {
+	default:
 		base = ToFloat64(arguments[1])
 	}
+
 	/*In an exponential function, the base is always defined to be positive,
 	but can't be equal to 1. Because of that also x can't be a negative.*/
-	if base == 1 || base <= 0 {
+	switch {
+	case base == 1, base <= 0:
 		logarithm = math.NaN()
-	} else if base == math.E {
+	case base == math.E:
 		logarithm = math.Log(x)
-	} else {
+	default:
 		logarithm = math.Log(x) / math.Log(base)
 	}
 
@@ -560,6 +675,7 @@ func tmplHumanizeThousands(input interface{}) string {
 	for i = len(f1) - 1; i >= 0; i-- {
 		f2 = f2 + string(f1[i])
 	}
+
 	return f2
 }
 
@@ -614,19 +730,15 @@ var ErrStringTooLong = errors.NewPlain("String is too long (max 1MB)")
 const MaxStringLength = 1000000
 
 func joinStrings(sep string, args ...interface{}) (string, error) {
-
 	var builder strings.Builder
-
 	for _, v := range args {
 		if builder.Len() != 0 {
 			builder.WriteString(sep)
 		}
 
 		switch t := v.(type) {
-
 		case string:
 			builder.WriteString(t)
-
 		case []string:
 			for j, s := range t {
 				if j != 0 {
@@ -638,13 +750,10 @@ func joinStrings(sep string, args ...interface{}) (string, error) {
 					return "", ErrStringTooLong
 				}
 			}
-
 		case int, uint, int32, uint32, int64, uint64:
 			builder.WriteString(ToString(v))
-
 		case float64:
 			builder.WriteString(fmt.Sprintf("%g", v))
-
 		case fmt.Stringer:
 			builder.WriteString(t.String())
 
@@ -653,14 +762,12 @@ func joinStrings(sep string, args ...interface{}) (string, error) {
 		if builder.Len() > MaxStringLength {
 			return "", ErrStringTooLong
 		}
-
 	}
 
 	return builder.String(), nil
 }
 
 func sequence(start, stop int) ([]int, error) {
-
 	if stop < start {
 		return nil, errors.New("stop is less than start?")
 	}
@@ -676,6 +783,7 @@ func sequence(start, stop int) ([]int, error) {
 		out[ri] = i
 		ri++
 	}
+
 	return out, nil
 }
 
@@ -829,27 +937,16 @@ func ToFloat64(from interface{}) float64 {
 
 func ToDuration(from interface{}) time.Duration {
 	switch t := from.(type) {
-	case int:
-		return time.Duration(int64(t))
-	case int32:
-		return time.Duration(int64(t))
-	case int64:
-		return time.Duration(int64(t))
-	case float32:
-		return time.Duration(int64(t))
-	case float64:
-		return time.Duration(int64(t))
-	case uint:
-		return time.Duration(int64(t))
-	case uint32:
-		return time.Duration(int64(t))
-	case uint64:
-		return time.Duration(int64(t))
+	case int, int32, int64, float32, float64, uint, uint32, uint64:
+		return time.Duration(ToInt64(t))
 	case string:
-		parsed, _ := common.ParseDuration(t)
+		parsed, err := common.ParseDuration(t)
+		if parsed < time.Second || err != nil {
+			return 0
+		}
 		return parsed
 	case time.Duration:
-		return time.Duration(t)
+		return t
 	default:
 		return 0
 	}
@@ -880,10 +977,59 @@ func ToByte(from interface{}) []byte {
 func tmplJson(v interface{}) (string, error) {
 	b, err := json.Marshal(v)
 	if err != nil {
-		return "", err
+		b, err = json.Marshal(convertMap(v))
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return string(b), nil
+}
+
+func convertMap(m interface{}) interface{} {
+	out := map[string]interface{}{}
+	val := reflect.ValueOf(m)
+	switch val.Kind() {
+	case reflect.Map:
+		for _, k := range val.MapKeys() {
+			v := val.MapIndex(k)
+			switch t := v.Interface().(type) {
+			case map[interface{}]interface{}, Dict, SDict:
+				out[fmt.Sprint(k)] = convertMap(t)
+			case Slice:
+				out[fmt.Sprint(k)] = handleSlices(t, nil)
+			case []interface{}:
+				out[fmt.Sprint(k)] = handleSlices(nil, t)
+			default:
+				out[fmt.Sprint(k)] = t
+			}
+		}
+		return out
+	default:
+		switch t := m.(type) {
+		case Slice:
+			return handleSlices(t, nil)
+		case []interface{}:
+			return handleSlices(nil, t)
+		default:
+			return m
+		}
+	}
+}
+
+func handleSlices(a Slice, b []interface{}) []interface{} {
+	var out []interface{}
+	if a == nil {
+		for _, v := range b {
+			out = append(out, convertMap(v))
+		}
+	} else {
+		for _, v := range a {
+			out = append(out, convertMap(v))
+		}
+	}
+
+	return out
 }
 
 func tmplFormatTime(t time.Time, args ...string) string {
@@ -985,6 +1131,50 @@ func slice(item reflect.Value, indices ...reflect.Value) (reflect.Value, error) 
 
 func tmplCurrentTime() time.Time {
 	return time.Now().UTC()
+}
+
+func tmplParseTime(layouts interface{}, value string, optionalArgs ...string) (time.Time, error) {
+	loc := time.UTC
+
+	var err error
+	if len(optionalArgs) >= 1 {
+		loc, err = time.LoadLocation(optionalArgs[0])
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+
+	var parsed time.Time
+
+	val := reflect.ValueOf(layouts)
+	switch val.Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < val.Len(); i++ {
+			switch layout := val.Index(i).Interface().(type) {
+			case string:
+				parsed, err = time.ParseInLocation(layout, value, loc)
+				if err != nil {
+					// Error recovery is essentially impossible in CC, so throwing an error on invalid input would be useless
+					continue
+				}
+
+				return parsed, nil
+			default:
+				return time.Time{}, errors.New("can't parse time with non-string layout")
+			}
+		}
+
+		return time.Time{}, nil
+	case reflect.String:
+		parsed, err = time.ParseInLocation(val.Interface().(string), value, loc)
+		if err != nil {
+			return time.Time{}, nil
+		}
+
+		return parsed, nil
+	default:
+		return time.Time{}, errors.New("argument passed to parseTime() was neither a string slice nor a string")
+	}
 }
 
 func tmplNewDate(year, monthInt, day, hour, min, sec int, location ...string) (time.Time, error) {

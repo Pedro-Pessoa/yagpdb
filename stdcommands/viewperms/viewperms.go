@@ -17,7 +17,7 @@ var Command = &commands.YAGCommand{
 	Name:        "ViewPerms",
 	Description: "Shows you or the targets permissions in this channel",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "target", Type: dcmd.UserID, Default: int64(0)},
+		{Name: "target", Type: dcmd.UserID, Default: int64(0)},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		var target *dstate.MemberState

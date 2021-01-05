@@ -51,7 +51,6 @@ func runMonitor() {
 			}
 			checkedExpiredSlots = true
 		}
-
 	}
 }
 

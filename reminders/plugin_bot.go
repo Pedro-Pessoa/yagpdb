@@ -34,15 +34,15 @@ func (p *Plugin) BotInit() {
 
 // Reminder management commands
 var cmds = []*commands.YAGCommand{
-	&commands.YAGCommand{
+	{
 		CmdCategory:  commands.CategoryTool,
 		Name:         "Remindme",
 		Description:  "Schedules a reminder, example: 'remindme 1h30min are you alive still?'",
 		Aliases:      []string{"remind", "reminder"},
 		RequiredArgs: 2,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Time", Type: &commands.DurationArg{}},
-			&dcmd.ArgDef{Name: "Message", Type: dcmd.String},
+			{Name: "Time", Type: &commands.DurationArg{}},
+			{Name: "Message", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			currentReminders, _ := GetUserReminders(parsed.Msg.Author.ID)
@@ -68,7 +68,7 @@ var cmds = []*commands.YAGCommand{
 			return "Set a reminder in " + durString + " from now (" + tStr + ")\nView reminders with the reminders command", nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CmdCategory: commands.CategoryTool,
 		Name:        "Reminders",
 		Description: "Lists your active reminders",
@@ -84,7 +84,7 @@ var cmds = []*commands.YAGCommand{
 			return out, nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CmdCategory: commands.CategoryTool,
 		Name:        "CReminders",
 		Description: "Lists reminders in channel, only users with 'manage server' permissions can use this.",
@@ -108,11 +108,11 @@ var cmds = []*commands.YAGCommand{
 			return out, nil
 		},
 	},
-	&commands.YAGCommand{
+	{
 		CmdCategory:  commands.CategoryTool,
 		Name:         "DelReminder",
 		Aliases:      []string{"rmreminder"},
-		Description:  "Deletes a reminder.",
+		Description:  "Deletes a reminder. You can delete reminders from other users provided you are running this command in the same guild the reminder was created in and have the Manage Channel permission in the channel the reminder was created in.",
 		RequiredArgs: 1,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "ID", Type: dcmd.Int},
@@ -128,12 +128,12 @@ var cmds = []*commands.YAGCommand{
 				return "Error retrieving reminder", err
 			}
 
-			if reminder.GuildID != parsed.GS.ID {
-				return "That reminder is not from this server", nil
-			}
-
 			// Check perms
 			if reminder.UserID != discordgo.StrID(parsed.Msg.Author.ID) {
+				if reminder.GuildID != parsed.GS.ID {
+					return "You can only delete reminders that are not your own in the guild the reminder was originally created", nil
+				}
+
 				ok, err := bot.AdminOrPermMS(reminder.ChannelIDInt(), parsed.MS, discordgo.PermissionManageChannels)
 				if err != nil {
 					return nil, err

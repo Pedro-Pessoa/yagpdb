@@ -3,7 +3,6 @@ package xkcd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 
@@ -34,10 +33,10 @@ var Command = &commands.YAGCommand{
 	Name:        "Xkcd",
 	Description: "An xkcd comic, by default returns random comic strip",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "Comic number", Type: dcmd.Int},
+		{Name: "Comic number", Type: dcmd.Int},
 	},
 	ArgSwitches: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Switch: "l", Name: "Latest comic"},
+		{Switch: "l", Name: "Latest comic"},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 
@@ -93,26 +92,16 @@ func getComic(number ...int64) (*Xkcd, error) {
 		queryUrl = fmt.Sprintf(XkcdHost+"%d/"+XkcdJson, number[0])
 	}
 
-	req, err := http.NewRequest("GET", queryUrl, nil)
+	resp, err := http.DefaultClient.Get(queryUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "curl/7.65.1")
+	defer resp.Body.Close()
 
-	resp, err := http.DefaultClient.Do(req)
+	err = json.NewDecoder(resp.Body).Decode(&xkcd)
 	if err != nil {
 		return nil, err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	queryErr := json.Unmarshal(body, &xkcd)
-	if queryErr != nil {
-		return nil, queryErr
 	}
 
 	return &xkcd, nil

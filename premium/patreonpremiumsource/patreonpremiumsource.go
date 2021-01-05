@@ -140,7 +140,7 @@ OUTER:
 			continue
 		}
 
-		for userID, _ := range sorted {
+		for userID := range sorted {
 			if userID == v.DiscordID {
 				continue OUTER
 			}

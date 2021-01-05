@@ -94,10 +94,10 @@ var cmdListCommands = &commands.YAGCommand{
 	Name:           "CustomCommands",
 	Aliases:        []string{"cc"},
 	Description:    "Shows a custom command specified by id or trigger, or lists them all",
-	ArgumentCombos: [][]int{[]int{0}, []int{1}, []int{}},
+	ArgumentCombos: [][]int{{0}, {1}, {}},
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "ID", Type: dcmd.Int},
-		&dcmd.ArgDef{Name: "Trigger", Type: dcmd.String},
+		{Name: "ID", Type: dcmd.Int},
+		{Name: "Trigger", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		ccs, err := models.CustomCommands(qm.Where("guild_id = ?", data.GS.ID), qm.OrderBy("local_id")).AllG(data.Context())
@@ -645,7 +645,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	go analytics.RecordActiveUnit(cmd.GuildID, &Plugin{}, "executed_cc")
 
 	// pick a response and execute it
-	f.Info("Custom command triggered")
+	f.Info("Custom command #", tmplCtx.Data["CCID"], " triggered")
 
 	chanMsg := cmd.Responses[rand.Intn(len(cmd.Responses))]
 	out, err := tmplCtx.Execute(chanMsg)

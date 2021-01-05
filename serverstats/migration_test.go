@@ -2,9 +2,10 @@ package serverstats
 
 import (
 	"context"
-	"github.com/jonas747/yagpdb/common/testutils"
 	"testing"
 	"time"
+
+	"github.com/jonas747/yagpdb/common/testutils"
 )
 
 func TestMigrationToV2FormatMsgs(t *testing.T) {
@@ -48,7 +49,7 @@ func TestMigrationToV2FormatMsgs(t *testing.T) {
 
 func insertLegacyMsgRow(guildID int64, tim time.Time, cID int64, count int) {
 	const q = `INSERT INTO server_stats_periods (started, duration, guild_id, user_id, channel_id, count)
-	VALUES                                        ($1,      0,         $2,     0,         $3,       $4) 
+	VALUES                                        ($1,      0,         $2,     0,         $3,       $4)
 	`
 
 	_, err := db.Exec(q, tim, guildID, cID, count)

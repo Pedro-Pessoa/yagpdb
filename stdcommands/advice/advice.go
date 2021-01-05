@@ -15,7 +15,7 @@ var Command = &commands.YAGCommand{
 	Name:        "Advice",
 	Description: "Don't be afraid to ask for advice!",
 	Arguments: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Name: "What", Type: dcmd.String},
+		{Name: "What", Type: dcmd.String},
 	},
 
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {

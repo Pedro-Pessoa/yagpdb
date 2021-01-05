@@ -24,11 +24,11 @@ type Config struct {
 	KickMessage          string `valid:"template,5000"`
 
 	// Ban
-	BanEnabled        	bool
-	BanCmdRoles       	pq.Int64Array `gorm:"type:bigint[]" valid:"role,true"`
-	BanReasonOptional 	bool
-	BanMessage        	string `valid:"template,5000"`
-	DefaultBanDeleteDays    sql.NullInt64 `gorm:"default:1" valid:"0,7"`
+	BanEnabled           bool
+	BanCmdRoles          pq.Int64Array `gorm:"type:bigint[]" valid:"role,true"`
+	BanReasonOptional    bool
+	BanMessage           string        `valid:"template,5000"`
+	DefaultBanDeleteDays sql.NullInt64 `gorm:"default:1" valid:"0,7"`
 
 	// Mute/unmute
 	MuteEnabled             bool
@@ -51,13 +51,25 @@ type Config struct {
 	WarnSendToModlog       bool
 	WarnMessage            string `valid:"template,5000"`
 
+	//Lockdown
+	LockdownCmdEnabled      bool
+	LockdownCmdModlog       bool
+	LockdownCmdRoles        pq.Int64Array `gorm:"type:bigint[]" valid:"role,true"`
+	DefaultLockRole         string        `valid:"role,true"`
+	LockIncludeChannelLogs  bool
+	LockHasResponse         bool
+	DefaultLockdownDuration sql.NullInt64 `gorm:"default:0"`
+
 	// Misc
-	CleanEnabled  bool
-	ReportEnabled bool
-	ActionChannel string `valid:"channel,true"`
-	ReportChannel string `valid:"channel,true"`
-	LogUnbans     bool
-	LogBans       bool
+	CleanEnabled           bool
+	ReportEnabled          bool
+	ActionChannel          string `valid:"channel,true"`
+	ReportChannel          string `valid:"channel,true"`
+	ErrorChannel           string `valid:"channel,true"`
+	LogUnbans              bool
+	LogBans                bool
+	LogKicks               bool `gorm:"default:true"`
+	SlowmodeCommandEnabled bool
 
 	GiveRoleCmdEnabled bool
 	GiveRoleCmdModlog  bool
@@ -76,6 +88,11 @@ func (c *Config) IntActionChannel() (r int64) {
 
 func (c *Config) IntReportChannel() (r int64) {
 	r, _ = strconv.ParseInt(c.ReportChannel, 10, 64)
+	return
+}
+
+func (c *Config) IntErrorChannel() (r int64) {
+	r, _ = strconv.ParseInt(c.ErrorChannel, 10, 64)
 	return
 }
 
@@ -135,4 +152,20 @@ type MuteModel struct {
 
 func (m *MuteModel) TableName() string {
 	return "muted_users"
+}
+
+type LockdownModel struct {
+	common.SmallModel
+
+	ExpiresAt time.Time
+	GuildID   int64 `gorm:"index"`
+	RoleID    int64
+
+	PermsOriginal int64
+	PermsToggle   int64
+	Overwrite     bool
+}
+
+func (m *LockdownModel) TableName() string {
+	return "locked_roles"
 }

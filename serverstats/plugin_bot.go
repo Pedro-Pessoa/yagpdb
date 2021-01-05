@@ -83,11 +83,11 @@ func (p *Plugin) AddCommands() {
 				Title:       "Server stats",
 				Description: fmt.Sprintf("[Click here to open in browser](%s/public/%d/stats)", web.BaseURL(), data.GS.ID),
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{Name: "Members joined 24h", Value: fmt.Sprint(stats.JoinedDay), Inline: true},
-					&discordgo.MessageEmbedField{Name: "Members Left 24h", Value: fmt.Sprint(stats.LeftDay), Inline: true},
-					&discordgo.MessageEmbedField{Name: "Total Messages 24h", Value: fmt.Sprint(total), Inline: true},
-					&discordgo.MessageEmbedField{Name: "Members Online", Value: fmt.Sprint(stats.Online), Inline: true},
-					&discordgo.MessageEmbedField{Name: "Total Members", Value: fmt.Sprint(stats.TotalMembers), Inline: true},
+					{Name: "Members joined 24h", Value: fmt.Sprint(stats.JoinedDay), Inline: true},
+					{Name: "Members Left 24h", Value: fmt.Sprint(stats.LeftDay), Inline: true},
+					{Name: "Total Messages 24h", Value: fmt.Sprint(total), Inline: true},
+					{Name: "Members Online", Value: fmt.Sprint(stats.Online), Inline: true},
+					{Name: "Total Members", Value: fmt.Sprint(stats.TotalMembers), Inline: true},
 				},
 			}
 

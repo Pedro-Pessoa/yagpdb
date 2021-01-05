@@ -19,7 +19,7 @@ func (p *Plugin) AddCommands() {
 			Aliases:     []string{"sb"},
 			Description: "Play, or list soundboard sounds",
 			Arguments: []*dcmd.ArgDef{
-				&dcmd.ArgDef{Name: "Name", Type: dcmd.String},
+				{Name: "Name", Type: dcmd.String},
 			},
 			RunFunc: func(data *dcmd.Data) (interface{}, error) {
 				sounds, err := GetSoundboardSounds(data.GS.ID, data.Context())

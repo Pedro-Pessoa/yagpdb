@@ -19,7 +19,7 @@ import (
 var DiscordState *dstate.State
 
 func init() {
-	for i, _ := range handlers {
+	for i := range handlers {
 		handlers[i] = make([][]*Handler, 3)
 	}
 }
@@ -70,7 +70,7 @@ func (e *EventData) Context() context.Context {
 
 func (e *EventData) WithContext(ctx context.Context) *EventData {
 	cop := new(EventData)
-	*cop = *e
+	cop = e
 	cop.ctx = ctx
 	return cop
 }
@@ -327,7 +327,7 @@ var workers []chan *EventData
 func InitWorkers(totalShards int) {
 
 	workers = make([]chan *EventData, totalShards)
-	for i, _ := range workers {
+	for i := range workers {
 		workers[i] = make(chan *EventData, 1000)
 		go eventWorker(workers[i])
 	}

@@ -19,22 +19,22 @@ var Command = &commands.YAGCommand{
 	Aliases:     []string{"se"},
 	Description: "A more simpler version of CustomEmbed, controlled completely using switches.",
 	ArgSwitches: []*dcmd.ArgDef{
-		&dcmd.ArgDef{Switch: "channel", Help: "Optional channel to send in", Type: dcmd.Channel},
-		&dcmd.ArgDef{Switch: "content", Help: "Text content for the message", Type: dcmd.String, Default: ""},
+		{Switch: "channel", Help: "Optional channel to send in", Type: dcmd.Channel},
+		{Switch: "content", Help: "Text content for the message", Type: dcmd.String, Default: ""},
 
-		&dcmd.ArgDef{Switch: "title", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "desc", Type: dcmd.String, Help: "Text in the 'description' field", Default: ""},
-		&dcmd.ArgDef{Switch: "color", Help: "Either hex code or name", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "url", Help: "Url of this embed", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "thumbnail", Help: "Url to a thumbnail", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "image", Help: "Url to an image", Type: dcmd.String, Default: ""},
+		{Switch: "title", Type: dcmd.String, Default: ""},
+		{Switch: "desc", Type: dcmd.String, Help: "Text in the 'description' field", Default: ""},
+		{Switch: "color", Help: "Either hex code or name", Type: dcmd.String, Default: ""},
+		{Switch: "url", Help: "Url of this embed", Type: dcmd.String, Default: ""},
+		{Switch: "thumbnail", Help: "Url to a thumbnail", Type: dcmd.String, Default: ""},
+		{Switch: "image", Help: "Url to an image", Type: dcmd.String, Default: ""},
 
-		&dcmd.ArgDef{Switch: "author", Help: "The text in the 'author' field", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "authoricon", Help: "Url to a icon for the 'author' field", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "authorurl", Help: "Url of the 'author' field", Type: dcmd.String, Default: ""},
+		{Switch: "author", Help: "The text in the 'author' field", Type: dcmd.String, Default: ""},
+		{Switch: "authoricon", Help: "Url to a icon for the 'author' field", Type: dcmd.String, Default: ""},
+		{Switch: "authorurl", Help: "Url of the 'author' field", Type: dcmd.String, Default: ""},
 
-		&dcmd.ArgDef{Switch: "footer", Help: "Text content for the footer", Type: dcmd.String, Default: ""},
-		&dcmd.ArgDef{Switch: "footericon", Help: "Url to a icon for the 'footer' field", Type: dcmd.String, Default: ""},
+		{Switch: "footer", Help: "Text content for the footer", Type: dcmd.String, Default: ""},
+		{Switch: "footericon", Help: "Url to a icon for the 'footer' field", Type: dcmd.String, Default: ""},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		content := data.Switch("content").Str()

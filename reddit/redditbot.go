@@ -365,7 +365,6 @@ func CreatePostMessage(post *reddit.Link) (string, *discordgo.MessageEmbed) {
 		embed.Title += " [spoiler]"
 	}
 
-	plainMessage = plainMessage
 	return plainMessage, embed
 }
 

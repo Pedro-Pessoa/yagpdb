@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 	"time"
 
@@ -33,15 +34,15 @@ func (p *Plugin) AddCommands() {
 		Aliases:     []string{"setz", "tzset"},
 		Description: "Sets your timezone, used for various purposes such as auto conversion. Give it your country.",
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "Timezone", Type: dcmd.String},
+			{Name: "Timezone", Type: dcmd.String},
 		},
 		ArgSwitches: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Switch: "u", Name: "Display current"},
-			&dcmd.ArgDef{Switch: "d", Name: "Delete TZ record"},
+			{Switch: "u", Name: "Display current"},
+			{Switch: "d", Name: "Delete TZ record"},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 
-			localTZ := time.Now().Location()
+			localTZ := time.Now().UTC().Location()
 			userZone, userOffset := time.Now().In(localTZ).Zone()
 			getUserTZ := GetUserTimezone(parsed.Msg.Author.ID)
 			tzState := "server's"
@@ -74,13 +75,14 @@ func (p *Plugin) AddCommands() {
 					if err != nil {
 						return nil, err
 					}
-					return "Deleted", nil
+					return "Registered time zone deleted", nil
 				} else {
 					return "You don't have a registered time zone", nil
 				}
 			}
-
-			zones := FindZone(parsed.Args[0].Str())
+			var out, manyZones, zone string
+			userInput := parsed.Args[0].Str()
+			zones := FindZone(userInput)
 			if len(zones) < 1 {
 				return fmt.Sprintf("Unknown timezone, enter a country or timezone (not abbreviation like CET). there's a timezone picker here: <http://kevalbhatt.github.io/timezone-picker> you can use, enter the `Area/City` result\n\n%s", userTZ), nil
 			}
@@ -95,24 +97,31 @@ func (p *Plugin) AddCommands() {
 					return nil, err
 				}
 
-				out := "More than 1 result, reuse the command with a one of the following:\n"
+				out = "More than 1 result, reuse the command for fine tuning with a one of the following:\n"
+				levDistance := 1000
 				for _, v := range zones {
 					if s := StrZone(v); s != "" {
+						re := regexp.MustCompile(`.*` + userInput + `.*:`)
+						if levD := levenshtein([]rune(userInput), []rune(re.FindString(s))); levD <= levDistance {
+							levDistance = levD
+							manyZones = v
+						}
 						out += s + "\n"
 					}
 				}
-				out += "\n" + userTZ
-
-				return out, nil
 			}
-			loc, err := time.LoadLocation(zones[0])
+
+			zone = zones[0]
+			if manyZones != "" {
+				zone = manyZones
+			}
+
+			loc, err := time.LoadLocation(zone)
 			if err != nil {
 				return "Unknown timezone", nil
 			}
 
 			name, _ := time.Now().In(loc).Zone()
-			zone := zones[0]
-
 			m := &models.UserTimezone{
 				UserID:       parsed.Msg.Author.ID,
 				TimezoneName: zone,
@@ -122,8 +131,13 @@ func (p *Plugin) AddCommands() {
 			if err != nil {
 				return nil, err
 			}
+			if manyZones != "" {
+				out += "\n" + fmt.Sprintf("Set your timezone to closest match `%s`: %s\n", zone, name)
+				return out, nil
 
+			}
 			return fmt.Sprintf("Set your timezone to `%s`: %s\n", zone, name), nil
+
 		},
 	}, &commands.YAGCommand{
 		CmdCategory:         commands.CategoryTool,
@@ -132,7 +146,7 @@ func (p *Plugin) AddCommands() {
 		Description:         "Toggles automatic time conversion for people with registered timezones (setz) in this channel, its on by default, toggle all channels by giving it `all`",
 		RequireDiscordPerms: []int64{discordgo.PermissionManageMessages, discordgo.PermissionManageServer},
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "flags", Type: dcmd.String},
+			{Name: "flags", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			allStr := parsed.Args[0].Str()

@@ -44,7 +44,7 @@ func (p *Plugin) AddCommands() {
 		Description:  "Opens a new ticket",
 		RequiredArgs: 1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "subject", Type: dcmd.String},
+			{Name: "subject", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			conf := parsed.Context().Value(CtxKeyConfig).(*models.TicketConfig)
@@ -131,7 +131,7 @@ func (p *Plugin) AddCommands() {
 		Description:  "Adds a user to the ticket in this channel",
 		RequiredArgs: 1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "target", Type: &commands.MemberArg{}},
+			{Name: "target", Type: &commands.MemberArg{}},
 		},
 
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
@@ -168,7 +168,7 @@ func (p *Plugin) AddCommands() {
 		Description:  "Removes a user from the ticket",
 		RequiredArgs: 1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "target", Type: &commands.MemberArg{}},
+			{Name: "target", Type: &commands.MemberArg{}},
 		},
 
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
@@ -210,7 +210,7 @@ func (p *Plugin) AddCommands() {
 		Description:  "Renames the ticket",
 		RequiredArgs: 1,
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "new-name", Type: dcmd.String},
+			{Name: "new-name", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			currentTicket := parsed.Context().Value(CtxKeyCurrentTicket).(*Ticket)
@@ -249,7 +249,7 @@ func (p *Plugin) AddCommands() {
 		Aliases:     []string{"end", "delete"},
 		Description: "Closes the ticket",
 		Arguments: []*dcmd.ArgDef{
-			&dcmd.ArgDef{Name: "reason", Type: dcmd.String, Default: "none"},
+			{Name: "reason", Type: dcmd.String, Default: "none"},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			conf := parsed.Context().Value(CtxKeyConfig).(*models.TicketConfig)
@@ -666,17 +666,17 @@ func transcriptChannel(conf *models.TicketConfig, adminOnly bool) int64 {
 func createTicketChannel(conf *models.TicketConfig, gs *dstate.GuildState, authorID int64, subject string) (int64, *discordgo.Channel, error) {
 	// assemble the permission overwrites for the channel were about to create
 	overwrites := []*discordgo.PermissionOverwrite{
-		&discordgo.PermissionOverwrite{
+		{
 			Type:  "member",
 			ID:    authorID,
 			Allow: InTicketPerms,
 		},
-		&discordgo.PermissionOverwrite{
+		{
 			Type: "role",
 			ID:   gs.ID,
 			Deny: InTicketPerms,
 		},
-		&discordgo.PermissionOverwrite{
+		{
 			Type:  "member",
 			ID:    common.BotUser.ID,
 			Allow: InTicketPerms,
