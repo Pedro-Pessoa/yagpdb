@@ -652,15 +652,12 @@ func (s Slice) Append(item interface{}) (interface{}, error) {
 	}
 }
 
-func (s Slice) Del(index int) (string, error) {
-	if index >= len(s) || index < 0 {
-		return "", errors.New("Index out of bounds")
+func (s Slice) FilterOut(index int) (Slice, error) {
+	if index < 0 || index >= len(s) {
+		return nil, errors.New("Index out of bounds")
 	}
 
-	copy(s[index:], s[index+1:])
-	s[len(s)-1] = ""
-	s = s[:len(s)-1]
-	return "", nil
+	return append(s[:index], s[index+1:]...), nil
 }
 
 func (s Slice) Set(index int, item interface{}) (string, error) {
