@@ -13,6 +13,7 @@ type ModlogAction struct {
 	Prefix string
 	Emoji  string
 	Color  int
+	Name   string
 
 	Footer string
 }
@@ -27,12 +28,12 @@ func (m ModlogAction) String() string {
 }
 
 var (
-	MAMute       = ModlogAction{Prefix: "Silenciado:", Emoji: "🔇", Color: 0x57728e}
-	MAUnmute     = ModlogAction{Prefix: "Desilenciado:", Emoji: "🔊", Color: 0x62c65f}
-	MAKick       = ModlogAction{Prefix: "Quicado:", Emoji: "👢", Color: 0xf2a013}
-	MABanned     = ModlogAction{Prefix: "Banido:", Emoji: "🔨", Color: 0xd64848}
+	MAMute       = ModlogAction{Prefix: "Silenciado:", Emoji: "🔇", Color: 0x57728e, Name: "🔇Silenciado!"}
+	MAUnmute     = ModlogAction{Prefix: "Desilenciado:", Emoji: "🔊", Color: 0x62c65f, Name: "🔊Desilenciado!"}
+	MAKick       = ModlogAction{Prefix: "Quicado:", Emoji: "👢", Color: 0xf2a013, Name: "👢Quicado!"}
+	MABanned     = ModlogAction{Prefix: "Banido:", Emoji: "🔨", Color: 0xd64848, Name: "🔨Banido!"}
 	MAUnbanned   = ModlogAction{Prefix: "Desbanido:", Emoji: "🔓", Color: 0x62c65f}
-	MAWarned     = ModlogAction{Prefix: "Avisado:", Emoji: "⚠", Color: 0xfca253}
+	MAWarned     = ModlogAction{Prefix: "Avisado:", Emoji: "⚠", Color: 0xfca253, Name: "⚠Avisado!"}
 	MASlowmode   = ModlogAction{Prefix: "Freiou", Emoji: "🐌", Color: 0xff9a00}
 	MARemoveSlow = ModlogAction{Prefix: "Desfreiou", Emoji: "💨", Color: 0x43ff00}
 	MAGiveRole   = ModlogAction{Prefix: "", Emoji: "➕", Color: 0x53fcf9}
