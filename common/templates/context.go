@@ -143,7 +143,7 @@ type contextFrame struct {
 	DelResponse bool
 
 	DelResponseDelay         int
-	EmebdsToSend             []*discordgo.MessageEmbed
+	EmbedsToSend             []*discordgo.MessageEmbed
 	AddResponseReactionNames []string
 
 	isNestedTemplate bool
@@ -385,13 +385,24 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 		}
 	}
 
-	for _, v := range c.CurrentFrame.EmebdsToSend {
+	isDM := c.CurrentFrame.CS.Type == discordgo.ChannelTypeDM
+	info := fmt.Sprintf("DM enviada pelo servidor **%s**", c.GS.Guild.Name)
+	WL := bot.IsGuildWhiteListed(c.GS.ID)
+
+	for _, v := range c.CurrentFrame.EmbedsToSend {
+		if isDM && !WL {
+			v.Footer.Text = info
+		}
 		common.BotSession.ChannelMessageSendEmbed(channelID, v)
 	}
 
 	if strings.TrimSpace(content) == "" || (c.CurrentFrame.DelResponse && c.CurrentFrame.DelResponseDelay < 1) {
 		// no point in sending the response if it gets deleted immedietely
 		return nil, nil
+	}
+
+	if isDM && !WL {
+		content = info + content
 	}
 
 	m, err := common.BotSession.ChannelMessageSendComplex(channelID, c.MessageSend(content))

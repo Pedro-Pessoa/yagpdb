@@ -376,6 +376,10 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 		if cid == 0 {
 			return ""
 		}
+		isDM := cid != c.ChannelArgNoDM(channel)
+
+		info := fmt.Sprintf("DM enviada pelo servidor **%s**", c.GS.Guild.Name)
+		WL := bot.IsGuildWhiteListed(c.GS.ID)
 
 		var m *discordgo.Message
 		msgSend := &discordgo.MessageSend{
@@ -387,14 +391,32 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		switch typedMsg := msg.(type) {
 		case *discordgo.MessageEmbed:
+			if isDM && !WL {
+				typedMsg.Footer = &discordgo.MessageEmbedFooter{
+					Text: info,
+				}
+			}
 			msgSend.Embed = typedMsg
 		case *discordgo.MessageSend:
 			msgSend = typedMsg
+
 			if !filterSpecialMentions {
 				msgSend.AllowedMentions = discordgo.AllowedMentions{Parse: parseMentions}
 			}
+
+			if isDM && !WL {
+				if typedMsg.Embed != nil {
+					typedMsg.Embed.Footer.Text = info
+				} else {
+					typedMsg.Content = info + "\n" + typedMsg.Content
+				}
+			}
 		default:
-			msgSend.Content = fmt.Sprint(msg)
+			if isDM && !WL {
+				msgSend.Content = info + "\n" + fmt.Sprint(msg)
+			} else {
+				msgSend.Content = fmt.Sprint(msg)
+			}
 		}
 
 		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
