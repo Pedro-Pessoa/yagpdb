@@ -427,6 +427,12 @@ func HandleMessageCreate(evt *eventsystem.EventData) {
 
 	member := dstate.MSFromDGoMember(evt.GS, mc.Member)
 
+	ms := evt.GS.MemberCopy(true, mc.Member.User.ID)
+	if ms != nil {
+		member.PresenceStatus = ms.PresenceStatus
+		member.PresenceGame = ms.PresenceGame
+	}
+
 	var matchedCustomCommands []*TriggeredCC
 	var err error
 	common.LogLongCallTime(time.Second, true, "Took longer than a second to fetch custom commands", logrus.Fields{"guild": evt.GS.ID}, func() {
