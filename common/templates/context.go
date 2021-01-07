@@ -386,7 +386,9 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 	}
 
 	isDM := c.CurrentFrame.CS.Type == discordgo.ChannelTypeDM
+	c.GS.RLock()
 	info := fmt.Sprintf("DM enviada pelo servidor **%s**", c.GS.Guild.Name)
+	c.GS.RUnlock()
 	WL := bot.IsGuildWhiteListed(c.GS.ID)
 
 	for _, v := range c.CurrentFrame.EmbedsToSend {

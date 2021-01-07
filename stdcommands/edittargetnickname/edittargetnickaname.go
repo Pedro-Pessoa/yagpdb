@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jonas747/dcmd"
+	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/common"
@@ -28,6 +29,12 @@ var Command = &commands.YAGCommand{
 
 		if util.IsExecedByCC(data) {
 			return "O comando EditTargetNickname não pode ser usado através de um CC.", nil
+		}
+
+		if ok, err := bot.AdminOrPermMS(data.CS.ID, data.MS, discordgo.PermissionManageNicknames); err != nil {
+			return "Falha ao checar as permissões", err
+		} else if !ok {
+			return "Você precisa da permissão de gerenciar nicknames para usar esse comando!", nil
 		}
 
 		ms, err := bot.GetMember(data.GS.ID, data.Args[0].Int64())

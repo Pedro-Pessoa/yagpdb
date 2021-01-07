@@ -376,9 +376,11 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 		if cid == 0 {
 			return ""
 		}
-		isDM := cid != c.ChannelArgNoDM(channel)
 
+		isDM := cid != c.ChannelArgNoDM(channel)
+		c.GS.RLock()
 		info := fmt.Sprintf("DM enviada pelo servidor **%s**", c.GS.Guild.Name)
+		c.GS.RUnlock()
 		WL := bot.IsGuildWhiteListed(c.GS.ID)
 
 		var m *discordgo.Message
