@@ -5,28 +5,21 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
-	textapi "github.com/AYLIEN/aylien_textapi_go"
 	"github.com/jonas747/dcmd"
-	"github.com/jonas747/dstate/v2"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
 )
 
 var (
 	ErrNoMessages = errors.New("Failed finding any messages to analyze")
 
-	confAppID  = config.RegisterOption("yagpdb.aylienappid", "AYLIEN App ID", "")
-	confAppKey = config.RegisterOption("yagpdb.aylienappkey", "AYLIEN App Key", "")
-
 	logger = common.GetPluginLogger(&Plugin{})
 )
 
-type Plugin struct {
-	aylien *textapi.Client
-}
+type Plugin struct{}
 
 func (p *Plugin) PluginInfo() *common.PluginInfo {
 	return &common.PluginInfo{
@@ -37,22 +30,9 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 }
 
 func RegisterPlugin() {
-	if confAppID.GetString() == "" || confAppKey.GetString() == "" {
-		logger.Warn("Missing AYLIEN appid and/or key, not loading plugin")
-		return
-	}
+	plugin := &Plugin{}
 
-	client, err := textapi.NewClient(textapi.Auth{ApplicationID: confAppID.GetString(), ApplicationKey: confAppKey.GetString()}, true)
-	if err != nil {
-		logger.WithError(err).Error("Failed initializing AYLIEN client")
-		return
-	}
-
-	p := &Plugin{
-		aylien: client,
-	}
-
-	common.RegisterPlugin(p)
+	common.RegisterPlugin(plugin)
 }
 
 var _ commands.CommandProvider = (*Plugin)(nil)
@@ -68,18 +48,11 @@ func (p *Plugin) AddCommands() {
 			{Name: "text", Type: dcmd.String},
 		},
 		RunFunc: func(cmd *dcmd.Data) (interface{}, error) {
-			var responses []*textapi.SentimentResponse
-			if cmd.Args[0].Value != nil {
-				resp, err := p.aylien.Sentiment(&textapi.SentimentParams{
-					Text: cmd.Args[0].Str(),
-				})
-				if err != nil {
-					return "Error querying AYLIEN API", err
-				}
-				responses = []*textapi.SentimentResponse{resp}
-			} else {
+			toAnalyze := make([]string, 0)
 
-				// Get the message to analyze
+			if cmd.Args[0].Value != nil { // a message was provided
+				toAnalyze = append(toAnalyze, cmd.Args[0].Str())
+			} else { // Get the message to analyze
 				msgs, err := bot.GetMessages(cmd.CS.ID, 100, false)
 				if err != nil {
 					return "", err
@@ -89,14 +62,10 @@ func (p *Plugin) AddCommands() {
 					return ErrNoMessages, ErrNoMessages
 				}
 
-				// filter out our own and longer than 3 words
-				toAnalyze := make([]*dstate.MessageState, 0)
-				for i := len(msgs) - 1; i >= 0; i-- {
-					msg := msgs[i]
-					// logger.Println(msg.ID, msg.ContentWithMentionsReplaced())
-					if msg.Author.ID == cmd.Msg.Author.ID {
-						if len(strings.Fields(msg.ContentWithMentionsReplaced())) > 3 {
-							toAnalyze = append(toAnalyze, msg)
+				for _, m := range msgs { // filter out our own and longer than 3 words
+					if m.Author.ID == cmd.Msg.Author.ID {
+						if len(strings.Fields(m.ContentWithMentionsReplaced())) > 3 {
+							toAnalyze = append(toAnalyze, m.Content)
 							if len(toAnalyze) >= 5 {
 								break
 							}
@@ -107,25 +76,18 @@ func (p *Plugin) AddCommands() {
 				if len(toAnalyze) < 1 {
 					return ErrNoMessages, ErrNoMessages
 				}
-
-				for _, msg := range toAnalyze {
-					resp, err := p.aylien.Sentiment(&textapi.SentimentParams{Text: msg.ContentWithMentionsReplaced()})
-					if err != nil {
-						return "Error querying AYLIEN API", err
-					}
-
-					responses = append(responses, resp)
-				}
 			}
 
-			out := fmt.Sprintf("**Sentiment analysis on %d messages:**\n", len(responses))
-			for _, resp := range responses {
-				out += fmt.Sprintf("*%s*\nPolarity: **%s** *(Confidence: %.2f%%)* Subjectivity: **%s** *(Confidence: %.2f%%)*\n\n", resp.Text, resp.Polarity, resp.PolarityConfidence*100, resp.Subjectivity, resp.SubjectivityConfidence*100)
+			rand.Seed(time.Now().UnixNano())
+
+			out := fmt.Sprintf("**Sentiment analysis on %d message(s):**\n", len(toAnalyze))
+			for _, resp := range toAnalyze {
+				out += fmt.Sprintf("*%s*\nPolarity: **%s** *(Confidence: %s%%)* Subjectivity: **%s** *(Confidence: %s%%)*\n\n", resp, RandPolarity(), RandConfidencePol(), RandSubjective(), RandConfidenceSub())
 			}
+
 			return out, nil
 		},
 	},
-		// This is a fun little always positive 8ball
 		&commands.YAGCommand{
 			Cooldown:    2,
 			CmdCategory: commands.CategoryFun,
@@ -136,40 +98,63 @@ func (p *Plugin) AddCommands() {
 			},
 			RequiredArgs: 1,
 			RunFunc: func(cmd *dcmd.Data) (interface{}, error) {
-				resp, err := p.aylien.Sentiment(&textapi.SentimentParams{Text: cmd.Args[0].Str()})
-				if err != nil {
-					resp = &textapi.SentimentResponse{
-						Polarity:               "neutral",
-						PolarityConfidence:     1,
-						Subjectivity:           "subjective",
-						SubjectivityConfidence: 1,
-					}
-				}
-
-				switch resp.Polarity {
-				case "neutral":
-					if rand.Intn(2) > 0 {
-						return "Yes", nil
-					} else {
-						return "No", nil
-					}
-				case "positive":
-					switch {
-					case resp.PolarityConfidence >= 0 && resp.PolarityConfidence < 0.5:
-						return "Most likely", nil
-					case resp.PolarityConfidence >= 0.5:
-						return "Without a doubt", nil
-					}
-				case "negative":
-					switch {
-					case resp.PolarityConfidence >= 0 && resp.PolarityConfidence < 0.5:
-						return "Not likely", nil
-					case resp.PolarityConfidence >= 0.5:
-						return "Definitively not", nil
-					}
-				}
-				return "Dunno", nil
+				rand.Seed(time.Now().UnixNano())
+				return fmt.Sprintf("**8Ball**:\n_%s_\n%s", cmd.Args[0].Str(), Rand8Ball()), nil
 			},
 		},
 	)
+}
+
+func RandPolarity() string {
+	i := rand.Intn(3)
+	switch i {
+	case 0:
+		return "neutral"
+	case 1:
+		return "positive"
+	default:
+		return "negative"
+	}
+}
+
+func RandConfidencePol() string {
+	i := rand.Intn(10001)
+	idiv := float64(i) / 100
+
+	return fmt.Sprintf("%v", idiv)
+}
+
+func RandSubjective() string {
+	i := rand.Intn(2)
+	switch i {
+	case 0:
+		return "subjective"
+	default:
+		return "objective"
+	}
+}
+
+func RandConfidenceSub() string {
+	i := rand.Intn(10001)
+	idiv := float64(i) / 100
+
+	return fmt.Sprintf("%v", idiv)
+}
+
+func Rand8Ball() string {
+	i := rand.Intn(6)
+	switch i {
+	case 0:
+		return "Yes"
+	case 1:
+		return "No"
+	case 2:
+		return "Definitively not"
+	case 3:
+		return "Not likely"
+	case 4:
+		return "Most likely"
+	default:
+		return "Without a doubt"
+	}
 }
