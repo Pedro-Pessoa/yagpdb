@@ -216,6 +216,7 @@ func (c *Context) setupBaseData() {
 		c.Data["user"] = c.Data["User"]
 	}
 
+	c.Data["Bot"] = common.BotUser
 	c.Data["TimeSecond"] = time.Second
 	c.Data["TimeMinute"] = time.Minute
 	c.Data["TimeHour"] = time.Hour
