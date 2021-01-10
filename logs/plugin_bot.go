@@ -249,7 +249,7 @@ var cmdUsernames = &commands.YAGCommand{
 	Aliases:     []string{"unames", "un"},
 	RunInDM:     true,
 	Arguments: []*dcmd.ArgDef{
-		{Name: "User", Type: dcmd.User},
+		{Name: "User", Type: dcmd.UserID},
 	},
 	RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 		gID := int64(0)
@@ -267,13 +267,13 @@ var cmdUsernames = &commands.YAGCommand{
 		}
 
 		_, err := paginatedmessages.CreatePaginatedMessage(gID, parsed.Msg.ChannelID, 1, 0, func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
-			target := parsed.Msg.Author
+			target := parsed.Msg.Author.ID
 			if parsed.Args[0].Value != nil {
-				target = parsed.Args[0].Value.(*discordgo.User)
+				target = parsed.Args[0].Int64()
 			}
 
 			offset := (page - 1) * 15
-			usernames, err := GetUsernames(context.Background(), target.ID, 15, offset)
+			usernames, err := GetUsernames(context.Background(), target, 15, offset)
 			if err != nil {
 				return nil, err
 			}
@@ -282,7 +282,8 @@ var cmdUsernames = &commands.YAGCommand{
 				return nil, paginatedmessages.ErrNoResults
 			}
 
-			out := fmt.Sprintf("Past username of **%s#%s** ```\n", target.Username, target.Discriminator)
+			ms := parsed.GS.MemberCopy(true, target)
+			out := fmt.Sprintf("Past username of **%s#%d** ```\n", ms.Username, ms.Discriminator)
 			for _, v := range usernames {
 				out += fmt.Sprintf("%20s: %s\n", v.CreatedAt.Time.UTC().Format(time.RFC822), v.Username.String)
 			}
@@ -294,7 +295,7 @@ var cmdUsernames = &commands.YAGCommand{
 
 			embed := &discordgo.MessageEmbed{
 				Color:       0x277ee3,
-				Title:       "Usernames of " + target.Username + "#" + target.Discriminator,
+				Title:       fmt.Sprintf("Usernames of %s#%d", ms.Username, ms.Discriminator),
 				Description: out,
 			}
 
@@ -312,7 +313,7 @@ var cmdNicknames = &commands.YAGCommand{
 	Aliases:     []string{"nn"},
 	RunInDM:     false,
 	Arguments: []*dcmd.ArgDef{
-		{Name: "User", Type: dcmd.User},
+		{Name: "User", Type: dcmd.UserID},
 	},
 	RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 		config, err := GetConfig(common.PQ, parsed.Context(), parsed.GS.ID)
@@ -320,9 +321,9 @@ var cmdNicknames = &commands.YAGCommand{
 			return nil, err
 		}
 
-		target := parsed.Msg.Author
+		target := parsed.Msg.Author.ID
 		if parsed.Args[0].Value != nil {
-			target = parsed.Args[0].Value.(*discordgo.User)
+			target = parsed.Args[0].Int64()
 		}
 
 		if !config.NicknameLoggingEnabled.Bool {
@@ -333,7 +334,7 @@ var cmdNicknames = &commands.YAGCommand{
 
 			offset := (page - 1) * 15
 
-			nicknames, err := GetNicknames(context.Background(), target.ID, parsed.GS.ID, 15, offset)
+			nicknames, err := GetNicknames(context.Background(), target, parsed.GS.ID, 15, offset)
 			if err != nil {
 				return nil, err
 			}
@@ -342,7 +343,8 @@ var cmdNicknames = &commands.YAGCommand{
 				return nil, paginatedmessages.ErrNoResults
 			}
 
-			out := fmt.Sprintf("Past nicknames of **%s#%s** ```\n", target.Username, target.Discriminator)
+			ms := parsed.GS.MemberCopy(true, target)
+			out := fmt.Sprintf("Past nicknames of **%s#%d** ```\n", ms.Username, ms.Discriminator)
 			for _, v := range nicknames {
 				out += fmt.Sprintf("%20s: %s\n", v.CreatedAt.Time.UTC().Format(time.RFC822), v.Nickname.String)
 			}
@@ -354,7 +356,7 @@ var cmdNicknames = &commands.YAGCommand{
 
 			embed := &discordgo.MessageEmbed{
 				Color:       0x277ee3,
-				Title:       "Nicknames of " + target.Username + "#" + target.Discriminator,
+				Title:       fmt.Sprintf("Nicknames of %s#%d", ms.Username, ms.Discriminator),
 				Description: out,
 			}
 

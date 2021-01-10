@@ -10,7 +10,6 @@ replace (
 
 require (
 	emperror.dev/errors v0.4.3
-	github.com/AYLIEN/aylien_textapi_go v0.6.0
 	github.com/AlekSi/pointer v1.1.0 // indirect
 	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
 	github.com/NYTimes/gziphandler v1.1.1
@@ -41,7 +40,6 @@ require (
 	github.com/jonas747/dice v0.0.0-20170619144252-7735f6ee7b69
 	github.com/jonas747/discordgo v1.5.2
 	github.com/jonas747/dshardorchestrator/v2 v2.0.1
-	github.com/jonas747/dstate v1.0.5
 	github.com/jonas747/dstate/v2 v2.0.2-0.20200910172413-04c84702ac80
 	github.com/jonas747/dutil v0.0.3
 	github.com/jonas747/go-reddit v0.1.2
