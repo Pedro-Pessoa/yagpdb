@@ -15,6 +15,7 @@ var Command = &commands.YAGCommand{
 	Description:          ";))",
 	HideFromHelp:         true,
 	RequiredArgs:         1,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "server", Type: dcmd.Int},
 	},

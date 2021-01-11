@@ -38,6 +38,7 @@ var cmdMigrate = &commands.YAGCommand{
 	HideFromHelp:         true,
 	RunInDM:              true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(parsed *dcmd.Data) (interface{}, error) {
 		resp := ""
 		err := common.RedisPool.Do(radix.Cmd(&resp, "SET", "yagpdb_logs_migrated", "1", "NX"))

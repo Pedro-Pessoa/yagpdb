@@ -31,6 +31,7 @@ var Command = &commands.YAGCommand{
 	Aliases:              []string{"findservers"},
 	Description:          "Looks for a server by server name or the servers a user owns",
 	HideFromHelp:         true,
+	IsModCmd:             true,
 	ArgSwitches: []*dcmd.ArgDef{
 		{Switch: "name", Name: "name", Type: dcmd.String, Default: ""},
 		{Switch: "user", Name: "user", Type: dcmd.UserID, Default: 0},

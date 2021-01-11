@@ -40,9 +40,8 @@ var Command = &commands.YAGCommand{
 			if common.IsOwner(data.Msg.Author.ID) {
 				guildIDToMatch = data.Args[0].Int64()
 			} else {
-				return "Only for owner of the bot", nil
+				return "Only the owner of the bot can target a guild", nil
 			}
-
 		}
 		result, err := dbQuery(guildIDToMatch)
 		if err != nil {

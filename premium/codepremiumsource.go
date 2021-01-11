@@ -172,6 +172,7 @@ var cmdGenerateCode = &commands.YAGCommand{
 	HideFromHelp:         true,
 	RequiredArgs:         3,
 	RunInDM:              true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Duration", Type: &commands.DurationArg{}},
 		{Name: "NumCodes", Type: dcmd.Int},
@@ -220,6 +221,7 @@ var cmdDeleteCode = &commands.YAGCommand{
 	HideFromHelp:         true,
 	RequiredArgs:         1,
 	RunInDM:              true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Code", Type: dcmd.String},
 	},

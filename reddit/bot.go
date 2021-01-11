@@ -34,6 +34,7 @@ func (p *Plugin) AddCommands() {
 		Description:          "Tests the reddit feeds in this server by checking the specified post",
 		HideFromHelp:         true,
 		RequiredArgs:         1,
+		IsModCmd:             true,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "post-id", Type: dcmd.String},
 		},

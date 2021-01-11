@@ -19,6 +19,7 @@ var Command = &commands.YAGCommand{
 	Description:          "Maintenance command, creates a invite for the specified server",
 	HideFromHelp:         true,
 	RequiredArgs:         1,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "server", Type: dcmd.Int},
 	},

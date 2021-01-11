@@ -115,6 +115,7 @@ type YAGCommand struct {
 
 	RunInDM      bool // Set to enable this commmand in DM's
 	HideFromHelp bool // Set to hide from help
+	IsModCmd     bool // Set if the command is suppose to be used by admins/owner only. This is only so that yag wont type if a normal user use an admin command
 
 	RequireDiscordPerms []int64 // Require users to have one of these permission sets to run the command
 
@@ -150,6 +151,18 @@ var metricsExcecutedCommands = promauto.NewCounterVec(prometheus.CounterOpts{
 	Help: "Commands the bot executed",
 }, []string{"name"})
 
+func isMod(id int64) bool {
+	if common.IsOwner(id) {
+		return true
+	}
+
+	if admin, err := bot.IsBotAdmin(id); admin && err == nil {
+		return true
+	}
+
+	return false
+}
+
 func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 	if !yc.RunInDM && data.Source == dcmd.DMSource {
 		return nil, nil
@@ -157,7 +170,13 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 
 	// Send typing to indicate the bot's working
 	if confSetTyping.GetBool() {
-		_ = common.BotSession.ChannelTyping(data.Msg.ChannelID)
+		if yc.IsModCmd {
+			if isMod(data.MS.ID) {
+				_ = common.BotSession.ChannelTyping(data.Msg.ChannelID)
+			}
+		} else {
+			_ = common.BotSession.ChannelTyping(data.Msg.ChannelID)
+		}
 	}
 
 	logger := yc.Logger(data)

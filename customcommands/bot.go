@@ -836,6 +836,7 @@ var cmdFixCommands = &commands.YAGCommand{
 	Description:          "???",
 	HideFromCommandsPage: true,
 	HideFromHelp:         true,
+	IsModCmd:             true,
 	RunFunc: util.RequireBotAdmin(func(data *dcmd.Data) (interface{}, error) {
 		ccs, err := models.CustomCommands(qm.Where("trigger_type = 5"), qm.Where("now() - INTERVAL '1 hour' > next_run")).AllG(context.Background())
 		if err != nil {

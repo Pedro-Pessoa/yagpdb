@@ -16,6 +16,7 @@ var Command = &commands.YAGCommand{
 	Name:                 "allocstat",
 	Description:          "Memory statistics.",
 	HideFromHelp:         true,
+	IsModCmd:             true,
 	RunFunc: util.RequireBotAdmin(func(data *dcmd.Data) (interface{}, error) {
 		var memstatsStarted runtime.MemStats
 		runtime.ReadMemStats(&memstatsStarted)

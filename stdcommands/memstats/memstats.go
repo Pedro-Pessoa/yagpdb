@@ -19,6 +19,7 @@ var Command = &commands.YAGCommand{
 	Name:                 "memstats",
 	Description:          ";))",
 	HideFromHelp:         true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)

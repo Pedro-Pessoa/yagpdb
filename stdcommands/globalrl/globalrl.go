@@ -18,6 +18,7 @@ var Command = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
 
 		rlEvt := &discordgo.RateLimit{

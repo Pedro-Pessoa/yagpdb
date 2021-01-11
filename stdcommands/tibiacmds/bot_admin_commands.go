@@ -17,6 +17,7 @@ var TibiaDelWorld = &commands.YAGCommand{
 	Description:          "Apaga o mundo do servidor.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "ID do servidor.", Type: dcmd.Int},
 	},
@@ -41,6 +42,7 @@ var TibiaDelGuild = &commands.YAGCommand{
 	Description:          "Apaga a guild do servidor.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "ID do servidor.", Type: dcmd.Int},
 	},
@@ -66,6 +68,7 @@ var TibiaAdmSetWorld = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Mundo", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -92,6 +95,7 @@ var TibiaAdmSetGuild = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Guild", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -118,6 +122,7 @@ var AdminTrackCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Nome do Char", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -144,6 +149,7 @@ var AdminTrackHuntedCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Nome do Char", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -170,6 +176,7 @@ var AdminUntrackCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Nome do Char", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -195,6 +202,7 @@ var AdminUntrackHuntedCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Nome do Char", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -220,6 +228,7 @@ var AdminUntrackGuildCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Nome do Char", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},
@@ -244,6 +253,7 @@ var AdminDellAllCommand = &commands.YAGCommand{
 	Description:          "Deleta TODAS as databases de tibia.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
 		a, err := tibia.DeleteAll()
 		if err != nil {
@@ -260,6 +270,7 @@ var AdminStartTrackingCommand = &commands.YAGCommand{
 	Description:          "Inicia o tracking.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
 		a, err := tibia.StartLoop()
 		if err != nil {
@@ -276,6 +287,7 @@ var AdminStopTrackingCommand = &commands.YAGCommand{
 	Description:          "Para o tracking.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
 		a, err := tibia.StopLoop()
 		if err != nil {
@@ -293,6 +305,7 @@ var AdminDeleteTracksCommand = &commands.YAGCommand{
 	RequiredArgs:         1,
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
+	IsModCmd:             true,
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Track a deletar", Type: dcmd.String},
 		{Name: "ID do servidor.", Type: dcmd.Int},

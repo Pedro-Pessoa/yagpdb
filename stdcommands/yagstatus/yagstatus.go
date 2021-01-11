@@ -63,7 +63,7 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 			Name:    botUser.Username,
 			IconURL: discordgo.EndpointUserAvatar(botUser.ID, botUser.Avatar),
 		},
-		Title: "YAGPDB Status, version " + common.VERSION,
+		Title: "Tid Bot Status, version " + common.VERSION,
 		Fields: []*discordgo.MessageEmbedField{
 			{Name: "Servers", Value: fmt.Sprint(servers), Inline: true},
 			{Name: "Go Version", Value: runtime.Version(), Inline: true},
