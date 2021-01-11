@@ -384,9 +384,9 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 		}
 
 		member := data.MS
+		found := false
 		// Check the required and ignored roles
 		if len(settings.RequiredRoles) > 0 {
-			found := false
 			for _, r := range member.Roles {
 				if common.ContainsInt64Slice(settings.RequiredRoles, r) {
 					found = true
@@ -408,7 +408,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 		}
 
 		// This command has permission sets required, if the user has one of them then allow this command to be used
-		if len(yc.RequireDiscordPerms) > 0 {
+		if len(yc.RequireDiscordPerms) > 0 && !found {
 			var perms int
 			perms, err = cState.Guild.MemberPermissionsMS(true, cState.ID, member)
 			if err != nil {
