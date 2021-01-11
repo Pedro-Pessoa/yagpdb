@@ -174,7 +174,7 @@ func ModifyRep(ctx context.Context, conf *models.ReputationConfig, guildID int64
 	err = insertUpdateUserRep(ctx, guildID, receiver.ID, amount)
 	if err != nil {
 		// Clear the cooldown since it failed updating the rep
-		ClearCooldown(guildID, sender.ID)
+		_ = ClearCooldown(guildID, sender.ID)
 		return
 	}
 
@@ -341,10 +341,8 @@ func DetailedLeaderboardEntries(guildID int64, ranks []*RankEntry) ([]*Leaderboa
 	if bot.Running {
 		var tmp []*dstate.MemberState
 		tmp, err = bot.GetMembers(guildID, userIDs...)
-		if tmp != nil {
-			for _, v := range tmp {
-				members = append(members, v.DGoCopy())
-			}
+		for _, v := range tmp {
+			members = append(members, v.DGoCopy())
 		}
 	} else {
 		members, err = botrest.GetMembers(guildID, userIDs...)

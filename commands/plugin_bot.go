@@ -175,7 +175,7 @@ func YAGCommandMiddleware(inner dcmd.RunFunc) dcmd.RunFunc {
 			if resp == ReasonCooldown {
 				fmt.Println("Were on cooldown")
 				if (data.GS != nil && bot.BotProbablyHasPermissionGS(data.GS, data.CS.ID, discordgo.PermissionAddReactions)) || data.GS == nil {
-					common.BotSession.MessageReactionAdd(data.Msg.ChannelID, data.Msg.ID, "⏳")
+					_ = common.BotSession.MessageReactionAdd(data.Msg.ChannelID, data.Msg.ID, "⏳")
 				}
 			}
 
@@ -279,7 +279,7 @@ func handleMsgCreate(evt *eventsystem.EventData) {
 		}
 	}
 
-	CommandSystem.CheckMessageWtihPrefetchedPrefix(common.BotSession, evt.MessageCreate(), prefix)
+	_ = CommandSystem.CheckMessageWtihPrefetchedPrefix(common.BotSession, evt.MessageCreate(), prefix)
 	// CommandSystem.HandleMessageCreate(common.BotSession, evt.MessageCreate())
 }
 

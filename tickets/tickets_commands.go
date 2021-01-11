@@ -24,7 +24,7 @@ import (
 	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
-const InTicketPerms = discordgo.PermissionReadMessageHistory | discordgo.PermissionReadMessages | discordgo.PermissionSendMessages | discordgo.PermissionEmbedLinks | discordgo.PermissionAttachFiles
+const InTicketPerms = discordgo.PermissionReadMessageHistory | discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | discordgo.PermissionEmbedLinks | discordgo.PermissionAttachFiles
 
 var _ commands.CommandProvider = (*Plugin)(nil)
 
@@ -56,7 +56,7 @@ func (p *Plugin) AddCommands() {
 				return "No category for ticket channels set", nil
 			}
 
-			inCurrentTickets, err := models.Tickets(
+			inCurrentTickets, _ := models.Tickets(
 				qm.Where("closed_at IS NULL"),
 				qm.Where("guild_id = ?", parsed.GS.ID),
 				qm.Where("author_id = ?", parsed.Msg.Author.ID)).AllG(parsed.Context())
@@ -270,7 +270,7 @@ func (p *Plugin) AddCommands() {
 			}()
 
 			// send a heads up that this can take a while
-			common.BotSession.ChannelMessageSend(parsed.CS.ID, "Closing ticket, creating logs, downloading attachments and so on.\nThis may take a while if the ticket is big.")
+			_, _ = common.BotSession.ChannelMessageSend(parsed.CS.ID, "Closing ticket, creating logs, downloading attachments and so on.\nThis may take a while if the ticket is big.")
 
 			currentTicket.Ticket.ClosedAt.Time = time.Now()
 			currentTicket.Ticket.ClosedAt.Valid = true
@@ -338,15 +338,13 @@ func (p *Plugin) AddCommands() {
 					if (v.Allow & InTicketPerms) != InTicketPerms {
 						// add it back to allows, remove from denies
 						newAllows := v.Allow | InTicketPerms
-						newDenies := v.Deny & (InTicketPerms ^ InTicketPerms)
-						err = common.BotSession.ChannelPermissionSet(parsed.CS.ID, v.ID, "role", newAllows, newDenies)
+						err = common.BotSession.ChannelPermissionSet(parsed.CS.ID, v.ID, "role", newAllows, 0)
 					}
 				} else {
 					// remove the mods from this ticket
 					if (v.Allow & InTicketPerms) == InTicketPerms {
 						// remove it from allows
-						newAllows := v.Allow & (InTicketPerms ^ InTicketPerms)
-						err = common.BotSession.ChannelPermissionSet(parsed.CS.ID, v.ID, "role", newAllows, v.Deny)
+						err = common.BotSession.ChannelPermissionSet(parsed.CS.ID, v.ID, "role", 0, v.Deny)
 					}
 				}
 
@@ -557,8 +555,7 @@ func archiveAttachments(conf *models.TicketConfig, ticket *models.Ticket, groups
 			}
 
 			fName := fmt.Sprintf("attachments-%d-%s-%s", ticket.LocalID, ticket.Title, ag[0].Filename)
-			_, err = common.BotSession.ChannelFileSendWithMessage(transcriptChannel(conf, adminOnly),
-				fName, fName, resp.Body)
+			_, _ = common.BotSession.ChannelFileSendWithMessage(transcriptChannel(conf, adminOnly), fName, fName, resp.Body)
 			continue
 		}
 

@@ -16,7 +16,7 @@ import (
 var (
 	ErrNoMessages = errors.New("Failed finding any messages to analyze")
 
-	logger = common.GetPluginLogger(&Plugin{})
+	// logger = common.GetPluginLogger(&Plugin{})
 )
 
 type Plugin struct{}

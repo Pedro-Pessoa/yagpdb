@@ -41,7 +41,7 @@ var NewsCommand = &commands.YAGCommand{
 		}
 
 		embed := &discordgo.MessageEmbed{
-			Title:       fmt.Sprintf("%s", news.Title),
+			Title:       news.Title,
 			Color:       int(rand.Int63n(16777215)),
 			Description: fmt.Sprintf("%s\n[Clique para ver mais](%s)", news.ShortDescription, news.URL),
 			Footer: &discordgo.MessageEmbedFooter{
@@ -70,7 +70,7 @@ var NewsTickerCommand = &commands.YAGCommand{
 		}
 
 		embed := &discordgo.MessageEmbed{
-			Title:       fmt.Sprintf("%s", news.Title),
+			Title:       news.Title,
 			Color:       int(rand.Int63n(16777215)),
 			Description: fmt.Sprintf("%s\n[Clique para ver mais](%s)", news.ShortDescription, news.URL),
 			Footer: &discordgo.MessageEmbedFooter{

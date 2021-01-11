@@ -344,7 +344,7 @@ func charFromMember(member string, channel chan InternalChar, tracks []InternalC
 	pool <- struct{}{}
 	defer func() { <-pool }()
 	char, err := GetTibiaChar(member, false)
-	if err != nil {
+	if err != nil || char == nil {
 		logger.Errorf("error 1 happened: %#v", err)
 		return
 	}
@@ -354,7 +354,6 @@ func charFromMember(member string, channel chan InternalChar, tracks []InternalC
 		}
 	}
 	channel <- *char
-	return
 }
 
 func flagCleanUp() {

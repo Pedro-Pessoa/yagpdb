@@ -81,10 +81,10 @@ func (p *Plugin) checkInitFeatureFlags() {
 	}
 }
 
-// periodically checks if were storing feature flags of some servers that has left, and also checks for missing feature flags
+/* // periodically checks if were storing feature flags of some servers that has left, and also checks for missing feature flags
 func (p *Plugin) runLeftGuildsCheck() error {
 	return nil
-}
+} */
 
 // updates all dirty flags
 func (p *Plugin) runUpdateDirtyFlags() (err error) {

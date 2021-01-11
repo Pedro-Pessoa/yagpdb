@@ -130,7 +130,7 @@ func SetStatus(streaming, status string) {
 		logger.WithError(err2).Error("failed setting bot status in redis")
 	}
 
-	pubsub.Publish("bot_status_changed", -1, nil)
+	_ = pubsub.Publish("bot_status_changed", -1, nil)
 }
 
 func updateAllShardStatuses() {
@@ -187,7 +187,7 @@ func SendMessage(guildID int64, channelID int64, msg string) (permsOK bool, resp
 }
 
 func SendMessageGS(gs *dstate.GuildState, channelID int64, msg string) (permsOK bool, resp *discordgo.Message, err error) {
-	if !BotProbablyHasPermissionGS(gs, channelID, discordgo.PermissionSendMessages|discordgo.PermissionReadMessages) {
+	if !BotProbablyHasPermissionGS(gs, channelID, discordgo.PermissionSendMessages|discordgo.PermissionViewChannel) {
 		return false, nil, nil
 	}
 
@@ -197,7 +197,7 @@ func SendMessageGS(gs *dstate.GuildState, channelID int64, msg string) (permsOK 
 }
 
 func SendMessageEmbed(guildID int64, channelID int64, msg *discordgo.MessageEmbed) (permsOK bool, resp *discordgo.Message, err error) {
-	if !BotProbablyHasPermission(guildID, channelID, discordgo.PermissionSendMessages|discordgo.PermissionReadMessages|discordgo.PermissionEmbedLinks) {
+	if !BotProbablyHasPermission(guildID, channelID, discordgo.PermissionSendMessages|discordgo.PermissionViewChannel|discordgo.PermissionEmbedLinks) {
 		return false, nil, nil
 	}
 
@@ -207,7 +207,7 @@ func SendMessageEmbed(guildID int64, channelID int64, msg *discordgo.MessageEmbe
 }
 
 func SendMessageEmbedGS(gs *dstate.GuildState, channelID int64, msg *discordgo.MessageEmbed) (permsOK bool, resp *discordgo.Message, err error) {
-	if !BotProbablyHasPermissionGS(gs, channelID, discordgo.PermissionSendMessages|discordgo.PermissionReadMessages|discordgo.PermissionEmbedLinks) {
+	if !BotProbablyHasPermissionGS(gs, channelID, discordgo.PermissionSendMessages|discordgo.PermissionViewChannel|discordgo.PermissionEmbedLinks) {
 		return false, nil, nil
 	}
 
@@ -254,9 +254,9 @@ func RefreshStatus(session *discordgo.Session) {
 	}
 
 	if streamingURL != "" {
-		session.UpdateStreamingStatus(0, status, streamingURL)
+		_ = session.UpdateStreamingStatus(0, status, streamingURL)
 	} else {
-		session.UpdateStatus(0, status)
+		_ = session.UpdateStatus(0, status)
 	}
 
 }

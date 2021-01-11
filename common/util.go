@@ -283,7 +283,8 @@ func RemoveRoleDS(ms *dstate.MemberState, role int64) error {
 }
 
 var StringPerms = map[int]string{
-	discordgo.PermissionReadMessages:       "Ler Mensagens",
+	// discordgo.PermissionReadMessages:       "Ler Mensagens", // deprecated
+	discordgo.PermissionViewChannel:        "Ver o canal",
 	discordgo.PermissionSendMessages:       "Enviar Mensagens",
 	discordgo.PermissionSendTTSMessages:    "Enviar Mensagens TTS",
 	discordgo.PermissionManageMessages:     "Gerenciar Mensagens",
@@ -370,8 +371,11 @@ func HumanizePermissions(perms int64) (res []string) {
 	if perms&discordgo.PermissionManageServer == discordgo.PermissionManageServer {
 		res = append(res, "Gerenciar o Servidor")
 	}
-	if perms&discordgo.PermissionReadMessages == discordgo.PermissionReadMessages {
+	/* 	if perms&discordgo.PermissionReadMessages == discordgo.PermissionReadMessages {
 		res = append(res, "Ler Mensagens")
+	} */ // deprecated
+	if perms&discordgo.PermissionViewChannel == discordgo.PermissionViewChannel {
+		res = append(res, "Ver o Canal")
 	}
 	if perms&discordgo.PermissionSendMessages == discordgo.PermissionSendMessages {
 		res = append(res, "Enviar Mensagens")
@@ -512,7 +516,7 @@ func SqlTX(f func(tx *sql.Tx) error) error {
 	err = f(tx)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return err
 	}
 
@@ -529,7 +533,7 @@ func SendOwnerAlert(msgf string, args ...interface{}) {
 		return
 	}
 
-	BotSession.ChannelMessageSend(ch.ID, fmt.Sprintf(msgf, args...))
+	_, _ = BotSession.ChannelMessageSend(ch.ID, fmt.Sprintf(msgf, args...))
 }
 
 func IsOwner(userID int64) bool {

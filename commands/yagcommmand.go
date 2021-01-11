@@ -157,7 +157,7 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 
 	// Send typing to indicate the bot's working
 	if confSetTyping.GetBool() {
-		common.BotSession.ChannelTyping(data.Msg.ChannelID)
+		_ = common.BotSession.ChannelTyping(data.Msg.ChannelID)
 	}
 
 	logger := yc.Logger(data)
@@ -279,7 +279,7 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 		if settings.DelTrigger {
 			go func() {
 				time.Sleep(time.Duration(settings.DelTriggerDelay) * time.Second)
-				common.BotSession.ChannelMessageDelete(cmdData.CS.ID, cmdData.Msg.ID)
+				_ = common.BotSession.ChannelMessageDelete(cmdData.CS.ID, cmdData.Msg.ID)
 			}()
 		}
 		return // Don't bother sending the reponse if it has no delete delay
@@ -303,7 +303,7 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 	// Send the response
 	var replies []*discordgo.Message
 	if resp != nil {
-		replies, err = dcmd.SendResponseInterface(cmdData, resp, true)
+		replies, _ = dcmd.SendResponseInterface(cmdData, resp, true)
 	}
 
 	if settings.DelResponse {
@@ -324,9 +324,9 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 			}
 
 			if len(ids) == 1 {
-				common.BotSession.ChannelMessageDelete(cmdData.CS.ID, ids[0])
+				_ = common.BotSession.ChannelMessageDelete(cmdData.CS.ID, ids[0])
 			} else if len(ids) > 1 {
-				common.BotSession.ChannelMessagesBulkDelete(cmdData.CS.ID, ids)
+				_ = common.BotSession.ChannelMessagesBulkDelete(cmdData.CS.ID, ids)
 			}
 		}()
 	}
@@ -335,11 +335,9 @@ func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dc
 	if settings.DelTrigger && (!settings.DelResponse || settings.DelTriggerDelay != settings.DelResponseDelay) {
 		go func() {
 			time.Sleep(time.Duration(settings.DelTriggerDelay) * time.Second)
-			common.BotSession.ChannelMessageDelete(cmdData.CS.ID, cmdData.Msg.ID)
+			_ = common.BotSession.ChannelMessageDelete(cmdData.CS.ID, cmdData.Msg.ID)
 		}()
 	}
-
-	return
 }
 
 const (
@@ -367,7 +365,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 			return
 		}
 
-		if !bot.BotProbablyHasPermissionGS(guild, cState.ID, discordgo.PermissionReadMessages|discordgo.PermissionSendMessages) {
+		if !bot.BotProbablyHasPermissionGS(guild, cState.ID, discordgo.PermissionViewChannel|discordgo.PermissionSendMessages) {
 			return
 		}
 
@@ -454,7 +452,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 	return
 }
 
-func (yc *YAGCommand) humanizedRequiredPerms() string {
+/* func (yc *YAGCommand) humanizedRequiredPerms() string {
 	res := ""
 	for i, permSet := range yc.RequireDiscordPerms {
 		if i != 0 {
@@ -464,13 +462,13 @@ func (yc *YAGCommand) humanizedRequiredPerms() string {
 	}
 
 	return res
-}
+} */
 
 func (cs *YAGCommand) logExecutionTime(dur time.Duration, raw string, sender string) {
 	logger.Infof("Handled Command [%4dms] %s: %s", int(dur.Seconds()*1000), sender, raw)
 }
 
-func (cs *YAGCommand) deleteResponse(msgs []*discordgo.Message) {
+/* func (cs *YAGCommand) deleteResponse(msgs []*discordgo.Message) {
 	ids := make([]int64, 0, len(msgs))
 	var cID int64
 	for _, msg := range msgs {
@@ -489,11 +487,11 @@ func (cs *YAGCommand) deleteResponse(msgs []*discordgo.Message) {
 
 	// Either do a bulk delete or single delete depending on how big the response was
 	if len(ids) > 1 {
-		common.BotSession.ChannelMessagesBulkDelete(cID, ids)
+		_ = common.BotSession.ChannelMessagesBulkDelete(cID, ids)
 	} else {
-		common.BotSession.ChannelMessageDelete(cID, ids[0])
+		_ = common.BotSession.ChannelMessageDelete(cID, ids[0])
 	}
-}
+} */
 
 // customEnabled returns wether the command is enabled by it's custom key or not
 func (cs *YAGCommand) customEnabled(guildID int64) (bool, error) {
@@ -729,8 +727,9 @@ func (cs *YAGCommand) SetCooldownGuild(cc []*dcmd.Container, guildID int64) erro
 }
 
 func (yc *YAGCommand) Logger(data *dcmd.Data) *logrus.Entry {
-	l := logger.WithField("cmd", yc.FindNameFromContainerChain(data.ContainerChain))
+	var l *logrus.Entry
 	if data != nil {
+		l = logger.WithField("cmd", yc.FindNameFromContainerChain(data.ContainerChain))
 		if data.Msg != nil {
 			l = l.WithField("user_n", data.Msg.Author.Username)
 			l = l.WithField("user_id", data.Msg.Author.ID)
@@ -828,8 +827,6 @@ func removeRunningCommand(guildID, channelID, authorID int64, cmd *YAGCommand) {
 	}
 
 	runningcommandsLock.Unlock()
-
-	return
 }
 
 func (yc *YAGCommand) FindNameFromContainerChain(cc []*dcmd.Container) string {

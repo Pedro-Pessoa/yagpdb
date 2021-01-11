@@ -45,7 +45,7 @@ func Shutdown() {
 }
 
 func returnNoMatches(w http.ResponseWriter) {
-	w.Write([]byte("[]"))
+	_, _ = w.Write([]byte("[]"))
 }
 
 func handleCheckMessage(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +75,7 @@ func handleCheckMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(marshalled)
+	_, _ = w.Write(marshalled)
 }
 
 func serverPerformLookup(input string) (threats [][]safebrowsing.URLThreat, err error) {

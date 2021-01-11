@@ -15,7 +15,6 @@ import (
 	"github.com/jonas747/yagpdb/feeds"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/youtube/v3"
 )
 
@@ -32,7 +31,6 @@ func (p *Plugin) StartFeed() {
 }
 
 func (p *Plugin) StopFeed(wg *sync.WaitGroup) {
-
 	if p.Stop != nil {
 		p.Stop <- wg
 	} else {
@@ -41,12 +39,7 @@ func (p *Plugin) StopFeed(wg *sync.WaitGroup) {
 }
 
 func (p *Plugin) SetupClient() error {
-	httpClient, err := google.DefaultClient(context.Background(), youtube.YoutubeScope)
-	if err != nil {
-		return common.ErrWithCaller(err)
-	}
-
-	yt, err := youtube.New(httpClient)
+	yt, err := youtube.NewService(context.Background())
 	if err != nil {
 		return common.ErrWithCaller(err)
 	}
@@ -106,7 +99,7 @@ func (p *Plugin) syncWebSubs() {
 		return
 	}
 
-	common.RedisPool.Do(radix.WithConn(RedisKeyWebSubChannels, func(client radix.Conn) error {
+	_ = common.RedisPool.Do(radix.WithConn(RedisKeyWebSubChannels, func(client radix.Conn) error {
 
 		locked := false
 
@@ -121,7 +114,7 @@ func (p *Plugin) syncWebSubs() {
 			}
 
 			mn := radix.MaybeNil{}
-			client.Do(radix.Cmd(&mn, "ZSCORE", RedisKeyWebSubChannels, channel))
+			_ = client.Do(radix.Cmd(&mn, "ZSCORE", RedisKeyWebSubChannels, channel))
 			if mn.Nil {
 				// Not added
 				err := p.WebSubSubscribe(channel)
@@ -144,13 +137,13 @@ func (p *Plugin) syncWebSubs() {
 	}))
 }
 
-func (p *Plugin) removeAllSubsForChannel(channel string) {
+/* func (p *Plugin) removeAllSubsForChannel(channel string) {
 	err := common.GORM.Where("youtube_channel_id = ?", channel).Delete(ChannelSubscription{}).Error
 	if err != nil {
 		logger.WithError(err).WithField("yt_channel", channel).Error("failed removing channel")
 	}
 	go p.MaybeRemoveChannelWatch(channel)
-}
+} */
 
 func (p *Plugin) sendNewVidMessage(guild, discordChannel string, channelTitle string, videoID string, mentionEveryone bool) {
 	content := fmt.Sprintf("**%s** uploaded a new youtube video!\n%s", channelTitle, "https://www.youtube.com/watch?v="+videoID)

@@ -38,7 +38,7 @@ func RegisterPlugin() {
 			panic(err)
 		}
 	}
-	os.MkdirAll("soundboard/ready", 0755)
+	_ = os.MkdirAll("soundboard/ready", 0755)
 }
 
 type TranscodingStatus int

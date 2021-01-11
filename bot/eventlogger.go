@@ -31,7 +31,7 @@ type eventLogger struct {
 	// perPeriod is the number of events proccessed the last period alone (the rate of events)
 	perPeriod [][]int64
 
-	numShards int
+	// numShards int
 }
 
 func (e *eventLogger) init(numShards int) {

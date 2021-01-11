@@ -1,7 +1,6 @@
 package serverstats
 
 import (
-	"database/sql"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -189,7 +188,7 @@ func (mu *serverMemberStatsUpdater) flush() {
 	}
 }
 
-func (mu *serverMemberStatsUpdater) setUpdateMemberStatsPeriod(tx *sql.Tx, guildID int64, memberIncr int, numMembers int) error {
+/* func (mu *serverMemberStatsUpdater) setUpdateMemberStatsPeriod(tx *sql.Tx, guildID int64, memberIncr int, numMembers int) error {
 	joins := 0
 	leaves := 0
 	if memberIncr > 0 {
@@ -210,4 +209,4 @@ leaves = server_stats_hourly_periods_misc.leaves + $5,
 num_members = server_stats_hourly_periods_misc.num_members + $6;`, guildID, t, numMembers, joins, leaves, memberIncr)
 
 	return err
-}
+} */

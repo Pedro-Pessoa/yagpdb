@@ -204,7 +204,7 @@ func UpdateGuildFlags(guildID int64) error {
 	}
 
 	defer common.UnlockRedisKey(keyLock)
-	defer pubsub.Publish(evictCachePubSubEvent, guildID, nil)
+	defer func() { _ = pubsub.Publish(evictCachePubSubEvent, guildID, nil) }()
 
 	var lastErr error
 	for _, p := range common.Plugins {
@@ -221,7 +221,7 @@ func UpdateGuildFlags(guildID int64) error {
 
 // UpdatePluginFeatureFlags updates the feature flags of the provided plugin for the provided guild
 func UpdatePluginFeatureFlags(guildID int64, p PluginWithFeatureFlags) error {
-	defer pubsub.Publish(evictCachePubSubEvent, guildID, nil)
+	defer func() { _ = pubsub.Publish(evictCachePubSubEvent, guildID, nil) }()
 	return updatePluginFeatureFlags(guildID, p)
 }
 

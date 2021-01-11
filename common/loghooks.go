@@ -129,7 +129,7 @@ type LoggingTransport struct {
 	Inner http.RoundTripper
 }
 
-var numberRemover = strings.NewReplacer(
+/* var numberRemover = strings.NewReplacer(
 	"0", "",
 	"1", "",
 	"2", "",
@@ -139,10 +139,11 @@ var numberRemover = strings.NewReplacer(
 	"6", "",
 	"7", "",
 	"8", "",
-	"9", "")
+	"9", "",
+) */
 
 var (
-	metricsNumRequestsPath = promauto.NewCounterVec(prometheus.CounterOpts{
+	_ = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "yagpdb_discord_http_requests_path_total",
 		Help: "Number of http requests to the discord API",
 	}, []string{"path"})
@@ -161,11 +162,11 @@ var (
 
 func (t *LoggingTransport) RoundTrip(request *http.Request) (*http.Response, error) {
 
-	bucketI := request.Context().Value(discordgo.CtxKeyRatelimitBucket)
-	var rlBucket *discordgo.Bucket
-	if bucketI != nil {
-		rlBucket = bucketI.(*discordgo.Bucket)
-	}
+	/* 	bucketI := request.Context().Value(discordgo.CtxKeyRatelimitBucket)
+	   	var rlBucket *discordgo.Bucket
+	   	if bucketI != nil {
+	   		rlBucket = bucketI.(*discordgo.Bucket)
+	   	} */
 
 	inner := t.Inner
 	if inner == nil {
@@ -182,13 +183,13 @@ func (t *LoggingTransport) RoundTrip(request *http.Request) (*http.Response, err
 
 	since := time.Since(started).Seconds()
 	go func() {
-		path := "unknown"
-		if rlBucket != nil {
-			// path = rlBucket.Key
-			path = strings.Replace(rlBucket.Key, "https://discordapp.com/api/v", "", 1)
-		}
+		/* 		path := "unknown"
+		   		if rlBucket != nil {
+		   			// path = rlBucket.Key
+		   			path = strings.Replace(rlBucket.Key, "https://discordapp.com/api/v", "", 1)
+		   		}
 
-		path = numberRemover.Replace(path)
+		   		path = numberRemover.Replace(path) */
 
 		metricsHTTPLatency.Observe(since)
 		// metricsNumRequests.With(prometheus.Labels{"path": path})

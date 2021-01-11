@@ -294,13 +294,15 @@ func handleUpdateCommand(w http.ResponseWriter, r *http.Request) (web.TemplateDa
 			web.CtxLogger(ctx).WithError(err).Error("failed retrieving full model")
 		} else {
 			err = UpdateCommandNextRunTime(fullModel, true, true)
+			if err != nil {
+				web.CtxLogger(ctx).WithError(err).WithField("guild", dbModel.GuildID).Error("failed updating next custom command run time")
+			}
 		}
 	} else {
 		err = DelNextRunEvent(activeGuild.ID, dbModel.LocalID)
-	}
-
-	if err != nil {
-		web.CtxLogger(ctx).WithError(err).WithField("guild", dbModel.GuildID).Error("failed updating next custom command run time")
+		if err != nil {
+			web.CtxLogger(ctx).WithError(err).WithField("guild", dbModel.GuildID).Error("failed deleting next run event (customcommands/web.go #L 304)")
+		}
 	}
 
 	go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedCommand, &cplogs.Param{Type: cplogs.ParamTypeInt, Value: dbModel.LocalID}))

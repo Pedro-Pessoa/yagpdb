@@ -128,7 +128,7 @@ func handleQueueItem(item string) error {
 
 		err = os.Remove(SoundFilePath(sound.ID, TranscodingStatusQueued))
 	} else {
-		os.Rename(SoundFilePath(sound.ID, TranscodingStatusQueued)+".dca", SoundFilePath(sound.ID, TranscodingStatusReady))
+		_ = os.Rename(SoundFilePath(sound.ID, TranscodingStatusQueued)+".dca", SoundFilePath(sound.ID, TranscodingStatusReady))
 	}
 	return err
 }
@@ -166,7 +166,7 @@ func (p *Plugin) bgworkerHandleGetSound(w http.ResponseWriter, r *http.Request) 
 	}
 
 	defer f.Close()
-	io.Copy(w, f)
+	_, _ = io.Copy(w, f)
 }
 
 func getSoundFromBGWorker(soundID int) (rc io.ReadCloser, err error) {

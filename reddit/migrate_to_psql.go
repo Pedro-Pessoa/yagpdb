@@ -1,20 +1,16 @@
 package reddit
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"emperror.dev/errors"
 	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/reddit/models"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/boil"
 )
 
-// migrateLegacyRedisFormatToPostgres migrates all feeds from all servers to postgres from the old legacy redis format
+/* // migrateLegacyRedisFormatToPostgres migrates all feeds from all servers to postgres from the old legacy redis format
 func migrateLegacyRedisFormatToPostgres() {
 	common.RedisPool.Do(radix.WithConn("guild_subreddit_watch:", func(conn radix.Conn) error {
 		scanner := radix.NewScanner(conn, radix.ScanOpts{
@@ -95,7 +91,7 @@ func migrateGuildConfig(guildID int64) error {
 	}
 
 	return nil
-}
+} */
 
 type LegacySubredditWatchItem struct {
 	Sub       string `json:"sub"`

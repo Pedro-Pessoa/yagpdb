@@ -82,7 +82,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 	}
 
 	insideChar, err := GetTibiaChar(char, true)
-	if err != nil {
+	if err != nil || insideChar == nil {
 		return "", err
 	}
 
@@ -94,7 +94,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 
 	if len(deserialized) > 0 {
 		for _, v := range deserialized {
-			if strings.ToLower(v.Name) == strings.ToLower(insideChar.Name) {
+			if strings.EqualFold(v.Name, insideChar.Name) {
 				return already, nil
 			}
 		}
@@ -102,7 +102,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 
 	if len(check) > 0 {
 		for _, e := range check {
-			if strings.ToLower(e.Name) == strings.ToLower(insideChar.Name) {
+			if strings.EqualFold(e.Name, insideChar.Name) {
 				return already, nil
 			}
 		}
@@ -110,7 +110,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 
 	if len(guild) > 0 {
 		for _, k := range guild {
-			if strings.ToLower(k.Name) == strings.ToLower(insideChar.Name) {
+			if strings.EqualFold(k.Name, insideChar.Name) {
 				return already, nil
 			}
 		}
@@ -174,7 +174,7 @@ func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{
 	found := false
 	var index int
 	for k, v := range deserialized {
-		if strings.ToLower(v.Name) == strings.ToLower(char) {
+		if strings.EqualFold(v.Name, char) {
 			found = true
 			index = k
 			break

@@ -48,7 +48,7 @@ func cmdFuncRoleMenuCreate(parsed *dcmd.Data) (interface{}, error) {
 		OwnerID:   parsed.Msg.Author.ID,
 		ChannelID: parsed.Msg.ChannelID,
 
-		RoleGroupID:                null.Int64From(group.ID),
+		RoleGroupID:                null.Int64From(0),
 		OwnMessage:                 true,
 		DisableSendDM:              parsed.Switches["nodm"].Value != nil && parsed.Switches["nodm"].Value.(bool),
 		RemoveRoleOnReactionRemove: true,
@@ -64,15 +64,13 @@ func cmdFuncRoleMenuCreate(parsed *dcmd.Data) (interface{}, error) {
 		model.OwnMessage = false
 
 		id := parsed.Switches["m"].Int64()
-		msg, err = common.BotSession.ChannelMessage(parsed.CS.ID, id)
+		_, err = common.BotSession.ChannelMessage(parsed.CS.ID, id)
 		if err != nil {
 			return nil, err
 		}
 
 		model.MessageID = id
-	} else {
-
-		// set up the message if not provided
+	} else { // set up the message if not provided
 		msg, err = common.BotSession.ChannelMessageSend(parsed.CS.ID, "Role menu\nSetting up...")
 		if err != nil {
 			_, dErr := common.DiscordError(err)
@@ -134,10 +132,10 @@ func UpdateMenu(parsed *dcmd.Data, menu *models.RoleMenu) (interface{}, error) {
 	menu.SetupMSGID = 0
 	menu.OwnerID = parsed.Msg.Author.ID
 
-	menu.UpdateG(parsed.Context(), boil.Infer())
+	_, _ = menu.UpdateG(parsed.Context(), boil.Infer())
 
 	if menu.OwnMessage {
-		UpdateRoleMenuMessage(parsed.Context(), menu)
+		_ = UpdateRoleMenuMessage(parsed.Context(), menu)
 	}
 
 	// Add all mising options
@@ -184,7 +182,7 @@ OUTER:
 		}
 
 		rm.State = RoleMenuStateDone
-		rm.UpdateG(ctx, boil.Infer())
+		_, _ = rm.UpdateG(ctx, boil.Infer())
 		ClearRolemenuCache(rm.GuildID)
 
 		flagHelp := StrFlags(rm)
@@ -192,7 +190,7 @@ OUTER:
 	}
 
 	rm.NextRoleCommandID = null.Int64From(nextCmd.ID)
-	rm.UpdateG(ctx, boil.Whitelist(models.RoleMenuColumns.NextRoleCommandID))
+	_, _ = rm.UpdateG(ctx, boil.Whitelist(models.RoleMenuColumns.NextRoleCommandID))
 
 	totalCommands := len(commands) - rm.SkipAmount
 	resp = fmt.Sprintf("[%d/%d]\n", numDone, totalCommands)
@@ -234,7 +232,7 @@ func UpdateRoleMenuMessage(ctx context.Context, rm *models.RoleMenu) error {
 
 func ContinueRoleMenuSetup(ctx context.Context, rm *models.RoleMenu, emoji *discordgo.Emoji, userID int64) (resp string, err error) {
 	if userID != rm.OwnerID {
-		common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji.APIName(), userID)
+		_ = common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji.APIName(), userID)
 		return "This menu is still being set up, wait until the owner of this menu is done.", nil
 	}
 
@@ -428,7 +426,7 @@ func handleReactionAddRemove(evt *eventsystem.EventData) {
 	}
 
 	if resp != "" {
-		bot.SendDM(uID, "**"+name+"**: "+resp)
+		_ = bot.SendDM(uID, "**"+name+"**: "+resp)
 	}
 }
 
@@ -486,7 +484,7 @@ func MemberChooseOption(ctx context.Context, rm *models.RoleMenu, gs *dstate.Gui
 
 	if err != nil {
 		if raAdd {
-			common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji.APIName(), userID)
+			_ = common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji.APIName(), userID)
 		}
 		resp, err = HumanizeAssignError(gs, err)
 	} else if rm.R.RoleGroup.Mode == GroupModeSingle && given {
@@ -582,7 +580,7 @@ func removeOtherReactions(rm *models.RoleMenu, option *models.RoleMenuOption, us
 			emoji = "aaa:" + discordgo.StrID(v.EmojiID)
 		}
 
-		common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji, userID)
+		_ = common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji, userID)
 	}
 }
 
@@ -743,7 +741,7 @@ func MenuReactedNotDone(ctx context.Context, rm *models.RoleMenu, emoji *discord
 		if err != nil {
 			// possible they might have deleted the role in the meantime, so set it to done to prevent a deadlock for this menu
 			rm.State = RoleMenuStateDone
-			rm.UpdateG(ctx, boil.Whitelist("state"))
+			_, _ = rm.UpdateG(ctx, boil.Whitelist("state"))
 			return "", err
 		}
 
@@ -761,10 +759,10 @@ func MenuReactedNotDone(ctx context.Context, rm *models.RoleMenu, emoji *discord
 		}
 
 		rm.State = RoleMenuStateDone
-		rm.UpdateG(ctx, boil.Whitelist("state"))
+		_, _ = rm.UpdateG(ctx, boil.Whitelist("state"))
 		ClearRolemenuCache(rm.GuildID)
 
-		go common.BotSession.MessageReactionAdd(rm.ChannelID, rm.MessageID, emoji.APIName())
+		go func() { _ = common.BotSession.MessageReactionAdd(rm.ChannelID, rm.MessageID, emoji.APIName()) }()
 
 		if rm.OwnMessage {
 			for _, v := range rm.R.RoleMenuOptions {
@@ -775,7 +773,7 @@ func MenuReactedNotDone(ctx context.Context, rm *models.RoleMenu, emoji *discord
 				}
 			}
 
-			UpdateRoleMenuMessage(ctx, rm)
+			_ = UpdateRoleMenuMessage(ctx, rm)
 		}
 
 		return fmt.Sprintf("Sucessfully edited menu, tip: run `rolemenu resetreactions %d` to clear all reactions so that the order is fixed.", rm.MessageID), nil

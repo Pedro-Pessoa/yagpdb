@@ -53,7 +53,7 @@ var MainCharCommand = &commands.YAGCommand{
 		comentarioOut = fmt.Sprintf("%s\n\n[Perfil do char](%s)", comentarioOut, link)
 
 		embed := &discordgo.MessageEmbed{
-			Title:       fmt.Sprintf("%s", char.Name),
+			Title:       char.Name,
 			Color:       int(rand.Int63n(16777215)),
 			Description: comentarioOut,
 			Fields: []*discordgo.MessageEmbedField{
@@ -169,9 +169,10 @@ var DeathsCommand = &commands.YAGCommand{
 		motivo := ""
 
 		if len(mortes) >= 1 {
+			re := regexp.MustCompile(`Died by a`)
 			for _, v := range mortes {
 				if len(deaths) < 1800 {
-					checkKillByMonster, _ := regexp.MatchString(`Died by a`, v.Reason)
+					checkKillByMonster := re.MatchString(v.Reason)
 					if checkKillByMonster {
 						deaths += fmt.Sprintf("**Data**: %s\n**Level**: %d\n**Motivo**: %s\n\n", v.Date, v.Level, v.Reason)
 					} else {

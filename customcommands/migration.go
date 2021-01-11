@@ -1,6 +1,6 @@
 package customcommands
 
-import (
+/* import (
 	"context"
 	"strconv"
 	"strings"
@@ -74,3 +74,4 @@ func migrateGuildConfig(rc radix.Client, guildID int64) error {
 	logger.Println("migrated ", len(commands), " custom commands from ", guildID)
 	return err
 }
+*/

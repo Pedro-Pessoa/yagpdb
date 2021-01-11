@@ -6,7 +6,7 @@ import (
 	"github.com/jonas747/yagpdb/common/config"
 )
 
-var confDisableNonPremiumRetroActiveAssignment = config.RegisterOption("yagpdb.autorole.non_premium_retroactive_assignment", "Wether to enable retroactive assignemnt on non premium guilds", true)
+var _ = config.RegisterOption("yagpdb.autorole.non_premium_retroactive_assignment", "Wether to enable retroactive assignemnt on non premium guilds", true)
 
 var logger = common.GetPluginLogger(&Plugin{})
 

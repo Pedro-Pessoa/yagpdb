@@ -43,7 +43,7 @@ func (c *Context) buildDM(gName string, s ...interface{}) *discordgo.MessageSend
 			return nil
 		}
 	default:
-		msgSend.Content = fmt.Sprintf("%s", fmt.Sprint(s...))
+		msgSend.Content = fmt.Sprint(s...)
 	}
 
 	if !bot.IsGuildWhiteListed(c.GS.ID) {
@@ -669,9 +669,9 @@ func (c *Context) tmplGiveRoleID(target interface{}, roleID interface{}, optiona
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, targetID, role, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, targetID, role, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
-		common.BotSession.GuildMemberRoleAdd(c.GS.ID, targetID, role)
+		_ = common.BotSession.GuildMemberRoleAdd(c.GS.ID, targetID, role)
 	}
 
 	return ""
@@ -708,9 +708,9 @@ func (c *Context) tmplGiveRoleName(target interface{}, name string, optionalArgs
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, targetID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, targetID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
-		common.BotSession.GuildMemberRoleAdd(c.GS.ID, targetID, role.ID)
+		_ = common.BotSession.GuildMemberRoleAdd(c.GS.ID, targetID, role.ID)
 	}
 
 	return ""
@@ -752,9 +752,9 @@ func (c *Context) tmplTakeRoleID(target interface{}, roleID interface{}, optiona
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, targetID, role, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, targetID, role, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
-		common.BotSession.GuildMemberRoleRemove(c.GS.ID, targetID, role)
+		_ = common.BotSession.GuildMemberRoleRemove(c.GS.ID, targetID, role)
 	}
 
 	return ""
@@ -791,9 +791,9 @@ func (c *Context) tmplTakeRoleName(target interface{}, name string, optionalArgs
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, targetID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, targetID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
-		common.BotSession.GuildMemberRoleRemove(c.GS.ID, targetID, role.ID)
+		_ = common.BotSession.GuildMemberRoleRemove(c.GS.ID, targetID, role.ID)
 	}
 
 	return ""
@@ -819,7 +819,7 @@ func (c *Context) tmplAddRoleID(role interface{}, optionalArgs ...interface{}) (
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, c.MS.ID, rid, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, c.MS.ID, rid, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
 		if err := common.AddRoleDS(c.MS, rid); err != nil {
 			return "", err
@@ -849,7 +849,7 @@ func (c *Context) tmplAddRoleName(name string, optionalArgs ...interface{}) (str
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, c.MS.ID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleAddRole(context.Background(), c.GS.ID, c.MS.ID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
 		if err := common.AddRoleDS(c.MS, role.ID); err != nil {
 			return "", err
@@ -879,7 +879,7 @@ func (c *Context) tmplRemoveRoleID(role interface{}, optionalArgs ...interface{}
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, c.MS.ID, rid, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, c.MS.ID, rid, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
 		if err := common.RemoveRoleDS(c.MS, rid); err != nil {
 			return "", err
@@ -909,7 +909,7 @@ func (c *Context) tmplRemoveRoleName(name string, optionalArgs ...interface{}) (
 	}
 
 	if delay > 0 {
-		scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, c.MS.ID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
+		_ = scheduledevents2.ScheduleRemoveRole(context.Background(), c.GS.ID, c.MS.ID, role.ID, time.Now().Add(time.Second*time.Duration(delay)))
 	} else {
 		if err := common.RemoveRoleDS(c.MS, role.ID); err != nil {
 			return "", err
@@ -1061,7 +1061,7 @@ func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.V
 			return reflect.Value{}, ErrTooManyAPICalls
 		}
 
-		common.BotSession.MessageReactionsRemoveAll(cID, mID)
+		_ = common.BotSession.MessageReactionsRemoveAll(cID, mID)
 		return reflect.ValueOf(""), nil
 	}
 

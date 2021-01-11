@@ -105,10 +105,7 @@ func InsideNews(number int) (*TibiaSpecificNews, error) {
 
 func invalidName(name string) bool {
 	matched, _ := regexp.MatchString(`[^\s'a-zA-Z\-\.]`, name)
-	if matched {
-		return true
-	}
-	return false
+	return matched
 }
 
 func MakeRequest(name interface{}, url string) (*http.Response, error) {

@@ -49,7 +49,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	redir := r.FormValue("goto")
 	if redir != "" && strings.HasPrefix(redir, "/") {
-		common.RedisPool.Do(radix.Cmd(nil, "SET", "csrf_redir:"+csrfToken, redir, "EX", "500"))
+		_ = common.RedisPool.Do(radix.Cmd(nil, "SET", "csrf_redir:"+csrfToken, redir, "EX", "500"))
 	}
 
 	url := OauthConf.AuthCodeURL(csrfToken, oauth2.AccessTypeOnline)
@@ -94,7 +94,7 @@ func HandleConfirmLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		redirUrl = "/manage"
 	} else {
-		common.RedisPool.Do(radix.Cmd(nil, "DEL", "csrf_redir:"+state))
+		_ = common.RedisPool.Do(radix.Cmd(nil, "DEL", "csrf_redir:"+state))
 	}
 
 	http.Redirect(w, r, redirUrl, http.StatusTemporaryRedirect)
@@ -208,7 +208,7 @@ func CreateCookieSession(token *oauth2.Token) (cookie *http.Cookie, err error) {
 
 	// store token in redis
 	didSet := false
-	common.RedisPool.Do(radix.Cmd(&didSet, "HSETNX", "web_sessions", yagToken, string(dataRaw)))
+	_ = common.RedisPool.Do(radix.Cmd(&didSet, "HSETNX", "web_sessions", yagToken, string(dataRaw)))
 	if !didSet {
 		return nil, ErrDuplicateToken
 	}

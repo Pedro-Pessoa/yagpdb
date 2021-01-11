@@ -61,7 +61,7 @@ func runV2Migration(premiumGuilds map[int64]time.Time, lastProgress *MigrationPr
 
 func migrateV2Chunk(name string, lastID int64, f func(lastID int64, premiumGuilds map[int64]time.Time) (newLastID int64, err error)) error {
 	defer func() {
-		updateSubProgress(name, lastID, false)
+		_ = updateSubProgress(name, lastID, false)
 	}()
 
 	for {
@@ -143,7 +143,7 @@ func migrateChunkV2Messages(lastID int64, premiumGuilds map[int64]time.Time) (ne
 
 			_, err = tx.Exec(qSetNew, g, t, isPremium, count, 0, 0, 0, 0, 0)
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				return lastID, errors.WithStackIf(err)
 			}
 		}
@@ -249,7 +249,7 @@ func migrateChunkV2Members(lastID int64, premiumGuilds map[int64]time.Time) (new
 
 			_, err = tx.Exec(qSetNew, g, t, isPremium, 0, row.NumMembers, row.MaxOnline, row.Joins, row.Leaves, 0)
 			if err != nil {
-				tx.Rollback()
+				_ = tx.Rollback()
 				return lastID, errors.WithStackIf(err)
 			}
 		}

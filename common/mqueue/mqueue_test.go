@@ -1,14 +1,6 @@
 package mqueue
 
-import (
-	"io"
-	"io/ioutil"
-	"net/http"
-	"testing"
-	"time"
-)
-
-type RoundTripper struct {
+/* type RoundTripper struct {
 	T         *testing.T
 	Expecting string
 	Timeout   time.Duration
@@ -52,3 +44,4 @@ func (r *RoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err er
 
 	return
 }
+*/

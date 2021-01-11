@@ -115,7 +115,7 @@ func (c *Config) Save(guildID int64) error {
 		return err
 	}
 
-	pubsub.Publish("mod_refresh_mute_override", guildID, nil)
+	_ = pubsub.Publish("mod_refresh_mute_override", guildID, nil)
 	return err
 }
 

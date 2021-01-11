@@ -104,10 +104,10 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	return templateData, nil
 }
 
-func enabledDisabled(b bool) string {
+/* func enabledDisabled(b bool) string {
 	if b {
 		return "enabled"
 	}
 
 	return "disabled"
-}
+} */

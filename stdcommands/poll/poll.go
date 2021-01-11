@@ -69,13 +69,13 @@ func createPoll(data *dcmd.Data) (interface{}, error) {
 		},
 	}
 
-	common.BotSession.ChannelMessageDelete(data.Msg.ChannelID, data.Msg.ID)
+	_ = common.BotSession.ChannelMessageDelete(data.Msg.ChannelID, data.Msg.ID)
 	pollMsg, err := common.BotSession.ChannelMessageSendEmbed(data.Msg.ChannelID, &response)
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to add poll description")
 	}
 	for i := range options {
-		common.BotSession.MessageReactionAdd(pollMsg.ChannelID, pollMsg.ID, pollReactions[i])
+		_ = common.BotSession.MessageReactionAdd(pollMsg.ChannelID, pollMsg.ID, pollReactions[i])
 	}
 	return nil, nil
 }

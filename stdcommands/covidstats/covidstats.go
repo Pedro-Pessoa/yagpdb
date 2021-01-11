@@ -223,15 +223,15 @@ func embedCreator(cConts []coronaWorldWideStruct, queryType, whatDay string, i i
 		&discordgo.MessageEmbedField{Name: "Total Tests", Value: p.Sprintf("%.0f", cConts[i].Tests), Inline: true})
 	switch queryType {
 	case "all":
-		embed.Title = fmt.Sprintf("Whole world")
+		embed.Title = "Whole world"
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
 			URL: globeImage}
 	case "countries":
 		embed.Title = fmt.Sprintf("%s (%s)", cConts[i].Country, cConts[i].CountryInfo.Iso2)
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
-			URL: fmt.Sprintf("%s", cConts[i].CountryInfo.Flag)}
+			URL: cConts[i].CountryInfo.Flag}
 	case "continents":
-		embed.Title = fmt.Sprintf("%s", cConts[i].Continent)
+		embed.Title = cConts[i].Continent
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
 			URL: continentImages[cConts[i].Continent]}
 	case "states":

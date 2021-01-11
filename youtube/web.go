@@ -203,7 +203,7 @@ func (p *Plugin) HandleFeedUpdate(w http.ResponseWriter, r *http.Request) {
 			return // We don't want no intruders here
 		}
 
-		w.Write([]byte(query.Get("hub.challenge")))
+		_, _ = w.Write([]byte(query.Get("hub.challenge")))
 
 		topicURI, err := url.ParseRequestURI(query.Get("hub.topic"))
 		if err != nil {
@@ -211,7 +211,7 @@ func (p *Plugin) HandleFeedUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		common.RedisPool.Do(radix.Cmd(nil, "ZREM", RedisKeyWebSubChannels, topicURI.Query().Get("channel_id")))
+		_ = common.RedisPool.Do(radix.Cmd(nil, "ZREM", RedisKeyWebSubChannels, topicURI.Query().Get("channel_id")))
 		return
 	}
 
@@ -248,7 +248,7 @@ func (p *Plugin) HandleFeedUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) ValidateSubscription(w http.ResponseWriter, r *http.Request, query url.Values) {
-	w.Write([]byte(query.Get("hub.challenge")))
+	_, _ = w.Write([]byte(query.Get("hub.challenge")))
 
 	lease := query.Get("hub.lease_seconds")
 	if lease != "" {
@@ -266,7 +266,7 @@ func (p *Plugin) ValidateSubscription(w http.ResponseWriter, r *http.Request, qu
 			return
 		}
 
-		common.RedisPool.Do(radix.FlatCmd(nil, "ZADD", RedisKeyWebSubChannels, expires, topicURI.Query().Get("channel_id")))
+		_ = common.RedisPool.Do(radix.FlatCmd(nil, "ZADD", RedisKeyWebSubChannels, expires, topicURI.Query().Get("channel_id")))
 	}
 }
 

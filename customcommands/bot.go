@@ -284,7 +284,7 @@ func handleNextRunScheduledEVent(evt *schEventsModels.ScheduledEvent, data inter
 	metricsExecutedCommands.With(prometheus.Labels{"trigger": "timed"}).Inc()
 
 	tmplCtx := templates.NewContext(gs, cs, nil)
-	ExecuteCustomCommand(cmd, tmplCtx)
+	_ = ExecuteCustomCommand(cmd, tmplCtx)
 
 	// schedule next runs
 	cmd.LastRun = cmd.NextRun
@@ -640,7 +640,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	if lockHandle == -1 {
 		f.Warn("Exceeded max lock attempts for cc")
 		if cmd.ShowErrors {
-			common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
+			_, _ = common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, fmt.Sprintf("Gave up trying to execute custom command #%d after 1 minute because there is already one or more instances of it being executed.", cmd.LocalID))
 		}
 		updatePostCommandRan(cmd, errors.New("Gave up trying to execute, already an existing instance executing"))
 		return nil
@@ -691,7 +691,7 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
 		out += "`" + err.Error() + "`"
 
-		common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, out)
+		_, _ = common.BotSession.ChannelMessageSend(tmplCtx.CurrentFrame.CS.ID, out)
 	}
 
 	updatePostCommandRan(cmd, err)
@@ -776,9 +776,9 @@ func CheckMatch(globalPrefix string, cmd *models.CustomCommand, msg string) (mat
 	}
 
 	// The following simply matches the legacy behavior as I'm not sure if anyone is relying on it.
-	if !cmd.TextTriggerCaseSensitive && cmd.TriggerType != int(CommandTriggerRegex) {
+	/* 	if !cmd.TextTriggerCaseSensitive && cmd.TriggerType != int(CommandTriggerRegex) {
 		stripped = strings.ToLower(msg)
-	}
+	} */
 
 	stripped = msg[idx[1]:]
 	match = true

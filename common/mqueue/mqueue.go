@@ -256,7 +256,7 @@ func pollRedis(first bool) {
 		return
 	}
 
-	common.RedisPool.Do(radix.WithConn("mqueue", func(rc radix.Conn) error {
+	_ = common.RedisPool.Do(radix.WithConn("mqueue", func(rc radix.Conn) error {
 		workmu.Lock()
 		defer workmu.Unlock()
 
@@ -282,7 +282,7 @@ func pollRedis(first bool) {
 			}
 
 			// Mark it as being processed so it wont get caught in further polling, unless its a new process in which case it wasnt completed
-			rc.Do(radix.FlatCmd(nil, "ZADD", "mqueue", common.CurrentRunCounter, string(elem)))
+			_ = rc.Do(radix.FlatCmd(nil, "ZADD", "mqueue", common.CurrentRunCounter, string(elem)))
 
 			workSlice = append(workSlice, &workItem{
 				elem: parsed,
@@ -412,7 +412,7 @@ func process(elem *QueuedElement, raw []byte) {
 	queueLogger := logger.WithField("mq_id", id)
 
 	defer func() {
-		common.RedisPool.Do(radix.Cmd(nil, "ZREM", "mqueue", string(raw)))
+		_ = common.RedisPool.Do(radix.Cmd(nil, "ZREM", "mqueue", string(raw)))
 	}()
 
 	for {

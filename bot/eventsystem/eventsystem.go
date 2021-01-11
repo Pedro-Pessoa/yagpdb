@@ -69,8 +69,7 @@ func (e *EventData) Context() context.Context {
 }
 
 func (e *EventData) WithContext(ctx context.Context) *EventData {
-	cop := new(EventData)
-	cop = e
+	cop := e
 	cop.ctx = ctx
 	return cop
 }

@@ -354,7 +354,7 @@ func (p *Plugin) handleMessageCreate(evt *eventsystem.EventData) {
 		return
 	}
 
-	common.BotSession.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
+	_, _ = common.BotSession.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{
 		Timestamp: result.Time.Format(time.RFC3339),
 		Footer: &discordgo.MessageEmbedFooter{
 			Text: "Above time (" + result.Time.Format("15:04 MST") + ") in your local time",

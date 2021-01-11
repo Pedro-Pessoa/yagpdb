@@ -252,12 +252,9 @@ func (m *memberFetcher) next(guildID int64) (more bool) {
 			if code == discordgo.ErrCodeUnknownUser {
 				failedUsersCache.Set(failedCacheKey, 1, time.Hour)
 			}
-		} else {
+		} else if member != nil {
 			member.GuildID = guildID
 			go eventsystem.EmitEvent(eventsystem.NewEventData(nil, eventsystem.EventMemberFetched, &discordgo.GuildMemberAdd{Member: member}), eventsystem.EventMemberFetched)
-			if member == nil {
-				panic("nil member")
-			}
 
 			if member.User == nil {
 				panic("nil user")
@@ -267,6 +264,8 @@ func (m *memberFetcher) next(guildID int64) (more bool) {
 				gs.MemberAddUpdate(true, member)
 				ms = gs.MemberCopy(true, member.User.ID)
 			}
+		} else if member == nil {
+			panic("nil member")
 		}
 	} else {
 		err = errors.New("Member is in failed fetching cache")

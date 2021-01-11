@@ -59,7 +59,7 @@ func tmplGetTibiaChar(c *templates.Context) interface{} {
 		}
 
 		output, err := GetTibiaChar(char, true)
-		if err != nil {
+		if err != nil || output == nil {
 			return nil, err
 		}
 
@@ -114,7 +114,7 @@ func tmplGetTibiaSpecificGuild(c *templates.Context) interface{} {
 		}
 
 		output, err := GetTibiaSpecificGuild(guildName)
-		if err != nil {
+		if err != nil || output == nil {
 			return nil, err
 		}
 
@@ -171,7 +171,7 @@ func tmplGetTibiaNews(c *templates.Context) interface{} {
 		}
 
 		output, err := GetTibiaNews(news...)
-		if err != nil {
+		if err != nil || output == nil {
 			return nil, err
 		}
 
@@ -186,7 +186,7 @@ func tmplGetTibiaNewsticker(c *templates.Context) interface{} {
 		}
 
 		output, err := GetTibiaNewsticker()
-		if err != nil {
+		if err != nil || output == nil {
 			return nil, err
 		}
 
@@ -372,11 +372,10 @@ func GetTibiaMultiple(c *templates.Context, chars interface{}, deathsonly bool) 
 func charRoutine(c chan InternalChar, char string) {
 	defer routineCleanUp()
 	ichar, err := GetTibiaChar(char, true)
-	if err != nil {
+	if err != nil || ichar == nil {
 		return
 	}
 	c <- *ichar
-	return
 }
 
 func routineCleanUp() {

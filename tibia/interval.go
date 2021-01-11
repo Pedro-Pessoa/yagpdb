@@ -98,8 +98,6 @@ func (ds *DataStore) ScanTracks() {
 	trackwg.Wait()
 	logger.Infof("Scan concluido em %vs!\nHTTP Requests made: %d\nTotal size: %d", time.Since(start).Seconds(), ds.counter, ds.total)
 	ds.Flush()
-
-	return
 }
 
 func (ds *DataStore) TrackingController() {
@@ -129,8 +127,6 @@ func (ds *DataStore) TrackingController() {
 			time.Sleep(10 * time.Second)
 		}
 	}()
-
-	return
 }
 
 func StartLoop() (string, error) {
@@ -293,7 +289,6 @@ func (ds *DataStore) trackRoutine(input TibiaTracking) {
 	}
 
 	common.GORM.Save(&input)
-	return
 }
 
 func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan InternalChar, flags TibiaFlags, areHunteds bool, isGuild bool) {
@@ -314,7 +309,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	if !found {
 		income, err := GetTibiaChar(input.Name, true)
 		ds.counter += 1
-		if err != nil {
+		if err != nil || income == nil {
 			return
 		}
 		char = *income
@@ -418,7 +413,6 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		msgSend.Embed = embed
 		_, _ = common.BotSession.ChannelMessageSendComplex(flags.ChannelDeaths, msgSend)
 	}
-	return
 }
 
 func updateGuild(g TibiaFlags, ds *DataStore) {
@@ -489,7 +483,7 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 				if a := ds.Get(k.Name); a == nil {
 					char, err = GetTibiaChar(k.Name, true)
 					ds.counter += 1
-					if err != nil {
+					if err != nil || char == nil {
 						logger.Errorf("Error on update: %#v", err)
 						return
 					}
@@ -497,7 +491,6 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 					char = a
 				}
 				fila <- *char
-				return
 			}()
 		}
 	}
@@ -530,8 +523,6 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 
 	tracking.Guild = goback
 	common.GORM.Save(&tracking)
-	return
-
 }
 
 func alreadyTracked(list []InternalChar, e GuildMember) bool {

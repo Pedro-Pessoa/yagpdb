@@ -178,11 +178,11 @@ func InitTest() {
 }
 
 var (
-	metricsRedisReconnects = promauto.NewCounter(prometheus.CounterOpts{
+	_ = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "yagpdb_redis_reconnects_total",
 		Help: "Number of reconnects to the redis server",
 	})
-	metricsRedisRetries = promauto.NewCounter(prometheus.CounterOpts{
+	_ = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "yagpdb_redis_retries_total",
 		Help: "Number of retries on redis commands",
 	})

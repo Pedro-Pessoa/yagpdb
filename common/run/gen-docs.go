@@ -79,8 +79,6 @@ func GenCommandsDocs() {
 	}
 
 	os.Stdout.Write(out.Bytes())
-
-	return
 }
 
 func GenConfigDocs() {

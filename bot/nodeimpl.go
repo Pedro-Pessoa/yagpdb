@@ -96,7 +96,7 @@ func (n *NodeImpl) AddNewShards(shards ...int) {
 	for _, shard := range shards {
 		ShardManager.Sessions[shard].GatewayManager.SetSessionInfo("", 0)
 
-		go ShardManager.Sessions[shard].GatewayManager.Open()
+		go func(i int) { _ = ShardManager.Sessions[i].GatewayManager.Open() }(shard)
 	}
 
 	logger.Infof("got assigned shards %v", shards)

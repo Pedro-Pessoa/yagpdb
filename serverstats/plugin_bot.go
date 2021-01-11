@@ -21,7 +21,7 @@ import (
 )
 
 func MarkGuildAsToBeChecked(guildID int64) {
-	common.RedisPool.Do(radix.FlatCmd(nil, "SADD", "serverstats_active_guilds", guildID))
+	_ = common.RedisPool.Do(radix.FlatCmd(nil, "SADD", "serverstats_active_guilds", guildID))
 }
 
 var (
@@ -161,9 +161,7 @@ func (p *Plugin) runOnlineUpdater() {
 	var numToCheckPerRun int
 
 	for {
-		select {
-		case <-ticker.C:
-		}
+		<-ticker.C
 
 		if len(guildsToCheck) < 0 || i >= len(guildsToCheck) {
 			// Copy the list of guilds so that we dont need to keep the entire state locked

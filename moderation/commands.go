@@ -86,8 +86,6 @@ func MBaseCmdSecond(cmdData *dcmd.Data, reason string, reasonArgOptional bool, n
 		if err != nil || !hasPerms {
 			return oreason, commands.NewUserErrorf("O comando **%s** exige permissão de **%s** nesse canal.", cmdName, common.StringPerms[neededPerm])
 		}
-
-		permsMet = true
 	}
 
 	go analytics.RecordActiveUnit(cmdData.GS.ID, &Plugin{}, "executed_cmd_"+cmdName)
@@ -1006,7 +1004,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			// cancel the event to add the role
-			scheduledevents2.CancelAddRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
+			_ = scheduledevents2.CancelAddRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
 
 			action := MAGiveRole
 			action.Prefix = "Cargo " + role.Name + " adicionado a(o) "
@@ -1014,7 +1012,7 @@ var ModerationCommands = []*commands.YAGCommand{
 				if dur > 0 {
 					action.Footer = "Duração: " + common.HumanizeDuration(common.DurationPrecisionMinutes, dur)
 				}
-				CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
+				_ = CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
 			}
 
 			return GenericCmdResp(action, target, dur, true, dur <= 0), nil
@@ -1066,12 +1064,12 @@ var ModerationCommands = []*commands.YAGCommand{
 			}
 
 			// cancel the event to remove the role
-			scheduledevents2.CancelRemoveRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
+			_ = scheduledevents2.CancelRemoveRole(parsed.Context(), parsed.GS.ID, parsed.Msg.Author.ID, role.ID)
 
 			action := MARemoveRole
 			action.Prefix = "Cargo " + role.Name + " removido de "
 			if config.GiveRoleCmdModlog && config.IntActionChannel() != 0 {
-				CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
+				_ = CreateModlogEmbed(config, parsed.Msg.Author, action, target, "", "")
 			}
 
 			return GenericCmdResp(action, target, 0, true, true), nil

@@ -108,7 +108,7 @@ func cmdFuncMentionRole(data *dcmd.Data) (interface{}, error) {
 			return nil, err
 		}
 
-		if perms&discordgo.PermissionSendMessages != discordgo.PermissionSendMessages || perms&discordgo.PermissionReadMessages != discordgo.PermissionReadMessages {
+		if perms&discordgo.PermissionSendMessages != discordgo.PermissionSendMessages || perms&discordgo.PermissionViewChannel != discordgo.PermissionViewChannel {
 			return "You do not have permissions to send messages there", nil
 		}
 	}

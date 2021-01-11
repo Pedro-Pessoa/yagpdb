@@ -29,7 +29,7 @@ var (
 )
 
 func (f Form) Save(guildID int64) error {
-	pubsub.Publish("autorole_stop_processing", guildID, nil)
+	_ = pubsub.Publish("autorole_stop_processing", guildID, nil)
 
 	err := common.SetRedisJson(KeyGeneral(guildID), f.GeneralConfig)
 	if err != nil {
@@ -80,7 +80,7 @@ func handleGetAutoroleMainPage(w http.ResponseWriter, r *http.Request) interface
 	tmpl["Autorole"] = general
 
 	var proc int
-	common.RedisPool.Do(radix.Cmd(&proc, "GET", KeyProcessing(activeGuild.ID)))
+	_ = common.RedisPool.Do(radix.Cmd(&proc, "GET", KeyProcessing(activeGuild.ID)))
 	tmpl["Processing"] = proc
 	tmpl["ProcessingETA"] = int(proc / 60)
 

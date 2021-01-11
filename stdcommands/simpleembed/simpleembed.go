@@ -88,7 +88,7 @@ var Command = &commands.YAGCommand{
 		if c.Value != nil {
 			cID = c.Value.(*dstate.ChannelState).ID
 
-			hasPerms, err := bot.AdminOrPermMS(cID, data.MS, discordgo.PermissionSendMessages|discordgo.PermissionReadMessages)
+			hasPerms, err := bot.AdminOrPermMS(cID, data.MS, discordgo.PermissionSendMessages|discordgo.PermissionViewChannel)
 			if err != nil {
 				return "Failed checking permissions, please try again or join the support server.", err
 			}
@@ -117,9 +117,7 @@ var Command = &commands.YAGCommand{
 }
 
 func ParseColor(raw string) (int, bool) {
-	if strings.HasPrefix(raw, "#") {
-		raw = raw[1:]
-	}
+	raw = strings.TrimPrefix(raw, "#")
 
 	// try to parse as hex color code first
 	parsed, err := strconv.ParseInt(raw, 16, 32)
