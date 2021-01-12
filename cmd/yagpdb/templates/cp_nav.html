@@ -92,7 +92,7 @@
                     </li>
                 </ul>
             </div>
-        </div> 
+        </div>
 
         <script>
         $(function(){
@@ -162,7 +162,7 @@
             <i class="fas fa-bars" aria-label="Toggle sidebar"></i>
         </div>
     </div>
- 
+
     <div class="nano">
         <div class="nano-content">
             <nav id="menu" class="nav-main" role="navigation">
@@ -186,7 +186,7 @@
                         <ul class="nav nav-children">
                             {{range (index .SidebarItems "Core")}}
                             {{template "sidebar_item" (dict "ActiveGuild" $ag "Item" .)}}
-                            {{end}}                            
+                            {{end}}
                         </ul>
                     </li>
                     <li class="nav-parent   ">
@@ -229,7 +229,7 @@
                             <span>Documentation</span>
                         </a>
                     </li>
-                </ul> 
+                </ul>
             </nav>
         </div>
     </div>
@@ -310,7 +310,7 @@
         {{range $index, $element := .ManagedGuilds -}}{{if not $element.Connected -}}
         <li>
             <a
-                href="https://discordapp.com/oauth2/authorize?client_id={{$clientid}}&scope=bot&permissions=2146827775&guild_id={{$element.ID}}&response_type=code&redirect_uri={{joinStr "" $baseURL "/manage"}}"><i
+                href="https://discordapp.com/oauth2/authorize?client_id={{$clientid}}&scope=applications.commands%20applications.commands.update%20bot&permissions=2146827775&guild_id={{$element.ID}}&response_type=code&redirect_uri={{joinStr "" $baseURL "/manage"}}"><i
                     class="fas fa-plus"></i>{{$element.Name}}</a>
         </li>
         {{end}}{{end}}
