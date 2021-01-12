@@ -289,7 +289,14 @@ func (c *Context) Execute(source string) (string, error) {
 func (c *Context) executeParsed() (r string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = errors.New("paniced!")
+			//err = errors.New("paniced!")
+			actual, ok := r.(error)
+			if !ok {
+				actual = nil
+			}
+
+			logger.WithField("guild", c.GS.ID).WithError(actual).Error("Panicked executing template: " + c.Name)
+			err = errors.New("bot unexpectedly panicked")
 		}
 	}()
 
@@ -617,11 +624,78 @@ func MaybeScheduledDeleteMessage(guildID, channelID, messageID int64, delaySecon
 	}
 }
 
+const startDetectingCyclesAfter = 1000
+
+type cyclicValueDetector struct {
+	ptrLevel uint
+	ptrSeen  map[interface{}]struct{}
+}
+
+func (c *cyclicValueDetector) check(v reflect.Value) error {
+	v, _ = indirect(v)
+
+	switch v.Kind() {
+	case reflect.Map:
+		if c.ptrLevel++; c.ptrLevel > startDetectingCyclesAfter {
+			ptr := v.Pointer()
+			if _, ok := c.ptrSeen[ptr]; ok {
+				return fmt.Errorf("encountered a cycle via %s", v.Type())
+			}
+			c.ptrSeen[ptr] = struct{}{}
+		}
+
+		iter := v.MapRange()
+		for iter.Next() {
+			if err := c.check(iter.Value()); err != nil {
+				return err
+			}
+		}
+
+		c.ptrLevel--
+		return nil
+	case reflect.Array, reflect.Slice:
+		if c.ptrLevel++; c.ptrLevel > startDetectingCyclesAfter {
+			ptr := struct {
+				ptr uintptr
+				len int
+			}{v.Pointer(), v.Len()}
+
+			if _, ok := c.ptrSeen[ptr]; ok {
+				return fmt.Errorf("encountered a cycle via %s", v.Type())
+			}
+
+			c.ptrSeen[ptr] = struct{}{}
+		}
+
+		for i := 0; i < v.Len(); i++ {
+			elem := v.Index(i)
+			if err := c.check(elem); err != nil {
+				return err
+			}
+
+		}
+
+		c.ptrLevel--
+		return nil
+	default:
+		return nil
+	}
+}
+
+func detectCyclicValue(v reflect.Value) error {
+	c := &cyclicValueDetector{ptrSeen: make(map[interface{}]struct{})}
+	return c.check(v)
+}
+
 type Dict map[interface{}]interface{}
 
-func (d Dict) Set(key interface{}, value interface{}) string {
+func (d Dict) Set(key interface{}, value interface{}) (string, error) {
 	d[key] = value
-	return ""
+	if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
+		return "", err
+	}
+
+	return "", nil
 }
 
 func (d Dict) Get(key interface{}) interface{} {
@@ -634,6 +708,7 @@ func (d Dict) Get(key interface{}) interface{} {
 			out = d[tmplToInt(key)]
 		}
 	}
+
 	return out
 }
 
@@ -644,9 +719,13 @@ func (d Dict) Del(key interface{}) string {
 
 type SDict map[string]interface{}
 
-func (d SDict) Set(key string, value interface{}) string {
+func (d SDict) Set(key string, value interface{}) (string, error) {
 	d[key] = value
-	return ""
+	if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
+		return "", err
+	}
+
+	return "", nil
 }
 
 func (d SDict) Get(key string) interface{} {
@@ -689,6 +768,10 @@ func (s Slice) Set(index int, item interface{}) (string, error) {
 	}
 
 	s[index] = item
+	if err := detectCyclicValue(reflect.ValueOf(s)); err != nil {
+		return "", err
+	}
+
 	return "", nil
 }
 
