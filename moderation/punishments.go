@@ -659,6 +659,8 @@ func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []s
 	newMemberRoles := make([]string, 0)
 
 	gs := bot.State.Guild(true, config.GuildID)
+	botState, err := bot.GetMember(gs.ID, common.BotUser.ID)
+
 	gs.RLock()
 	defer gs.RUnlock()
 
@@ -667,7 +669,6 @@ func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []s
 		guildRoles[k] = e.ID
 	}
 
-	botState, err := bot.GetMember(gs.ID, common.BotUser.ID)
 	if err != nil || botState == nil { // We couldn't find the bot on state, so keep old behaviour
 		for _, r := range currentRoles {
 			if r != config.IntMuteRole() {
