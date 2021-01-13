@@ -1794,10 +1794,6 @@ func newStdDepth() *StdDepth {
 	}
 }
 
-func (sd *StdDepth) Add() {
-	sd.depth += 1
-}
-
 func (c *Context) tmplStandardize(input interface{}) interface{} {
 	depth := newStdDepth()
 	return depth.StdInit(input)
@@ -1831,7 +1827,7 @@ func (sd *StdDepth) StdMap(input interface{}) interface{} {
 	if sd.depth >= 1000 {
 		return input
 	}
-	sd.Add()
+	sd.depth++
 	out := make(Dict)
 	val := reflect.ValueOf(input)
 	switch val.Kind() {
@@ -1870,7 +1866,7 @@ func (sd *StdDepth) StdStringMap(input interface{}) interface{} {
 	if sd.depth >= 1000 {
 		return input
 	}
-	sd.Add()
+	sd.depth++
 	out := make(SDict)
 	val := reflect.ValueOf(input)
 	switch val.Kind() {
@@ -1909,7 +1905,7 @@ func (sd *StdDepth) StdSlice(input []interface{}) interface{} {
 	if sd.depth >= 1000 {
 		return input
 	}
-	sd.Add()
+	sd.depth++
 	var out Slice
 	for _, v := range input {
 		out = append(out, sd.StdInit(v))
