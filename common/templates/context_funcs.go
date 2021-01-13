@@ -1840,13 +1840,25 @@ func (sd *StdDepth) StdMap(input interface{}) interface{} {
 			v := val.MapIndex(k)
 			switch t := v.Interface().(type) {
 			case map[interface{}]interface{}:
-				out.Set(k.Interface(), sd.StdMap(t))
+				_, err := out.Set(k.Interface(), sd.StdMap(t))
+				if err != nil {
+					return input
+				}
 			case map[string]interface{}:
-				out.Set(k.Interface(), sd.StdStringMap(t))
+				_, err := out.Set(k.Interface(), sd.StdStringMap(t))
+				if err != nil {
+					return input
+				}
 			case []interface{}:
-				out.Set(k.Interface(), sd.StdSlice(t))
+				_, err := out.Set(k.Interface(), sd.StdSlice(t))
+				if err != nil {
+					return input
+				}
 			default:
-				out.Set(k.Interface(), sd.StdInit(t))
+				_, err := out.Set(k.Interface(), sd.StdInit(t))
+				if err != nil {
+					return input
+				}
 			}
 		}
 		return out
@@ -1867,13 +1879,25 @@ func (sd *StdDepth) StdStringMap(input interface{}) interface{} {
 			v := val.MapIndex(k)
 			switch t := v.Interface().(type) {
 			case map[interface{}]interface{}:
-				out.Set(k.Interface().(string), sd.StdMap(t))
+				_, err := out.Set(k.Interface().(string), sd.StdMap(t))
+				if err != nil {
+					return input
+				}
 			case map[string]interface{}:
-				out.Set(k.Interface().(string), sd.StdStringMap(t))
+				_, err := out.Set(k.Interface().(string), sd.StdStringMap(t))
+				if err != nil {
+					return input
+				}
 			case []interface{}:
-				out.Set(k.Interface().(string), sd.StdSlice(t))
+				_, err := out.Set(k.Interface().(string), sd.StdSlice(t))
+				if err != nil {
+					return input
+				}
 			default:
-				out.Set(k.Interface().(string), sd.StdInit(t))
+				_, err := out.Set(k.Interface().(string), sd.StdInit(t))
+				if err != nil {
+					return input
+				}
 			}
 		}
 		return out
