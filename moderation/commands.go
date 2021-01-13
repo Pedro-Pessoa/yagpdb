@@ -522,6 +522,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			{Switch: "i", Name: "Regex case insensitive"},
 			{Switch: "nopin", Name: "Ignore pinned messages"},
 			{Switch: "to", Name: "Stop at this msg ID", Type: dcmd.Int},
+			{Switch: "a", Name: "Filter Attachments", Type: dcmd.String},
 		},
 		ArgumentCombos: [][]int{{0}, {0, 1}, {1, 0}},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
@@ -569,6 +570,16 @@ var ModerationCommands = []*commands.YAGCommand{
 				}
 			}
 
+			checkAttachs := false
+			attach := false
+			if parsed.Switches["a"].Value != nil {
+				filtered = true
+				checkAttachs = true
+				if strings.EqualFold(parsed.Switches["a"].Str(), "true") {
+					attach = true
+				}
+			}
+
 			// Check if we have a max age
 			ma := parsed.Switches["ma"].Value.(time.Duration)
 			if ma != 0 {
@@ -607,7 +618,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			// Wait a second so the client dosen't gltich out
 			time.Sleep(time.Second)
 
-			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, toID, ma, minAge, pe, num, limitFetch)
+			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, checkAttachs, attach, toID, ma, minAge, pe, num, limitFetch)
 
 			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), err
 		},
@@ -1077,7 +1088,7 @@ var ModerationCommands = []*commands.YAGCommand{
 	},
 }
 
-func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, toID int64, maxAge time.Duration, minAge time.Duration, pinFilterEnable bool, deleteNum, fetchNum int) (int, error) {
+func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, checkAttachs, attach bool, toID int64, maxAge time.Duration, minAge time.Duration, pinFilterEnable bool, deleteNum, fetchNum int) (int, error) {
 	var compiledRegex *regexp.Regexp
 	if regex != "" {
 		// Start by compiling the regex
@@ -1145,6 +1156,19 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, toI
 		// Continue only if current msg ID is < toID
 		if toID > msgs[i].ID {
 			break
+		}
+
+		// Check attachments
+		if checkAttachs {
+			if attach {
+				if len(msgs[i].Attachments) == 0 {
+					continue
+				}
+			} else {
+				if len(msgs[i].Attachments) > 0 {
+					continue
+				}
+			}
 		}
 
 		toDelete = append(toDelete, msgs[i].ID)
