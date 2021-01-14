@@ -1155,7 +1155,7 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, che
 
 		// Continue only if current msg ID is < toID
 		if toID > msgs[i].ID {
-			break
+			continue
 		}
 
 		// Check attachments
