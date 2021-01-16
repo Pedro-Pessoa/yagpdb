@@ -391,7 +391,7 @@ func handleMessageReactions(evt *eventsystem.EventData) {
 	for _, matched := range triggeredCmds {
 		err = ExecuteCustomCommandFromReaction(matched.CC, ms, cState, reaction, added, rMessage)
 		if err != nil {
-			logger.WithField("guild", cState.Guild.ID).WithField("cc_id", matched.CC.LocalID).WithError(err).Error("Error executing custom command")
+			logger.WithField("guild", cState.Guild.ID).WithField("cc_id", matched.CC.LocalID).WithError(err).Warn("Error executing custom command")
 		}
 	}
 }
@@ -452,7 +452,7 @@ func HandleMessageCreate(evt *eventsystem.EventData) {
 	for _, matched := range matchedCustomCommands {
 		err = ExecuteCustomCommandFromMessage(matched.CC, member, cs, matched.Args, matched.Stripped, mc.Message)
 		if err != nil {
-			logger.WithField("guild", mc.GuildID).WithField("cc_id", matched.CC.LocalID).WithError(err).Error("Error executing custom command")
+			logger.WithField("guild", mc.GuildID).WithField("cc_id", matched.CC.LocalID).WithError(err).Warn("Error executing custom command")
 		}
 	}
 }
@@ -664,7 +664,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 
 	// deal with the results
 	if err != nil {
-		logger.WithField("guild", tmplCtx.GS.ID).WithError(err).Error("Error executing custom command")
+		logger.WithField("guild", tmplCtx.GS.ID).WithError(err).Warn("Error executing custom command")
 		if cmd.ShowErrors {
 			out += "\nAn error caused the execution of the custom command template to stop:\n"
 			out += "`" + err.Error() + "`"
@@ -685,7 +685,7 @@ func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Contex
 		l = l.WithField("stack", stack)
 	}
 
-	l.Error("Error executing custom command")
+	l.Warn("Error executing custom command")
 
 	if cmd.ShowErrors {
 		out := "\nAn error caused the execution of the custom command template to stop:\n"
