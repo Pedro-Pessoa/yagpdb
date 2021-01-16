@@ -689,13 +689,24 @@ func detectCyclicValue(v reflect.Value) error {
 
 type Dict map[interface{}]interface{}
 
-func (d Dict) Set(key interface{}, value interface{}) (string, error) {
-	d[key] = value
-	if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
-		return "", err
-	}
+func (d Dict) Set(input ...interface{}) (string, error) {
+	switch l := len(input); l {
+	case 0, 1:
+		return "", errors.New("Not enough arguments to .Set")
+	default:
+		if l%2 != 0 {
+			return "", errors.New("Invalid dict .Set call")
+		}
 
-	return "", nil
+		for i := 0; i < l; i += 2 {
+			d[input[i]] = input[i+1]
+			if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
+				return "", err
+			}
+		}
+
+		return "", nil
+	}
 }
 
 func (d Dict) Get(key interface{}) interface{} {
@@ -719,13 +730,29 @@ func (d Dict) Del(key interface{}) string {
 
 type SDict map[string]interface{}
 
-func (d SDict) Set(key string, value interface{}) (string, error) {
-	d[key] = value
-	if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
-		return "", err
-	}
+func (d SDict) Set(input ...interface{}) (string, error) {
+	switch l := len(input); l {
+	case 0, 1:
+		return "", errors.New("Not enough arguments to .Set")
+	default:
+		if l%2 != 0 {
+			return "", errors.New("Invalid dict .Set call")
+		}
 
-	return "", nil
+		for i := 0; i < l; i += 2 {
+			key, ok := input[i].(string)
+			if !ok {
+				return "", errors.New("Only string keys supported in sdict")
+			}
+
+			d[key] = input[i+1]
+			if err := detectCyclicValue(reflect.ValueOf(d)); err != nil {
+				return "", err
+			}
+		}
+
+		return "", nil
+	}
 }
 
 func (d SDict) Get(key string) interface{} {
@@ -739,19 +766,22 @@ func (d SDict) Del(key string) string {
 
 type Slice []interface{}
 
-func (s Slice) Append(item interface{}) (interface{}, error) {
-	if len(s)+1 > 100000 {
-		return nil, errors.New("resulting slice exceeds slice size limit")
+func (s Slice) Append(items ...interface{}) (interface{}, error) {
+	if len(s)+1 > 10000 {
+		return nil, errors.New("Resulting slice exceeds slice size limit")
 	}
 
-	switch v := item.(type) {
-	case nil:
-		result := reflect.Append(reflect.ValueOf(&s).Elem(), reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
-		return result.Interface(), nil
-	default:
-		result := reflect.Append(reflect.ValueOf(&s).Elem(), reflect.ValueOf(v))
-		return result.Interface(), nil
+	reflection := reflect.ValueOf(&s).Elem()
+	for _, val := range items {
+		switch v := val.(type) {
+		case nil:
+			reflection = reflect.Append(reflection, reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem()))
+		default:
+			reflection = reflect.Append(reflection, reflect.ValueOf(v))
+		}
 	}
+
+	return reflection, nil
 }
 
 func (s Slice) FilterOut(index int) (Slice, error) {
@@ -781,11 +811,11 @@ func (s Slice) AppendSlice(slice interface{}) (interface{}, error) {
 	case reflect.Slice, reflect.Array:
 	// this is valid
 	default:
-		return nil, errors.New("value passed is not an array or slice")
+		return nil, errors.New("Value passed is not an array or slice")
 	}
 
-	if len(s)+val.Len() > 100000 {
-		return nil, errors.New("resulting slice exceeds slice size limit")
+	if len(s)+val.Len() > 10000 {
+		return nil, errors.New("Resulting slice exceeds slice size limit")
 	}
 
 	result := reflect.ValueOf(&s).Elem()

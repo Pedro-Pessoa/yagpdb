@@ -229,7 +229,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			msg.Embed = embed
 		case "file":
 			stringFile := fmt.Sprint(val)
-			if len(stringFile) > 1000000 {
+			if len(stringFile) > 100000 {
 				return nil, errors.New("file length for send message builder exceeded size limit")
 			}
 			var buf bytes.Buffer
