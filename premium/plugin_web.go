@@ -161,9 +161,7 @@ var _ web.ServerHomeWidgetWithOrder = (*Plugin)(nil)
 
 func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	ag, templateData := web.GetBaseCPContextData(r.Context())
-
 	templateData["WidgetTitle"] = "Premium Status"
-
 	footer := "<p><a href=\"/premium\">Manage your premium slots</a></p>"
 
 	if ContextPremium(r.Context()) {

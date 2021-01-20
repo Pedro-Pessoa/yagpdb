@@ -107,6 +107,7 @@ func (p *Plugin) handlePostSettings(w http.ResponseWriter, r *http.Request) (web
 	if err == nil {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKey))
 	}
+
 	return templateData, err
 }
 
@@ -232,7 +233,6 @@ func (p *Plugin) handlePostVerifyPage(w http.ResponseWriter, r *http.Request) (w
 		_, _ = verSession.UpdateG(ctx, boil.Infer())
 
 		go analytics.RecordActiveUnit(g.ID, p, "completed")
-
 	} else {
 		templateData.AddAlerts(web.ErrorAlert("Invalid reCAPTCHA submission."))
 	}
@@ -255,7 +255,6 @@ type CheckCAPTCHARequest struct {
 }
 
 func (p *Plugin) checkCAPTCHAResponse(response string) (valid bool, err error) {
-
 	v := url.Values{
 		"response": {response},
 		"secret":   {confGoogleReCAPTCHASecret.GetString()},

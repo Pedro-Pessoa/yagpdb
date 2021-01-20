@@ -19,15 +19,12 @@ var Command = &commands.YAGCommand{
 }
 
 func cmdFuncStateInfo(data *dcmd.Data) (interface{}, error) {
-	totalGuilds := 0
-	totalMembers := 0
-	guildChannel := 0
-	totalMessages := 0
+	var totalMembers, guildChannel, totalMessages int
 
 	state := bot.State
 	state.RLock()
 	totalChannels := len(state.Channels)
-	totalGuilds = len(state.Guilds)
+	totalGuilds := len(state.Guilds)
 	gCop := state.GuildsSlice(false)
 	state.RUnlock()
 
@@ -40,6 +37,7 @@ func cmdFuncStateInfo(data *dcmd.Data) (interface{}, error) {
 		for _, cState := range g.Channels {
 			totalMessages += len(cState.Messages)
 		}
+
 		g.RUnlock()
 	}
 

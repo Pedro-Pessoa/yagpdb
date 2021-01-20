@@ -28,17 +28,12 @@ var Command = &commands.YAGCommand{
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		where := data.Args[0].Str()
 
-		req, err := http.NewRequest("GET", "http://wttr.in/"+where+"?m", nil)
+		resp, err := http.DefaultClient.Get("http://wttr.in/" + where + "?m")
 		if err != nil {
 			return nil, err
 		}
 
-		req.Header.Set("User-Agent", "curl/7.49.1")
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
+		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
@@ -89,6 +84,7 @@ var Command = &commands.YAGCommand{
 			if i >= len(split) {
 				break
 			}
+
 			out += strings.TrimRight(split[i], " ") + "\n"
 		}
 		out += "\n```"

@@ -100,9 +100,11 @@ func updatePremiumServers(ctx context.Context) error {
 	if err = common.RedisPool.Do(radix.Cmd(nil, "DEL", RedisKeyPremiumGuildsTmp)); err != nil {
 		return errors.WithMessage(err, "del tmp")
 	}
+
 	if err = common.RedisPool.Do(radix.Cmd(nil, "HMSET", rCmd...)); err != nil {
 		return errors.WithMessage(err, "hmset")
 	}
+
 	if err = common.RedisPool.Do(radix.Cmd(nil, "RENAME", RedisKeyPremiumGuildsTmp, RedisKeyPremiumGuilds)); err != nil {
 		return errors.WithMessage(err, "rename")
 	}

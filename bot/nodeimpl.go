@@ -216,7 +216,6 @@ func (n *NodeImpl) SendGuilds(shard int) int {
 }
 
 func (n *NodeImpl) LoadGuildState(gs *dstate.GuildState) {
-
 	for _, c := range gs.Channels {
 		c.Owner = gs
 		c.Guild = gs

@@ -154,6 +154,7 @@ func serveGroupSelected(r *http.Request, templateData web.TemplateData, groupID 
 		} else {
 			commands, err = models.CustomCommands(qm.Where("guild_id = ? AND group_id = ?", guildID, groupID), qm.OrderBy("local_id asc")).AllG(r.Context())
 		}
+
 		if err != nil {
 			return templateData, err
 		}
@@ -470,6 +471,7 @@ func CheckLimits(in ...string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 

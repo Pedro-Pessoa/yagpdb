@@ -38,7 +38,6 @@ func RegisterPlugin() {
 var _ bot.BotInitHandler = (*Plugin)(nil)
 
 func (p *Plugin) BotInit() {
-
 	eventsystem.AddHandlerAsyncLastLegacy(p, func(evt *eventsystem.EventData) {
 		ra := evt.MessageReactionAdd()
 		if ra.GuildID == 0 {
@@ -132,9 +131,11 @@ func CreatePaginatedMessage(guildID, channelID int64, initPage, maxPages int, pa
 	if pm.MaxPage > 0 {
 		footer += "/" + strconv.Itoa(pm.MaxPage)
 	}
+
 	embed.Footer = &discordgo.MessageEmbedFooter{
 		Text: footer,
 	}
+
 	embed.Timestamp = time.Now().Format(time.RFC3339)
 
 	msg, err := common.BotSession.ChannelMessageSendEmbed(channelID, embed)
@@ -149,6 +150,7 @@ func CreatePaginatedMessage(guildID, channelID int64, initPage, maxPages int, pa
 	if err != nil {
 		return nil, err
 	}
+
 	err = common.BotSession.MessageReactionAdd(channelID, msg.ID, EmojiNext)
 	if err != nil {
 		return nil, err
@@ -163,7 +165,6 @@ func CreatePaginatedMessage(guildID, channelID int64, initPage, maxPages int, pa
 }
 
 func (p *PaginatedMessage) HandleReactionAdd(ra *discordgo.MessageReactionAdd) {
-
 	pageMod := 0
 	if ra.Emoji.Name == EmojiNext {
 		pageMod = 1
@@ -194,6 +195,7 @@ func (p *PaginatedMessage) HandleReactionAdd(ra *discordgo.MessageReactionAdd) {
 			if pageMod == 1 {
 				newPage--
 			}
+
 			if newPage < 1 {
 				newPage = 1
 			}
@@ -211,6 +213,7 @@ func (p *PaginatedMessage) HandleReactionAdd(ra *discordgo.MessageReactionAdd) {
 		// No change...
 		return
 	}
+
 	p.LastResponse = newMsg
 	p.lastUpdateTime = time.Now()
 
@@ -223,6 +226,7 @@ func (p *PaginatedMessage) HandleReactionAdd(ra *discordgo.MessageReactionAdd) {
 	newMsg.Footer = &discordgo.MessageEmbedFooter{
 		Text: footer,
 	}
+
 	newMsg.Timestamp = time.Now().Format(time.RFC3339)
 
 	_, err = common.BotSession.ChannelMessageEditEmbed(ra.ChannelID, ra.MessageID, newMsg)
@@ -250,7 +254,6 @@ OUTER:
 			if !toRemove {
 				continue OUTER
 			}
-
 		case <-p.stopCh:
 		}
 
@@ -267,7 +270,6 @@ OUTER:
 		menusLock.Unlock()
 		return
 	}
-
 }
 
 func (p *PaginatedMessage) Stop() {

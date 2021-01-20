@@ -186,11 +186,8 @@ func shutdown() {
 	wg := new(sync.WaitGroup)
 
 	if flagRunBot || flagRunEverything {
-
 		wg.Add(1)
-
 		go bot.Stop(wg)
-
 		shouldWait = true
 	}
 
@@ -255,15 +252,15 @@ var logSortPriority = []string{
 
 func logrusSortingFunc(fields []string) {
 	sort.Slice(fields, func(i, j int) bool {
-
 		iPriority := findStringIndex(logSortPriority, fields[i])
 		jPriority := findStringIndex(logSortPriority, fields[j])
 
-		if iPriority != -1 && jPriority == -1 {
+		switch {
+		case iPriority != -1 && jPriority == -1:
 			return true
-		} else if jPriority != -1 && iPriority == -1 {
+		case jPriority != -1 && iPriority == -1:
 			return false
-		} else if iPriority == -1 && jPriority == -1 {
+		case iPriority == -1 && jPriority == -1:
 			return strings.Compare(fields[i], fields[j]) > 1
 		}
 

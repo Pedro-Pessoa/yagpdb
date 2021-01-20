@@ -45,6 +45,7 @@ func main() {
 		fmt.Println("failed creating stderr pipe: ", err)
 		os.Exit(1)
 	}
+
 	if err2 != nil {
 		fmt.Println("failed creating stdout pipe: ", err2)
 		os.Exit(1)

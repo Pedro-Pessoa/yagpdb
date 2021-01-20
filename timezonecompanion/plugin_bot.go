@@ -20,8 +20,10 @@ import (
 	"github.com/volatiletech/sqlboiler/boil"
 )
 
-var _ bot.BotInitHandler = (*Plugin)(nil)
-var _ commands.CommandProvider = (*Plugin)(nil)
+var (
+	_ bot.BotInitHandler       = (*Plugin)(nil)
+	_ commands.CommandProvider = (*Plugin)(nil)
+)
 
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, p.handleMessageCreate, eventsystem.EventMessageCreate)
@@ -41,7 +43,6 @@ func (p *Plugin) AddCommands() {
 			{Switch: "d", Name: "Delete TZ record"},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			localTZ := time.Now().UTC().Location()
 			userZone, userOffset := time.Now().In(localTZ).Zone()
 			getUserTZ := GetUserTimezone(parsed.Msg.Author.ID)
@@ -66,20 +67,22 @@ func (p *Plugin) AddCommands() {
 
 			if parsed.Switches["d"].Value != nil && parsed.Switches["d"].Value.(bool) {
 				if getUserTZ != nil {
-
 					m := &models.UserTimezone{
 						UserID:       parsed.Msg.Author.ID,
 						TimezoneName: localTZ.String(),
 					}
+
 					_, err := m.DeleteG(parsed.Context())
 					if err != nil {
 						return nil, err
 					}
+
 					return "Registered time zone deleted", nil
 				} else {
 					return "You don't have a registered time zone", nil
 				}
 			}
+
 			var out, manyZones, zone string
 			userInput := parsed.Args[0].Str()
 			zones := FindZone(userInput)
@@ -131,11 +134,12 @@ func (p *Plugin) AddCommands() {
 			if err != nil {
 				return nil, err
 			}
+
 			if manyZones != "" {
 				out += "\n" + fmt.Sprintf("Set your timezone to closest match `%s`: %s\n", zone, name)
 				return out, nil
-
 			}
+
 			return fmt.Sprintf("Set your timezone to `%s`: %s\n", zone, name), nil
 
 		},
@@ -181,8 +185,8 @@ func (p *Plugin) AddCommands() {
 				}
 			} else {
 				status := "off"
-
 				found := false
+
 				for i, v := range conf.DisabledInChannels {
 					if v == parsed.CS.ID {
 						found = true

@@ -73,7 +73,6 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 
 // RegisterPlugin registers the mqueue plugin into the plugin system and also initializes it
 func RegisterPlugin() {
-
 	var err error
 	webhookSession, err = discordgo.New()
 	if err != nil {
@@ -262,7 +261,6 @@ func pollRedis(first bool) {
 
 	OUTER:
 		for _, elem := range results {
-
 			var parsed *QueuedElement
 			err := json.Unmarshal(elem, &parsed)
 			if err != nil {
@@ -402,13 +400,13 @@ func processWorker() {
 		} else {
 			msSleep = 1000
 		}
+
 		time.Sleep(time.Millisecond * time.Duration(msSleep))
 	}
 }
 
 func process(elem *QueuedElement, raw []byte) {
 	id := elem.ID
-
 	queueLogger := logger.WithField("mq_id", id)
 
 	defer func() {
@@ -422,6 +420,7 @@ func process(elem *QueuedElement, raw []byte) {
 		} else {
 			err = trySendNormal(queueLogger, elem)
 		}
+
 		if err == nil {
 			break
 		}
@@ -484,14 +483,15 @@ func maybeDisableFeed(source PluginWithSourceDisabler, elem *QueuedElement, err 
 }
 
 func trySendNormal(l *logrus.Entry, elem *QueuedElement) (err error) {
-	if elem.MessageStr != "" {
+	switch {
+	case elem.MessageStr != "":
 		_, err = common.BotSession.ChannelMessageSendComplex(elem.Channel, &discordgo.MessageSend{
 			Content:         elem.MessageStr,
 			AllowedMentions: elem.AllowedMentions,
 		})
-	} else if elem.MessageEmbed != nil {
+	case elem.MessageEmbed != nil:
 		_, err = common.BotSession.ChannelMessageSendEmbed(elem.Channel, elem.MessageEmbed)
-	} else {
+	default:
 		l.Error("Both MessageEmbed and MessageStr empty")
 	}
 
@@ -541,6 +541,7 @@ func trySendWebhook(l *logrus.Entry, elem *QueuedElement) (err error) {
 	if err != nil {
 		return err
 	}
+
 	wh := whI.(*webhook)
 
 	webhookParams := &discordgo.WebhookParams{

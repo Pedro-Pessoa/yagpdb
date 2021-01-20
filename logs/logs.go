@@ -45,7 +45,6 @@ func RegisterPlugin() {
 
 // Returns either stored config, err or a default config
 func GetConfig(exec boil.ContextExecutor, ctx context.Context, guildID int64) (*models.GuildLoggingConfig, error) {
-
 	config, err := models.FindGuildLoggingConfig(ctx, exec, guildID)
 	if err == sql.ErrNoRows {
 		// return default config
@@ -239,7 +238,6 @@ func GetChannelLogs(ctx context.Context, id, guildID int64, sm SearchMode) (*mod
 }
 
 func GetGuilLogs(ctx context.Context, guildID int64, before, after, limit int) ([]*models.MessageLogs2, error) {
-
 	qms := []qm.QueryMod{
 		qm.OrderBy("id desc"),
 		qm.Limit(limit),

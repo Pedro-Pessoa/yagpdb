@@ -6,6 +6,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/jonas747/yagpdb/tibia"
 )
 
@@ -19,19 +20,20 @@ var TibiaSetWorld = &commands.YAGCommand{
 		{Name: "Nome do Mundo", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
 		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
-		a, err := tibia.SetServerWorld(data.Args[0].Str(), data.GS.ID, false)
+
+		out, err := tibia.SetServerWorld(data.Args[0].Str(), data.GS.ID, false)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -45,19 +47,20 @@ var TibiaSetGuild = &commands.YAGCommand{
 		{Name: "Nome da Guild", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
 		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
-		a, err := tibia.SetServerGuild(data.Args[0].Str(), data.GS.ID, false, data.GS.Guild.MemberCount)
+
+		out, err := tibia.SetServerGuild(data.Args[0].Str(), data.GS.ID, false, data.GS.Guild.MemberCount)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -67,7 +70,7 @@ var TibiaSetDeathChannel = &commands.YAGCommand{
 	Aliases:     []string{"tsdc", "deathchannel", "dc"},
 	Description: "O canal onde esse comando for usado será utilizado para enviar avisos de morte.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
@@ -75,12 +78,12 @@ var TibiaSetDeathChannel = &commands.YAGCommand{
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
-		a, err := tibia.SetServerDeathChannel(data.GS.ID, data.CS.ID)
+		out, err := tibia.SetServerDeathChannel(data.GS.ID, data.CS.ID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -90,7 +93,7 @@ var TibiaSetUpdatesChannel = &commands.YAGCommand{
 	Aliases:     []string{"tsuc", "updateshannel", "updatehannel", "uc"},
 	Description: "O canal onde esse comando for usado será utilizado para enviar avisos de players.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
@@ -98,12 +101,12 @@ var TibiaSetUpdatesChannel = &commands.YAGCommand{
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
-		a, err := tibia.SetServerUpdatesChannel(data.GS.ID, data.CS.ID)
+		out, err := tibia.SetServerUpdatesChannel(data.GS.ID, data.CS.ID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -117,12 +120,12 @@ var TibiaToggleDeaths = &commands.YAGCommand{
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
-		a, err := tibia.ToggleDeaths(data.GS.ID)
+		out, err := tibia.ToggleDeaths(data.GS.ID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -136,12 +139,12 @@ var TibiaToggleUpdates = &commands.YAGCommand{
 			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
-		a, err := tibia.ToggleUpdates(data.GS.ID)
+		out, err := tibia.ToggleUpdates(data.GS.ID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -151,12 +154,12 @@ var TibiaGetWorld = &commands.YAGCommand{
 	Aliases:     []string{"tgw"},
 	Description: "Retorna o mundo deste servidor.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		a, err := tibia.GetServerWorld(data.GS.ID, false)
+		out, err := tibia.GetServerWorld(data.GS.ID, false)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }
 
@@ -166,11 +169,11 @@ var TibiaGetGuild = &commands.YAGCommand{
 	Aliases:     []string{"tgg"},
 	Description: "Retorna a guild deste servidor.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		a, err := tibia.GetServerGuild(data.GS.ID)
+		out, err := tibia.GetServerGuild(data.GS.ID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	},
 }

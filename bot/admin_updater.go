@@ -67,6 +67,7 @@ func loopCheckAdmins() {
 		logger.Info("One of YAGPDB_MAIN_SERVER, YAGPDB_ADMIN_ROLE or YAGPDB_READONLY_ACCESS_ROLE not provided, not running admin checker")
 		return
 	}
+
 	logger.Info("Admin checker running")
 
 	// always skip rename first iteration, in case the last run had an error

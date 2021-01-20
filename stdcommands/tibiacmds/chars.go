@@ -11,6 +11,7 @@ import (
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/jonas747/yagpdb/tibia"
 )
 
@@ -23,7 +24,7 @@ var MainCharCommand = &commands.YAGCommand{
 		{Name: "Nome do Char", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
@@ -47,6 +48,7 @@ var MainCharCommand = &commands.YAGCommand{
 		} else {
 			comentarioOut = comentario
 		}
+
 		re := regexp.MustCompile(` `)
 		linkname := re.ReplaceAllString(char.Name, `\+`)
 		link := fmt.Sprintf("https://www.tibia.com/community/?subtopic=characters&name=%s", linkname)
@@ -155,7 +157,7 @@ var DeathsCommand = &commands.YAGCommand{
 		{Name: "Nome do Char", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
@@ -220,7 +222,7 @@ var CheckOnlineCommand = &commands.YAGCommand{
 		{Name: "Nome do Mundo", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 

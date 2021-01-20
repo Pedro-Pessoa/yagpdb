@@ -34,8 +34,7 @@ func init() {
 
 type CodePremiumSource struct{}
 
-func (ps *CodePremiumSource) Init() {
-}
+func (ps *CodePremiumSource) Init() {}
 
 func (ps *CodePremiumSource) Names() (human string, idname string) {
 	return "Redeemed code", "code"
@@ -208,7 +207,7 @@ var cmdGenerateCode = &commands.YAGCommand{
 			return fmt.Sprintf("I wasn't able to send you a DM.\nError:%v", err), err
 		}
 
-		return "Check yer dms", nil
+		return "Check your dms", nil
 	}),
 }
 

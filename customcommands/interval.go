@@ -73,6 +73,7 @@ func intervalCheckDays(cc *models.CustomCommand, tNext time.Time, resetClock boo
 		tNext = tNext.Add((-time.Minute * time.Duration(m)))
 		tNext = tNext.Add((-time.Second * time.Duration(s)))
 	}
+
 	return tNext
 }
 
@@ -129,6 +130,7 @@ func UpdateCommandNextRunTime(cc *models.CustomCommand, updateLastRun bool, clea
 	if updateLastRun {
 		toUpdate = append(toUpdate, "last_run")
 	}
+
 	_, err := cc.UpdateG(context.Background(), boil.Whitelist(toUpdate...))
 	if err != nil {
 		return errors.WrapIf(err, "update_cc")

@@ -109,6 +109,7 @@ var Command = &commands.YAGCommand{
 			if queryType == typeWorld {
 				queryType = typeCountries
 			}
+
 			where = data.Args[0].Str() //any time some non-switch text is entered, it's not paginated
 			//pagination = false
 			queryURL = fmt.Sprintf("%s%s/%s", diseaseAPIHost, queryType, where+"?yesterday="+yesterday+"&twoDaysAgo="+twoDaysAgo+"&strict=true")
@@ -218,9 +219,12 @@ func embedCreator(cConts []coronaWorldWideStruct, queryType, whatDay string, i i
 	if queryType != typeStates {
 		embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{Name: "Critical", Value: p.Sprintf("%d", cConts[i].Critical), Inline: true})
 	}
+
 	embed.Fields = append(embed.Fields,
 		&discordgo.MessageEmbedField{Name: "Cases/1M pop", Value: p.Sprintf("%.0f", cConts[i].CasesPerOneMillion), Inline: true},
-		&discordgo.MessageEmbedField{Name: "Total Tests", Value: p.Sprintf("%.0f", cConts[i].Tests), Inline: true})
+		&discordgo.MessageEmbedField{Name: "Total Tests", Value: p.Sprintf("%.0f", cConts[i].Tests), Inline: true},
+	)
+
 	switch queryType {
 	case "all":
 		embed.Title = "Whole world"
@@ -239,5 +243,6 @@ func embedCreator(cConts []coronaWorldWideStruct, queryType, whatDay string, i i
 		embed.Thumbnail = &discordgo.MessageEmbedThumbnail{
 			URL: "https://disease.sh/assets/img/flags/us.png"}
 	}
+
 	return embed
 }

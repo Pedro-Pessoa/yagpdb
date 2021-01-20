@@ -40,8 +40,6 @@ var Command = &commands.YAGCommand{
 			sides = 6
 		}
 
-		result := rand.Intn(sides)
-		output := fmt.Sprintf(":game_die: %d (1 - %d)", result+1, sides)
-		return output, nil
+		return fmt.Sprintf(":game_die: %d (1 - %d)", rand.Intn(sides)+1, sides), nil
 	},
 }

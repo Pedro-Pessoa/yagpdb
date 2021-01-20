@@ -10,6 +10,7 @@ import (
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/jonas747/yagpdb/tibia"
 )
 
@@ -22,7 +23,7 @@ var SpecificGuildCommand = &commands.YAGCommand{
 		{Name: "Nome da Guild", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 

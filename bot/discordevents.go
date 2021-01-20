@@ -239,6 +239,7 @@ func InvalidateCache(guildID, userID int64) {
 			logger.WithField("guild", guildID).WithField("user", userID).WithError(err).Error("failed invalidating user guilds cache")
 		}
 	}
+
 	if guildID != 0 {
 		if err := common.RedisPool.Do(radix.Cmd(nil, "DEL", common.CacheKeyPrefix+common.KeyGuild(guildID))); err != nil {
 			logger.WithField("guild", guildID).WithField("user", userID).WithError(err).Error("failed invalidating guild cache")
@@ -270,6 +271,7 @@ func HandleReactionAdd(evt *eventsystem.EventData) {
 	if ra.GuildID != 0 {
 		return
 	}
+
 	if ra.UserID == common.BotUser.ID {
 		return
 	}
@@ -314,7 +316,6 @@ func HandleMessageCreateUpdateFirst(evt *eventsystem.EventData) {
 		if msg.Member != nil {
 			msg.Member.User = msg.Author
 		}
-
 	} else {
 		edit := evt.MessageUpdate()
 		if !IsNormalUserMessage(edit.Message) {

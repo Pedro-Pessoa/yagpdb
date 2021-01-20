@@ -64,7 +64,6 @@ func NewConfig() *Config {
 }
 
 func GetConfig(guildID int64) (config *Config, err error) {
-
 	config = NewConfig()
 	err = common.GetRedisJson(KeyConfig(guildID), &config)
 	return

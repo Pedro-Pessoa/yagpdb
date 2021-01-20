@@ -73,6 +73,7 @@ func ExtraPostMW(inner http.Handler) http.Handler {
 		featureflags.MarkGuildDirty(activeGuild.ID)
 		inner.ServeHTTP(w, r)
 	}
+
 	return http.HandlerFunc(mw)
 }
 

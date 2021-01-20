@@ -26,7 +26,6 @@ import (
 	"github.com/jonas747/yagpdb/stdcommands/listroles"
 	"github.com/jonas747/yagpdb/stdcommands/memberfetcher"
 	"github.com/jonas747/yagpdb/stdcommands/memstats"
-	"github.com/jonas747/yagpdb/stdcommands/mentionrole"
 	"github.com/jonas747/yagpdb/stdcommands/ping"
 	"github.com/jonas747/yagpdb/stdcommands/poll"
 	"github.com/jonas747/yagpdb/stdcommands/setstatus"
@@ -152,7 +151,6 @@ func (p *Plugin) AddCommands() {
 
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, ping.HandleMessageCreate, eventsystem.EventMessageCreate)
-	mentionrole.AddScheduledEventListener()
 }
 
 func RegisterPlugin() {

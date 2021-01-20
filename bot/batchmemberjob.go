@@ -94,6 +94,7 @@ func (m *batchMemberJobManager) NewBatchMemberJob(guildID int64, f func(guildID 
 	if session == nil {
 		return errors.New("No session?")
 	}
+
 	q := ""
 	session.GatewayManager.RequestGuildMembersComplex(&discordgo.RequestGuildMembersData{
 		GuildID: gs.ID,
@@ -142,6 +143,7 @@ func (m *batchMemberJobManager) SearchByUsername(guildID int64, query string) ([
 		Query:   &query,
 		Nonce:   job.nonce,
 	})
+
 	return m.waitResponse(time.Second*10, retCh)
 }
 
@@ -178,7 +180,6 @@ OUTER:
 }
 
 func (m *batchMemberJobManager) handleGuildMemberChunk(evt *eventsystem.EventData) {
-
 	chunk := evt.GuildMembersChunk()
 
 	m.mu.Lock()

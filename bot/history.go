@@ -21,6 +21,7 @@ func GetMessages(channelID int64, limit int, deleted bool) ([]*dstate.MessageSta
 	if cs == nil {
 		return []*dstate.MessageState{}, nil
 	}
+
 	cs.Owner.RLock()
 
 	n := len(msgBuf) - 1
@@ -65,6 +66,7 @@ func GetMessages(channelID int64, limit int, deleted bool) ([]*dstate.MessageSta
 		if toFetch > 100 {
 			toFetch = 100
 		}
+
 		msgs, err := common.BotSession.ChannelMessages(channelID, toFetch, before, 0, 0)
 		if err != nil {
 			return nil, err

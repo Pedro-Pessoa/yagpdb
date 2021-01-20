@@ -21,7 +21,6 @@ var Command = &commands.YAGCommand{
 		{Name: "server", Type: dcmd.String},
 	},
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
-
 		var unbanned bool
 		err := common.RedisPool.Do(radix.Cmd(&unbanned, "SREM", "banned_servers", data.Args[0].Str()))
 		if err != nil {

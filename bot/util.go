@@ -249,6 +249,7 @@ func RefreshStatus(session *discordgo.Session) {
 	if err1 != nil {
 		logger.WithError(err1).Error("failed retrieving bot streaming status")
 	}
+
 	if err2 != nil {
 		logger.WithError(err2).Error("failed retrieving bot status")
 	}
@@ -273,13 +274,14 @@ func IsMemberAbove(gs *dstate.GuildState, ms1 *dstate.MemberState, ms2 *dstate.M
 	highestMS1 := MemberHighestRole(gs, ms1)
 	highestMS2 := MemberHighestRole(gs, ms2)
 
-	if highestMS1 == nil && highestMS2 == nil {
+	switch {
+	case highestMS1 == nil && highestMS2 == nil:
 		// none of them has any roles
 		return false
-	} else if highestMS1 == nil && highestMS2 != nil {
+	case highestMS1 == nil && highestMS2 != nil:
 		// ms1 has no role but ms2 does
 		return false
-	} else if highestMS1 != nil && highestMS2 == nil {
+	case highestMS1 != nil && highestMS2 == nil:
 		// ms1 has a role but not ms2
 		return true
 	}
@@ -345,9 +347,7 @@ func GetUsersGS(gs *dstate.GuildState, ids ...int64) []*discordgo.User {
 		}
 
 		gs.RUnlock()
-
 		user, err := common.BotSession.User(id)
-
 		gs.RLock()
 
 		if err != nil {

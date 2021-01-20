@@ -1,16 +1,13 @@
 package simpleembed
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/dstate/v2"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/common"
-	"golang.org/x/image/colornames"
+	"github.com/jonas747/yagpdb/stdcommands/util"
 )
 
 var Command = &commands.YAGCommand{
@@ -46,7 +43,7 @@ var Command = &commands.YAGCommand{
 		}
 
 		if color := data.Switch("color").Str(); color != "" {
-			parsedColor, ok := ParseColor(color)
+			parsedColor, ok := util.ParseColor(color)
 			if !ok {
 				return "Unknown color: " + color + ", can be either hex color code or name for a known color", nil
 			}
@@ -103,6 +100,7 @@ var Command = &commands.YAGCommand{
 			Embed:           embed,
 			AllowedMentions: discordgo.AllowedMentions{},
 		}
+
 		_, err := common.BotSession.ChannelMessageSendComplex(cID, messageSend)
 		if err != nil {
 			return err, err
@@ -114,26 +112,4 @@ var Command = &commands.YAGCommand{
 
 		return nil, nil
 	},
-}
-
-func ParseColor(raw string) (int, bool) {
-	raw = strings.TrimPrefix(raw, "#")
-
-	// try to parse as hex color code first
-	parsed, err := strconv.ParseInt(raw, 16, 32)
-	if err == nil {
-		return int(parsed), true
-	}
-
-	// look up the color code table
-	for _, v := range colornames.Names {
-		if strings.EqualFold(v, raw) {
-			cStruct := colornames.Map[v]
-
-			color := (int(cStruct.R) << 16) | (int(cStruct.G) << 8) | int(cStruct.B)
-			return color, true
-		}
-	}
-
-	return 0, false
 }

@@ -68,6 +68,7 @@ var Command = &commands.YAGCommand{
 				}
 			}
 		}
+
 		outFinal = fmt.Sprintf("Total role count: %d\n", counter)
 		outFinal += "(ME = mention everyone perms)\n"
 		outFinal += out

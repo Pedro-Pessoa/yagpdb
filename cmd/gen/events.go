@@ -44,7 +44,6 @@ type Handler func(ctx context.Context, evt interface{})
 var handlers = make([][]*Handler, {{len .}})
 
 func handleEvent(s *discordgo.Session, evt interface{}){
-
 	evtId := -10
 	name := ""
 
@@ -102,7 +101,6 @@ func CheckErr(errMsg string, err error) {
 }
 
 func main() {
-
 	fs := token.NewFileSet()
 	parsedFile, err := parser.ParseFile(fs, filepath.Join(os.Getenv("GOPATH"), "src/github.com/jonas747/discordgo/events.go"), nil, 0)
 	if err != nil {
@@ -124,10 +122,12 @@ func main() {
 		if name == "Event" {
 			continue
 		}
+
 		evt := Event{
 			Name:    name,
 			Discord: true,
 		}
+
 		events[i] = evt
 		i++
 	}

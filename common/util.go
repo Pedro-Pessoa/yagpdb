@@ -107,8 +107,9 @@ func (d DurationFormatPrecision) String() string {
 		return "semana"
 	case DurationPrecisionYears:
 		return "ano"
+	default:
+		return "Desconhecido"
 	}
-	return "Desconhecido"
 }
 
 func (d DurationFormatPrecision) FromSeconds(in int64) int64 {
@@ -137,12 +138,12 @@ func pluralize(val int64) string {
 	if val == 1 {
 		return ""
 	}
+
 	return "s"
 }
 
 func HumanizeDuration(precision DurationFormatPrecision, in time.Duration) string {
 	seconds := int64(in.Seconds())
-
 	out := make([]string, 0)
 
 	for i := int(precision); i < int(DurationPrecisionYears)+1; i++ {
@@ -161,6 +162,7 @@ func HumanizeDuration(precision DurationFormatPrecision, in time.Duration) strin
 		} else if i != len(out)-1 {
 			outStr += " "
 		}
+
 		outStr += out[i]
 	}
 
@@ -191,6 +193,7 @@ func FallbackEmbed(embed *discordgo.MessageEmbed) string {
 	if embed.Description != "" {
 		body += embed.Description + "\n"
 	}
+
 	if body != "" {
 		body += "\n"
 	}
@@ -198,6 +201,7 @@ func FallbackEmbed(embed *discordgo.MessageEmbed) string {
 	for _, v := range embed.Fields {
 		body += fmt.Sprintf("**%s**\n%s\n\n", v.Name, v.Value)
 	}
+
 	return body + "**I have no 'embed links' permissions here, this is a fallback. it looks prettier if i have that perm :)**"
 }
 
@@ -368,36 +372,46 @@ func HumanizePermissions(perms int64) (res []string) {
 	if perms&discordgo.PermissionAdministrator == discordgo.PermissionAdministrator {
 		res = append(res, "Administrador")
 	}
+
 	if perms&discordgo.PermissionManageServer == discordgo.PermissionManageServer {
 		res = append(res, "Gerenciar o Servidor")
 	}
+
 	/* 	if perms&discordgo.PermissionReadMessages == discordgo.PermissionReadMessages {
 		res = append(res, "Ler Mensagens")
 	} */ // deprecated
+
 	if perms&discordgo.PermissionViewChannel == discordgo.PermissionViewChannel {
 		res = append(res, "Ver o Canal")
 	}
+
 	if perms&discordgo.PermissionSendMessages == discordgo.PermissionSendMessages {
 		res = append(res, "Enviar Mensagens")
 	}
+
 	if perms&discordgo.PermissionSendTTSMessages == discordgo.PermissionSendTTSMessages {
 		res = append(res, "Enviar Mensagens TTS")
 	}
 	if perms&discordgo.PermissionManageMessages == discordgo.PermissionManageMessages {
 		res = append(res, "Gerenciar Mensagens")
 	}
+
 	if perms&discordgo.PermissionEmbedLinks == discordgo.PermissionEmbedLinks {
 		res = append(res, "Links com Embeds")
 	}
+
 	if perms&discordgo.PermissionAttachFiles == discordgo.PermissionAttachFiles {
 		res = append(res, "Anexar Arquivos")
 	}
+
 	if perms&discordgo.PermissionReadMessageHistory == discordgo.PermissionReadMessageHistory {
 		res = append(res, "Ler Histórico de Mensagens")
 	}
+
 	if perms&discordgo.PermissionMentionEveryone == discordgo.PermissionMentionEveryone {
 		res = append(res, "Mencionar Everyone")
 	}
+
 	if perms&discordgo.PermissionUseExternalEmojis == discordgo.PermissionUseExternalEmojis {
 		res = append(res, "Usar Emojis Externos")
 	}
@@ -406,18 +420,23 @@ func HumanizePermissions(perms int64) (res []string) {
 	if perms&discordgo.PermissionVoiceConnect == discordgo.PermissionVoiceConnect {
 		res = append(res, "Conectar à Voz")
 	}
+
 	if perms&discordgo.PermissionVoiceSpeak == discordgo.PermissionVoiceSpeak {
 		res = append(res, "Falar")
 	}
+
 	if perms&discordgo.PermissionVoiceMuteMembers == discordgo.PermissionVoiceMuteMembers {
 		res = append(res, "Silenciar Voz de Membros")
 	}
+
 	if perms&discordgo.PermissionVoiceDeafenMembers == discordgo.PermissionVoiceDeafenMembers {
 		res = append(res, "Ensurdecer Membros")
 	}
+
 	if perms&discordgo.PermissionVoiceMoveMembers == discordgo.PermissionVoiceMoveMembers {
 		res = append(res, "Mover Membros")
 	}
+
 	if perms&discordgo.PermissionVoiceUseVAD == discordgo.PermissionVoiceUseVAD {
 		res = append(res, "Usar VAD")
 	}
@@ -426,15 +445,19 @@ func HumanizePermissions(perms int64) (res []string) {
 	if perms&discordgo.PermissionChangeNickname == discordgo.PermissionChangeNickname {
 		res = append(res, "Mudar Apelido")
 	}
+
 	if perms&discordgo.PermissionManageNicknames == discordgo.PermissionManageNicknames {
 		res = append(res, "Gerenciar Apelidos")
 	}
+
 	if perms&discordgo.PermissionManageRoles == discordgo.PermissionManageRoles {
 		res = append(res, "Gerenciar Cargos")
 	}
+
 	if perms&discordgo.PermissionManageWebhooks == discordgo.PermissionManageWebhooks {
 		res = append(res, "Gerenciar Webhooks")
 	}
+
 	if perms&discordgo.PermissionManageEmojis == discordgo.PermissionManageEmojis {
 		res = append(res, "Gerenciar Emojis")
 	}
@@ -442,18 +465,23 @@ func HumanizePermissions(perms int64) (res []string) {
 	if perms&discordgo.PermissionCreateInstantInvite == discordgo.PermissionCreateInstantInvite {
 		res = append(res, "Criar Convite")
 	}
+
 	if perms&discordgo.PermissionKickMembers == discordgo.PermissionKickMembers {
 		res = append(res, "Expulsar Membros")
 	}
+
 	if perms&discordgo.PermissionBanMembers == discordgo.PermissionBanMembers {
 		res = append(res, "Banir Membros")
 	}
+
 	if perms&discordgo.PermissionManageChannels == discordgo.PermissionManageChannels {
 		res = append(res, "Gerenciar Canais")
 	}
+
 	if perms&discordgo.PermissionAddReactions == discordgo.PermissionAddReactions {
 		res = append(res, "Adicionar Reações")
 	}
+
 	if perms&discordgo.PermissionViewAuditLogs == discordgo.PermissionViewAuditLogs {
 		res = append(res, "Ver Registro de Auditoria")
 	}
@@ -528,6 +556,7 @@ func SendOwnerAlert(msgf string, args ...interface{}) {
 	if len(BotOwners) > 0 {
 		mainOwner = BotOwners[0]
 	}
+
 	ch, err := BotSession.UserChannelCreate(int64(mainOwner))
 	if err != nil {
 		return

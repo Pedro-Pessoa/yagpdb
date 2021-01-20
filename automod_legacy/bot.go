@@ -101,21 +101,23 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 	punishMsg := ""
 	highestPunish := PunishNone
 	muteDuration := 0
+	didCheck := false
 
 	rules := []Rule{config.Spam, config.Invite, config.Mention, config.Links, config.Words, config.Sites}
-
-	didCheck := false
 
 	// We gonna need to have this locked while we check
 	for _, r := range rules {
 		if r.ShouldIgnore(m, member) {
 			continue
 		}
+
 		didCheck = true
+
 		d, punishment, msg, err := r.Check(m, cs)
 		if d {
 			del = true
 		}
+
 		if err != nil {
 			logger.WithError(err).WithField("guild", cs.Guild.ID).Error("Failed checking aumod rule:", err)
 			continue
@@ -138,6 +140,7 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 		if didCheck {
 			go analytics.RecordActiveUnit(cs.Guild.ID, &Plugin{}, "checked")
 		}
+
 		return false
 	}
 
@@ -169,5 +172,4 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 	}()
 
 	return true
-
 }

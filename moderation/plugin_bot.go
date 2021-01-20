@@ -32,14 +32,15 @@ var (
 type ContextKey int
 
 const (
-	ContextKeyConfig ContextKey = iota
+	ContextKeyConfig       ContextKey = iota
+	MuteDeniedChannelPerms            = discordgo.PermissionSendMessages | discordgo.PermissionVoiceSpeak
 )
 
-const MuteDeniedChannelPerms = discordgo.PermissionSendMessages | discordgo.PermissionVoiceSpeak
-
-var _ commands.CommandProvider = (*Plugin)(nil)
-var _ bot.BotInitHandler = (*Plugin)(nil)
-var _ bot.ShardMigrationReceiver = (*Plugin)(nil)
+var (
+	_ commands.CommandProvider   = (*Plugin)(nil)
+	_ bot.BotInitHandler         = (*Plugin)(nil)
+	_ bot.ShardMigrationReceiver = (*Plugin)(nil)
+)
 
 func (p *Plugin) AddCommands() {
 	commands.AddRootCommands(p, ModerationCommands...)
@@ -204,6 +205,7 @@ func RefreshMuteOverrideForChannel(config *Config, channel *discordgo.Channel) {
 	if config.MuteDisallowReactionAdd {
 		MuteDeniedChannelPermsFinal = MuteDeniedChannelPermsFinal | discordgo.PermissionAddReactions
 	}
+
 	allows := 0
 	denies := MuteDeniedChannelPermsFinal
 	changed := true
@@ -329,6 +331,7 @@ func HandleGuildMemberRemove(evt *eventsystem.EventData) (retry bool, err error)
 	}
 
 	go checkAuditLogMemberRemoved(config, data)
+
 	return false, nil
 }
 
@@ -357,22 +360,23 @@ func checkAuditLogMemberRemoved(config *Config, data *discordgo.GuildMemberRemov
 	}
 }
 
-// Since updating mutes are now a complex operation with removing roles and whatnot,
-// to avoid weird bugs from happening we lock it so it can only be updated one place per user
+// Since updating roles is a complex operation,
+// to avoid weird bugs from happening, we lock it so it can only be updated one place
 func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int) (retry bool, err error)) eventsystem.HandlerFunc {
 	return func(evt *eventsystem.EventData) (retry bool, err error) {
 		var roleID int64
 		roleUpdate := false
 		rolePerms := 0
-		// TODO: add utility functions to the eventdata struct for fetching things like these?
-		if evt.Type == eventsystem.EventGuildRoleDelete {
+
+		switch {
+		case evt.Type == eventsystem.EventGuildRoleDelete:
 			roleID = evt.GuildRoleDelete().RoleID
-		} else if evt.Type == eventsystem.EventGuildRoleUpdate {
+		case evt.Type == eventsystem.EventGuildRoleUpdate:
 			roleID = evt.GuildRoleUpdate().Role.ID
 			roleUpdate = true
 			rolePerms = evt.GuildRoleUpdate().Role.Permissions
-		} else {
-			panic("Unknown event in lock member lockdown middleware")
+		default:
+			panic("Unknown event in lock role lockdown middleware")
 		}
 
 		LockLockdown(roleID)
@@ -445,12 +449,12 @@ func LockMemberMuteMW(next eventsystem.HandlerFunc) eventsystem.HandlerFunc {
 		}
 
 		var userID int64
-		// TODO: add utility functions to the eventdata struct for fetching things like these?
-		if evt.Type == eventsystem.EventGuildMemberAdd {
+		switch {
+		case evt.Type == eventsystem.EventGuildMemberAdd:
 			userID = evt.GuildMemberAdd().User.ID
-		} else if evt.Type == eventsystem.EventGuildMemberUpdate {
+		case evt.Type == eventsystem.EventGuildMemberUpdate:
 			userID = evt.GuildMemberUpdate().User.ID
-		} else {
+		default:
 			panic("Unknown event in lock memebr mute middleware")
 		}
 

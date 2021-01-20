@@ -11,7 +11,6 @@ var Command = &commands.YAGCommand{
 	Name:        "Invite",
 	Description: "Responds with bot invite link",
 	RunInDM:     true,
-
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		return "Por favor adicione o bot através do site\nhttps://" + common.ConfHost.GetString(), nil
 	},

@@ -40,7 +40,6 @@ func InitOauth() {
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-
 	csrfToken, err := CreateCSRFToken()
 	if err != nil {
 		CtxLogger(r.Context()).WithError(err).Error("Failed generating csrf token")
@@ -138,6 +137,7 @@ func CheckCSRFToken(token string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return num > 0, nil
 }
 
@@ -261,11 +261,12 @@ func GetUserAccessLevel(userID int64, g *common.GuildWithConnected, config *mode
 // HasAccesstoGuildSettings retrusn true if the specified user (or 0 if not logged in or not on the server) has access
 func HasAccesstoGuildSettings(userID int64, g *common.GuildWithConnected, config *models.CoreConfig, roleProvider func(guildID, userID int64) []int64, write bool) bool {
 	hasRead, hasWrite := GetUserAccessLevel(userID, g, config, roleProvider)
-	if hasWrite {
+	switch {
+	case hasWrite:
 		return true
-	} else if hasRead && !write {
+	case hasRead && !write:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }

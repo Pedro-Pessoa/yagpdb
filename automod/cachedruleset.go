@@ -71,10 +71,7 @@ func ParseRuleset(rs *models.AutomodRuleset) (*ParsedRuleset, error) {
 }
 
 func ParseRuleData(rule *models.AutomodRule) (*ParsedRule, error) {
-
-	var triggers []*ParsedPart
-	var conditions []*ParsedPart
-	var effects []*ParsedPart
+	var triggers, conditions, effects []*ParsedPart
 
 	pr := &ParsedRule{
 		Model: rule,
@@ -110,5 +107,6 @@ func ParseRuleData(rule *models.AutomodRule) (*ParsedRule, error) {
 	pr.Triggers = triggers
 	pr.Conditions = conditions
 	pr.Effects = effects
+
 	return pr, nil
 }

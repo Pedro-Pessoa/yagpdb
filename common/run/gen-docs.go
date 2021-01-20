@@ -27,7 +27,6 @@ func GenCommandsDocs() {
 	mockCmdData := &dcmd.Data{}
 
 	for _, set := range sets {
-
 		out.WriteString("## " + set.Name() + " " + set.Emoji() + "\n\n")
 
 		for _, entry := range set.Commands {
@@ -49,11 +48,12 @@ func GenCommandsDocs() {
 			desc := ""
 			if cast, ok := entry.Cmd.Command.(dcmd.CmdWithDescriptions); ok {
 				short, long := cast.Descriptions(mockCmdData)
-				if long != "" {
+				switch {
+				case long != "":
 					desc = long
-				} else if short != "" {
+				case short != "":
 					desc = short
-				} else {
+				default:
 					desc = "No description for this command"
 				}
 			}
@@ -82,7 +82,6 @@ func GenCommandsDocs() {
 }
 
 func GenConfigDocs() {
-
 	keys := make([]string, 0, len(config.Singleton.Options))
 	for k := range config.Singleton.Options {
 		keys = append(keys, k)
@@ -91,7 +90,6 @@ func GenConfigDocs() {
 	sort.Strings(keys)
 
 	var out bytes.Buffer
-
 	for _, k := range keys {
 		v := config.Singleton.Options[k]
 
@@ -119,8 +117,10 @@ func GenConfigDocs() {
 			if def != "" {
 				out.WriteString(", default: " + def)
 			}
+
 			out.WriteString(")")
 		}
+
 		out.WriteString("\n")
 
 		properKey := strings.ToUpper(v.Name)

@@ -61,7 +61,6 @@ func RegisterPlugin() {
 }
 
 func (p *Plugin) CheckCredentials() {
-
 	user, _, err := p.twitterAPI.Accounts.VerifyCredentials(&twitter.AccountVerifyParams{
 		SkipStatus:   twitter.Bool(true),
 		IncludeEmail: twitter.Bool(true),

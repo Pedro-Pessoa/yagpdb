@@ -11,8 +11,6 @@ import (
 )
 
 type TibiaFlags struct {
-	common.SmallModel
-
 	ServerID       int64 `gorm:"primary_key"`
 	World          string
 	Guild          string
@@ -24,7 +22,7 @@ type TibiaFlags struct {
 	ChannelUpdates int64
 }
 
-func (m *TibiaFlags) TableName() string {
+func (tf *TibiaFlags) TableName() string {
 	return "tibia_flags"
 }
 

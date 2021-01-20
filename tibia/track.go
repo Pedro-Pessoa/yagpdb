@@ -12,15 +12,13 @@ import (
 )
 
 type TibiaTracking struct {
-	common.SmallModel
-
 	ServerID int64 `gorm:"primary_key"`
 	Tracks   []byte
 	Guild    []byte
 	Hunteds  []byte
 }
 
-func (m *TibiaTracking) TableName() string {
+func (tt *TibiaTracking) TableName() string {
 	return "tibia_tracking"
 }
 

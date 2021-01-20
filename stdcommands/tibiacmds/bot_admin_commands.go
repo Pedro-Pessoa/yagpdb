@@ -26,12 +26,13 @@ var TibiaDelWorld = &commands.YAGCommand{
 		if data.Args[0].Value != nil {
 			server = data.Args[0].Int64()
 		}
-		a, err := tibia.DeleteServerWorld(server)
+
+		out, err := tibia.DeleteServerWorld(server)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	}),
 }
 
@@ -51,12 +52,13 @@ var TibiaDelGuild = &commands.YAGCommand{
 		if data.Args[0].Value != nil {
 			server = data.Args[0].Int64()
 		}
-		a, err := tibia.DeleteServerGuild(server)
+
+		out, err := tibia.DeleteServerGuild(server)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	}),
 }
 
@@ -78,12 +80,13 @@ var TibiaAdmSetWorld = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
-		a, err := tibia.SetServerWorld(data.Args[0].Str(), server, true)
+
+		out, err := tibia.SetServerWorld(data.Args[0].Str(), server, true)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	}),
 }
 
@@ -105,12 +108,13 @@ var TibiaAdmSetGuild = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
-		a, err := tibia.SetServerGuild(data.Args[0].Str(), server, true, data.GS.Guild.MemberCount)
+
+		out, err := tibia.SetServerGuild(data.Args[0].Str(), server, true, data.GS.Guild.MemberCount)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
 
-		return a, nil
+		return out, nil
 	}),
 }
 
@@ -132,12 +136,14 @@ var AdminTrackCommand = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
+
 		isPremium, _ := premium.IsGuildPremium(server)
-		a, err := tibia.TrackChar(data.Args[0].Str(), data.GS.ID, data.GS.Guild.MemberCount, isPremium, false)
+		out, err := tibia.TrackChar(data.Args[0].Str(), data.GS.ID, data.GS.Guild.MemberCount, isPremium, false)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 

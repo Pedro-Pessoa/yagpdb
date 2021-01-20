@@ -54,7 +54,6 @@ func (p *Plugin) InitWeb() {
 
 func RunPoller() {
 	ticker := time.NewTicker(time.Minute)
-
 	for {
 		<-ticker.C
 		err := UpdatePremiumSlots(context.Background())
@@ -161,24 +160,22 @@ OUTER:
 	}
 
 	err = tx.Commit()
+
 	return errors.WithMessage(err, "Commit")
 }
 
 func CalcSlotsForPledge(cents int) (slots int) {
-	if cents < 300 {
+	switch {
+	case cents < 300:
 		return 0
-	}
-
-	// 3$ for one slot
-	if cents >= 300 && cents < 500 {
+	case cents >= 300 && cents < 500:
+		// 3$ for one slot
 		return 1
-	}
-
-	// 2.5$ per slot up until before 10$
-	if cents < 1000 {
+	case cents < 1000:
+		// 2.5$ per slot up until before 10$
 		return cents / 250
+	default:
+		// 2$ per slot from and including 10$
+		return cents / 200
 	}
-
-	// 2$ per slot from and including 10$
-	return cents / 200
 }

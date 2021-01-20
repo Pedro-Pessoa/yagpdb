@@ -171,7 +171,6 @@ var ModerationCommands = []*commands.YAGCommand{
 			{Name: "Usuário", Type: dcmd.UserID},
 			{Name: "Motivo", Type: dcmd.String},
 		},
-
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			config, _, err := MBaseCmd(parsed, 0) //in most situations, the target will not be a part of server, hence no point in doing unnecessary api calls(i.e. bot.GetMember)
 			if err != nil {
@@ -183,6 +182,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			if err != nil {
 				return nil, err
 			}
+
 			targetID := parsed.Args[0].Int64()
 			target := &discordgo.User{
 				Username:      "unknown",
@@ -200,6 +200,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			if err != nil {
 				return nil, err
 			}
+
 			if isNotBanned {
 				return "Esse usuário não está banido!", nil
 			}
@@ -390,8 +391,6 @@ var ModerationCommands = []*commands.YAGCommand{
 			if d > 0 && d < time.Minute {
 				d = time.Minute
 			}
-
-			logger.Info(d.Seconds())
 
 			member, err := bot.GetMember(parsed.GS.ID, target.ID)
 			if err != nil || member == nil {
@@ -688,6 +687,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			if err != nil {
 				return nil, err
 			}
+
 			_, err = MBaseCmdSecond(parsed, "", true, discordgo.PermissionManageMessages, config.WarnCmdRoles, config.WarnCommandsEnabled)
 			if err != nil {
 				return nil, err
@@ -829,7 +829,6 @@ var ModerationCommands = []*commands.YAGCommand{
 			{Name: "Usuário", Type: dcmd.UserID},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			config, _, err := MBaseCmd(parsed, 0)
 			if err != nil {
 				return nil, err
@@ -843,6 +842,7 @@ var ModerationCommands = []*commands.YAGCommand{
 			userID := parsed.Args[0].Int64()
 
 			rows := common.GORM.Where("guild_id = ? AND user_id = ?", parsed.GS.ID, userID).Delete(WarningModel{}).RowsAffected
+
 			return fmt.Sprintf("Deletei %d notificações.", rows), nil
 		},
 	},
@@ -948,7 +948,6 @@ var ModerationCommands = []*commands.YAGCommand{
 			embed.Description = out
 
 			return embed, nil
-
 		}),
 	},
 	{
@@ -957,8 +956,7 @@ var ModerationCommands = []*commands.YAGCommand{
 		Name:          "GiveRole",
 		Aliases:       []string{"grole", "arole", "addrole"},
 		Description:   "Dá um cargo para o usuário especificado, com uma duração opcional.",
-
-		RequiredArgs: 2,
+		RequiredArgs:  2,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "Usuário", Type: dcmd.UserID},
 			{Name: "Cargo", Type: dcmd.String},
@@ -1182,11 +1180,12 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, che
 		return 0, nil
 	}
 
-	if len(toDelete) < 1 {
+	switch {
+	case len(toDelete) < 1:
 		return 0, nil
-	} else if len(toDelete) == 1 {
+	case len(toDelete) == 1:
 		err = common.BotSession.ChannelMessageDelete(channelID, toDelete[0])
-	} else {
+	default:
 		err = common.BotSession.ChannelMessagesBulkDelete(channelID, toDelete)
 	}
 
@@ -1241,6 +1240,7 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return nil, err
 		}
+
 		err = common.GORM.Where("user_id = ? AND guild_id = ?", userID, parsed.GS.ID).Order("id desc").Offset(skip).Limit(limit).Find(&result).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return nil, err
@@ -1256,6 +1256,7 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 			Name:  "⠀", //Use braille blank character for seamless transition between feilds
 			Value: "",
 		}
+
 		fields = append(fields, currentField)
 		if len(result) > 0 {
 			for _, entry := range result {
@@ -1264,6 +1265,7 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 					entry_formatted = common.CutStringShort(entry_formatted, 900)
 				}
 				entry_formatted += "\n"
+
 				if entry.LogsLink != "" {
 					entry_formatted += fmt.Sprintf("> logs: [`link`](%s)\n", entry.LogsLink)
 				}
@@ -1273,12 +1275,12 @@ func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMess
 						Name:  "⠀",
 						Value: entry_formatted + "\n",
 					}
+
 					fields = append(fields, currentField)
 				} else {
 					currentField.Value += entry_formatted + "\n"
 				}
 			}
-
 		} else {
 			currentField.Value = "Sem notificações"
 		}

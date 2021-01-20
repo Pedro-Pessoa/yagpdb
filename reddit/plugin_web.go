@@ -113,9 +113,7 @@ func HandleReddit(w http.ResponseWriter, r *http.Request) interface{} {
 func HandleNew(w http.ResponseWriter, r *http.Request) interface{} {
 	ctx := r.Context()
 	activeGuild, templateData := web.GetBaseCPContextData(ctx)
-
 	currentConfig := ctx.Value(CurrentConfig).(models.RedditFeedSlice)
-
 	templateData["RedditConfig"] = currentConfig
 
 	newElem := ctx.Value(common.ContextKeyParsedForm).(*CreateForm)
@@ -292,6 +290,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 			err = rows.Scan(&slow)
 		}
 		i++
+
 		if err != nil {
 			return templateData, err
 		}

@@ -19,7 +19,6 @@ import (
 )
 
 func (p *Plugin) AddCommands() {
-
 	cmdToggleRuleset := &commands.YAGCommand{
 		Name:         "Toggle",
 		Aliases:      []string{"t"},

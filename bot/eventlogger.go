@@ -53,7 +53,6 @@ func (e *eventLogger) init(numShards int) {
 }
 
 func (e *eventLogger) run() {
-
 	ticker := time.NewTicker(EventLoggerPeriodDuration)
 	for {
 		<-ticker.C
@@ -68,7 +67,6 @@ func (e *eventLogger) GetStats() (total [][]int64, perPeriod [][]int64) {
 	perPeriod = make([][]int64, len(e.totalStats))
 
 	for i := 0; i < len(e.totalStats); i++ {
-
 		perPeriod[i] = make([]int64, len(e.totalStats[i]))
 		total[i] = make([]int64, len(e.totalStats[i]))
 

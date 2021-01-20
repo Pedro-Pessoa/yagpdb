@@ -163,7 +163,6 @@ func migrateLog(tx *sql.Tx, l *models.MessageLog) error {
 }
 
 func migrateMessage(tx *sql.Tx, guildID int64, m *models.Message) error {
-
 	mID, err := strconv.ParseInt(m.MessageID.String, 10, 64)
 	if err != nil {
 		return nil

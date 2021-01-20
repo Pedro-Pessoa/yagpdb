@@ -60,6 +60,7 @@ func (p *ValidationTag) Str(index int) (string, bool) {
 	if len(p.values) <= index {
 		return "", false
 	}
+
 	return p.values[index], true
 }
 
@@ -89,7 +90,6 @@ var (
 
 // Probably needs some cleaning up
 func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) bool {
-
 	ok := true
 
 	v := reflect.Indirect(reflect.ValueOf(form))
@@ -189,7 +189,6 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 		}
 
 		if err != nil {
-
 			// Create a pretty name for the field by turing: "AnnounceMessage" into "Announce Message"
 			prettyField := ""
 			for _, r := range tField.Name {
@@ -201,6 +200,7 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 
 				prettyField += string(r)
 			}
+
 			prettyField = strings.TrimSpace(prettyField)
 
 			tmpl.AddAlerts(ErrorAlert(prettyField, ": ", err.Error()))
@@ -219,7 +219,6 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 }
 
 func readMinMax(valid *ValidationTag) (float64, float64) {
-
 	min, _ := valid.Float(0)
 	max, _ := valid.Float(1)
 
@@ -284,7 +283,6 @@ func ValidateIntField(i int64, tags *ValidationTag, guild *discordgo.Guild, forc
 }
 
 func ValidateIntMinMaxField(i int64, min, max int64) error {
-
 	if min != max && (i < min || i > max) {
 		return fmt.Errorf("Out of range (%d - %d)", min, max)
 	}
@@ -293,7 +291,6 @@ func ValidateIntMinMaxField(i int64, min, max int64) error {
 }
 
 func ValidateFloatField(f float64, min, max float64) error {
-
 	if min != max && (f < min || f > max) {
 		return fmt.Errorf("Out of range (%f - %f)", min, max)
 	}
@@ -312,14 +309,11 @@ func ValidateRegexField(s string, max int) error {
 
 func ValidateStringField(s string, tags *ValidationTag, guild *discordgo.Guild) (str string, err error) {
 	maxLen := 2000
-
 	str = s
-
 	kind, _ := tags.Str(0)
 
 	// Retrieve max len from tag is needed
 	if kind == "template" || kind == "regex" || kind == "" {
-
 		m, ok := tags.Int(1)
 		if ok {
 			maxLen = m

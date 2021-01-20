@@ -116,9 +116,9 @@ func intVal(i interface{}) int {
 		return int(n)
 	case int:
 		return t
+	default:
+		return 0
 	}
-
-	return 0
 }
 
 func boolVal(i interface{}) bool {

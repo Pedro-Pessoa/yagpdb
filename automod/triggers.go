@@ -221,6 +221,7 @@ var _ MessageTrigger = (*DomainTrigger)(nil)
 type DomainTrigger struct {
 	Blacklist bool
 }
+
 type DomainTriggerData struct {
 	ListID int64
 }
@@ -599,6 +600,7 @@ func (s *SlowmodeTrigger) Name() string {
 	if s.Attachments {
 		return "x user attachments in y seconds"
 	}
+
 	return "x user messages in y seconds"
 }
 
@@ -759,10 +761,8 @@ func (mt *MultiMsgMentionTrigger) CheckMessage(ms *dstate.MemberState, cs *dstat
 	}
 
 	settings := data.(*MultiMsgMentionTriggerData)
-
 	within := time.Duration(settings.Interval) * time.Second
 	now := time.Now()
-
 	mentions := make([]int64, 0)
 
 	cs.Owner.RLock()
@@ -909,13 +909,9 @@ func (spam *SpamTrigger) UserSettings() []*SettingDef {
 }
 
 func (spam *SpamTrigger) CheckMessage(ms *dstate.MemberState, cs *dstate.ChannelState, m *discordgo.Message, mdStripped string, data interface{}) (bool, error) {
-
 	settingsCast := data.(*SpamTriggerData)
-
 	mToCheckAgainst := strings.TrimSpace(strings.ToLower(m.Content))
-
 	count := 1
-
 	timeLimit := time.Now().Add(-time.Second * time.Duration(settingsCast.TimeLimit))
 
 	cs.Owner.RLock()
@@ -1000,6 +996,7 @@ func (r *NicknameRegexTrigger) CheckNickname(ms *dstate.MemberState, data interf
 		if r.BaseRegexTrigger.Inverse {
 			return false, nil
 		}
+
 		return true, nil
 	}
 
@@ -1017,6 +1014,7 @@ var _ NicknameListener = (*NicknameWordlistTrigger)(nil)
 type NicknameWordlistTrigger struct {
 	Blacklist bool
 }
+
 type NicknameWordlistTriggerData struct {
 	ListID int64
 }
@@ -1133,6 +1131,7 @@ func (r *UsernameRegexTrigger) CheckUsername(ms *dstate.MemberState, data interf
 		if r.BaseRegexTrigger.Inverse {
 			return false, nil
 		}
+
 		return true, nil
 	}
 
@@ -1150,6 +1149,7 @@ var _ UsernameListener = (*UsernameWordlistTrigger)(nil)
 type UsernameWordlistTrigger struct {
 	Blacklist bool
 }
+
 type UsernameWorldlistData struct {
 	ListID int64
 }
@@ -1325,13 +1325,14 @@ func (mat *MessageAttachmentTrigger) UserSettings() []*SettingDef {
 
 func (mat *MessageAttachmentTrigger) CheckMessage(ms *dstate.MemberState, cs *dstate.ChannelState, m *discordgo.Message, mdStripped string, data interface{}) (bool, error) {
 	contains := len(m.Attachments) > 0
-	if contains && mat.RequiresAttachment {
+	switch {
+	case contains && mat.RequiresAttachment:
 		return true, nil
-	} else if !contains && !mat.RequiresAttachment {
+	case !contains && !mat.RequiresAttachment:
 		return true, nil
+	default:
+		return false, nil
 	}
-
-	return false, nil
 }
 
 func (mat *MessageAttachmentTrigger) MergeDuplicates(data []interface{}) interface{} {

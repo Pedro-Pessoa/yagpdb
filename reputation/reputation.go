@@ -25,11 +25,8 @@ import (
 var logger = common.GetPluginLogger(&Plugin{})
 
 func RegisterPlugin() {
-
 	plugin := &Plugin{}
-
 	common.InitSchemas("reputation", DBSchemas...)
-
 	common.RegisterPlugin(plugin)
 }
 
@@ -78,6 +75,7 @@ WHERE user_id = $2`
 			err = ErrUserNotFound
 		}
 	}
+
 	return
 }
 
@@ -153,13 +151,14 @@ func ModifyRep(ctx context.Context, conf *models.ReputationConfig, guildID int64
 		return
 	}
 
-	if amount > 0 && amount > conf.MaxGiveAmount {
+	switch {
+	case amount > 0 && amount > conf.MaxGiveAmount:
 		err = UserError(fmt.Sprintf("Can't give that much (max %d)", conf.MaxGiveAmount))
 		return
-	} else if amount < 0 && -amount > conf.MaxRemoveAmount {
+	case amount < 0 && -amount > conf.MaxRemoveAmount:
 		err = UserError(fmt.Sprintf("Can't remove that much (max %d)", conf.MaxRemoveAmount))
 		return
-	} else if amount == 0 {
+	case amount == 0:
 		return nil
 	}
 
@@ -168,6 +167,7 @@ func ModifyRep(ctx context.Context, conf *models.ReputationConfig, guildID int64
 		if err == nil {
 			err = ErrCooldown
 		}
+
 		return
 	}
 
@@ -203,7 +203,6 @@ func ModifyRep(ctx context.Context, conf *models.ReputationConfig, guildID int64
 }
 
 func insertUpdateUserRep(ctx context.Context, guildID, userID int64, amount int64) (err error) {
-
 	// upsert query which is too advanced for orms
 	const query = `
 INSERT INTO reputation_users (created_at, guild_id, user_id, points)
@@ -218,42 +217,33 @@ DO UPDATE SET points = reputation_users.points + $4;
 // Returns a user error if the sender can not modify the rep of receiver
 // Admins are always able to modify the rep of everyone
 func CanModifyRep(conf *models.ReputationConfig, sender, receiver *dstate.MemberState) error {
-	if common.ContainsInt64SliceOneOf(sender.Roles, conf.AdminRoles) {
+	switch {
+	case common.ContainsInt64SliceOneOf(sender.Roles, conf.AdminRoles):
+		return nil
+	case len(conf.RequiredGiveRoles) > 0 && !common.ContainsInt64SliceOneOf(sender.Roles, conf.RequiredGiveRoles):
+		return ErrMissingRequiredGiveRole
+	case len(conf.RequiredReceiveRoles) > 0 && !common.ContainsInt64SliceOneOf(receiver.Roles, conf.RequiredReceiveRoles):
+		return ErrMissingRequiredReceiveRole
+	case common.ContainsInt64SliceOneOf(sender.Roles, conf.BlacklistedGiveRoles):
+		return ErrBlacklistedGive
+	case common.ContainsInt64SliceOneOf(receiver.Roles, conf.BlacklistedReceiveRoles):
+		return ErrBlacklistedReceive
+	default:
 		return nil
 	}
-
-	if len(conf.RequiredGiveRoles) > 0 && !common.ContainsInt64SliceOneOf(sender.Roles, conf.RequiredGiveRoles) {
-		return ErrMissingRequiredGiveRole
-	}
-
-	if len(conf.RequiredReceiveRoles) > 0 && !common.ContainsInt64SliceOneOf(receiver.Roles, conf.RequiredReceiveRoles) {
-		return ErrMissingRequiredReceiveRole
-	}
-
-	if common.ContainsInt64SliceOneOf(sender.Roles, conf.BlacklistedGiveRoles) {
-		return ErrBlacklistedGive
-	}
-
-	if common.ContainsInt64SliceOneOf(receiver.Roles, conf.BlacklistedReceiveRoles) {
-		return ErrBlacklistedReceive
-	}
-
-	return nil
 }
 
 func IsAdmin(gs *dstate.GuildState, member *dstate.MemberState, config *models.ReputationConfig) bool {
-
 	memberPerms, _ := gs.MemberPermissions(false, gs.ID, member.ID)
 
-	if memberPerms&discordgo.PermissionManageServer != 0 {
+	switch {
+	case memberPerms&discordgo.PermissionManageServer != 0:
 		return true
-	}
-
-	if common.ContainsInt64SliceOneOf(member.Roles, config.AdminRoles) {
+	case common.ContainsInt64SliceOneOf(member.Roles, config.AdminRoles):
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 func SetRep(ctx context.Context, gid int64, senderID, userID int64, points int64) error {

@@ -136,6 +136,7 @@ func SessionMiddleware(inner http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, common.ContextKeyDiscordSession, session)
 		ctx = context.WithValue(ctx, common.ContextKeyYagToken, cookie.Value)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -166,6 +167,7 @@ func RequireSessionMiddleware(inner http.Handler) http.Handler {
 
 		inner.ServeHTTP(w, r)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -237,8 +239,8 @@ func UserInfoMiddleware(inner http.Handler) http.Handler {
 		ctx = context.WithValue(SetContextTemplateData(ctx, templateData), common.ContextKeyUser, user)
 
 		inner.ServeHTTP(w, r.WithContext(ctx))
-
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -255,7 +257,6 @@ func getGuild(ctx context.Context, guildID int64) (*discordgo.Guild, error) {
 // Sets the active guild context and template data
 // It will only attempt to fetch full guild if not logged in
 func ActiveServerMW(inner http.Handler) http.Handler {
-
 	mw := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			inner.ServeHTTP(w, r)
@@ -280,6 +281,7 @@ func ActiveServerMW(inner http.Handler) http.Handler {
 
 		r = r.WithContext(ctx)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -302,6 +304,7 @@ func LoadCoreConfigMiddleware(inner http.Handler) http.Handler {
 
 		inner.ServeHTTP(w, r)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -315,6 +318,7 @@ func RequireActiveServer(inner http.Handler) http.Handler {
 
 		inner.ServeHTTP(w, r)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -334,6 +338,7 @@ func RequireServerAdminMiddleware(inner http.Handler) http.Handler {
 
 		inner.ServeHTTP(w, r)
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -394,7 +399,6 @@ func RequireBotMemberMW(inner http.Handler) http.Handler {
 			if highest == nil || dutil.IsRoleAbove(role, highest) {
 				highest = role
 			}
-
 		}
 
 		ctx = context.WithValue(ctx, common.ContextKeyHighestBotRole, highest)
@@ -464,6 +468,7 @@ func RenderHandler(inner CustomHandlerFunc, tmpl string) http.Handler {
 			}
 		}
 	}
+
 	return http.HandlerFunc(mw)
 }
 
@@ -491,14 +496,13 @@ func APIHandler(inner CustomHandlerFunc) http.Handler {
 			LogIgnoreErr(json.NewEncoder(w).Encode(out))
 		}
 	}
+
 	return http.HandlerFunc(mw)
 }
 
 // Writes the request log into logger, returns a new middleware
 func RequestLogger(logger io.Writer) func(http.Handler) http.Handler {
-
 	handler := func(inner http.Handler) http.Handler {
-
 		mw := func(w http.ResponseWriter, r *http.Request) {
 			started := time.Now()
 			counter := datacounter.NewResponseWriterCounter(w)
@@ -523,8 +527,8 @@ func RequestLogger(logger io.Writer) func(http.Handler) http.Handler {
 			}()
 
 			inner.ServeHTTP(counter, r)
-
 		}
+
 		return http.HandlerFunc(mw)
 	}
 
@@ -570,8 +574,8 @@ func FormParserMW(inner http.Handler, dst interface{}) http.Handler {
 		newCtx = context.WithValue(newCtx, common.ContextKeyFormOk, ok)
 		inner.ServeHTTP(w, r.WithContext(newCtx))
 	}
-	return http.HandlerFunc(mw)
 
+	return http.HandlerFunc(mw)
 }
 
 type SimpleConfigSaver interface {
@@ -641,7 +645,6 @@ func ControllerHandler(f ControllerHandlerFunc, templateName string) http.Handle
 func ControllerPostHandler(mainHandler ControllerHandlerFunc, extraHandler http.Handler, formData interface{}) http.Handler {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-
 		templateData := ctx.Value(common.ContextKeyTemplateData).(TemplateData)
 
 		if extraHandler != nil {

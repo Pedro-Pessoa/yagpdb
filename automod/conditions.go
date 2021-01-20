@@ -506,6 +506,7 @@ func (mc *MessageEditedCondition) Name() string {
 	if mc.NewMessage {
 		return "New message"
 	}
+
 	return "Edited message"
 }
 
@@ -513,6 +514,7 @@ func (mc *MessageEditedCondition) Description() string {
 	if mc.NewMessage {
 		return "Ignore edited messages"
 	}
+
 	return "Only examine edited messages"
 }
 
@@ -525,6 +527,7 @@ func (mc *MessageEditedCondition) IsMet(data *TriggeredRuleData, settings interf
 		// pass the condition if no message is found
 		return true, nil
 	}
+
 	if data.Message.EditedTimestamp == "" {
 		// new post
 		if mc.NewMessage {
@@ -537,6 +540,7 @@ func (mc *MessageEditedCondition) IsMet(data *TriggeredRuleData, settings interf
 	if mc.NewMessage {
 		return false, nil
 	}
+
 	return true, nil
 }
 

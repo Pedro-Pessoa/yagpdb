@@ -22,7 +22,6 @@ import (
 */
 
 func Hour(s rules.Strategy) rules.Rule {
-
 	return &rules.F{
 		RegExp: regexp.MustCompile("(?i)(?:\\W|^)" +
 			"(\\d{1,2})" +

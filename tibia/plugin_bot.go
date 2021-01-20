@@ -1,7 +1,6 @@
 package tibia
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/jonas747/yagpdb/common"
 )
 
@@ -22,19 +21,22 @@ func RegisterPlugin() {
 
 	common.RegisterPlugin(plugin)
 
-	common.GORM.AutoMigrate(&TibiaFlags{}, &TibiaTracking{}, &ScanTable{})
+	common.GORM.AutoMigrate(&TibiaFlags{}, &TibiaTracking{}, &ScanTable{}, &InnerNewsStruct{}, &NewsTable{})
 
 	table := ScanTable{}
 	err := common.GORM.Where(&table).First(&table).Error
-	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return
-	}
-
-	if alreadySet {
+	if err == nil {
 		if table.RunScan {
 			store := New()
-			store.TrackingController()
+			store.trackingController()
+		}
+	}
+
+	newsTable := NewsTable{}
+	err = common.GORM.Where(&newsTable).First(&newsTable).Error
+	if err == nil {
+		if newsTable.RunScan {
+			newsController()
 		}
 	}
 }

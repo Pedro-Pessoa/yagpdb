@@ -16,6 +16,7 @@ func ConnectPQ() (*sql.DB, error) {
 	if host == "" {
 		host = "localhost"
 	}
+
 	user := os.Getenv("YAGPDB_TEST_PQ_USER")
 	if user == "" {
 		user = "yagpdb_test"

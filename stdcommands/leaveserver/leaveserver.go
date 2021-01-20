@@ -24,6 +24,7 @@ var Command = &commands.YAGCommand{
 		if err == nil {
 			return "Left " + data.Args[0].Str(), nil
 		}
+
 		return err, err
 	}),
 }

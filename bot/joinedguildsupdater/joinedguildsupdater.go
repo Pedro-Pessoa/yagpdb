@@ -42,7 +42,6 @@ type QueuedAction struct {
 }
 
 func (u *updater) run() {
-
 	t := time.NewTicker(u.flushInterval)
 	for {
 		select {

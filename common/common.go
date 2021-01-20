@@ -54,7 +54,6 @@ var (
 
 // CoreInit initializes the essential parts
 func CoreInit() error {
-
 	rand.Seed(time.Now().UnixNano())
 
 	stdlog.SetOutput(&STDLogProxy{})
@@ -79,7 +78,6 @@ func CoreInit() error {
 
 // Init initializes the rest of the bot
 func Init() error {
-
 	err := setupGlobalDGoSession()
 	if err != nil {
 		return err
@@ -100,6 +98,7 @@ func Init() error {
 	if err != nil {
 		panic(err)
 	}
+
 	BotSession.State.User = &discordgo.SelfUser{
 		User: BotUser,
 	}
@@ -121,11 +120,11 @@ func GetBotToken() string {
 	if !strings.HasPrefix(token, "Bot ") {
 		token = "Bot " + token
 	}
+
 	return token
 }
 
 func setupGlobalDGoSession() (err error) {
-
 	BotSession, err = discordgo.New(GetBotToken())
 	if err != nil {
 		return err

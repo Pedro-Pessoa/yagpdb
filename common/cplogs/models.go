@@ -190,9 +190,9 @@ func (l *LogAction) String() string {
 type ParamType uint8
 
 const (
-	ParamTypeNone   ParamType = 0
-	ParamTypeInt    ParamType = 1
-	ParamTypeString ParamType = 2
+	ParamTypeNone ParamType = iota
+	ParamTypeInt
+	ParamTypeString
 )
 
 type Param struct {

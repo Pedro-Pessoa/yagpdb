@@ -29,7 +29,6 @@ const InTicketPerms = discordgo.PermissionReadMessageHistory | discordgo.Permiss
 var _ commands.CommandProvider = (*Plugin)(nil)
 
 func (p *Plugin) AddCommands() {
-
 	categoryTickets := &dcmd.Category{
 		Name:        "Tickets",
 		Description: "Ticket commands",
@@ -136,7 +135,6 @@ func (p *Plugin) AddCommands() {
 
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			target := parsed.Args[0].Value.(*dstate.MemberState)
-
 			currentTicket := parsed.Context().Value(CtxKeyCurrentTicket).(*Ticket)
 
 			parsed.GS.RLock()
@@ -173,9 +171,7 @@ func (p *Plugin) AddCommands() {
 
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			target := parsed.Args[0].Value.(*dstate.MemberState)
-
 			currentTicket := parsed.Context().Value(CtxKeyCurrentTicket).(*Ticket)
-
 			foundUser := false
 
 			parsed.GS.RLock()
@@ -214,11 +210,10 @@ func (p *Plugin) AddCommands() {
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 			currentTicket := parsed.Context().Value(CtxKeyCurrentTicket).(*Ticket)
-
 			newName := parsed.Args[0].Str()
-
 			oldName := currentTicket.Ticket.Title
 			currentTicket.Ticket.Title = newName
+
 			_, err := currentTicket.Ticket.UpdateG(parsed.Context(), boil.Whitelist("title"))
 			if err != nil {
 				return nil, err
@@ -261,8 +256,10 @@ func (p *Plugin) AddCommands() {
 				closingTicketsLock.Unlock()
 				return "Already working on closing this ticket, please wait...", nil
 			}
+
 			closingTickets[currentTicket.Ticket.ChannelID] = true
 			closingTicketsLock.Unlock()
+
 			defer func() {
 				closingTicketsLock.Lock()
 				delete(closingTickets, currentTicket.Ticket.ChannelID)
@@ -274,7 +271,6 @@ func (p *Plugin) AddCommands() {
 
 			currentTicket.Ticket.ClosedAt.Time = time.Now()
 			currentTicket.Ticket.ClosedAt.Valid = true
-
 			isAdminsOnly := ticketIsAdminOnly(conf, parsed.CS)
 
 			// create the logs, download the attachments
@@ -310,11 +306,8 @@ func (p *Plugin) AddCommands() {
 		Aliases:     []string{"adminonly", "ao"},
 		Description: "Toggle admins only mode for this ticket",
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			conf := parsed.Context().Value(CtxKeyConfig).(*models.TicketConfig)
-
 			isAdminsOnlyCurrently := true
-
 			modOverwrites := make([]*discordgo.PermissionOverwrite, 0)
 
 			parsed.GS.RLock()
@@ -454,27 +447,23 @@ type Ticket struct {
 }
 
 func createLogs(gs *dstate.GuildState, conf *models.TicketConfig, ticket *models.Ticket, adminOnly bool) error {
-
 	if !conf.TicketsUseTXTTranscripts && !conf.DownloadAttachments {
 		return nil // nothing to do here
 	}
 
 	channelID := ticket.ChannelID
-
 	attachments := make([][]*discordgo.MessageAttachment, 0)
-
 	msgs := make([]*discordgo.Message, 0, 100)
 	before := int64(0)
-
 	totalAttachmentSize := 0
+
 	for {
 		m, err := common.BotSession.ChannelMessages(channelID, 100, int64(before), 0, 0)
 		if err != nil {
 			return err
 		}
 
-		for _, msg := range m {
-			// download attachments
+		for _, msg := range m { // download attachments
 		OUTER:
 			for _, att := range msg.Attachments {
 				msg.Content += fmt.Sprintf("(attatchment: %s)", att.Filename)
@@ -635,7 +624,6 @@ func createTXTTranscript(ticket *models.Ticket, msgs []*discordgo.Message) *byte
 }
 
 func ticketIsAdminOnly(conf *models.TicketConfig, cs *dstate.ChannelState) bool {
-
 	isAdminsOnlyCurrently := true
 
 	cs.Guild.RLock()

@@ -25,6 +25,7 @@ var Command = &commands.YAGCommand{
 		if err != nil {
 			return "Failed parsing json: " + err.Error(), err
 		}
+
 		return parsed, nil
 	},
 }

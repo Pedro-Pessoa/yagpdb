@@ -15,8 +15,11 @@ import (
 )
 
 type ScanTable struct {
-	common.SmallModel
 	RunScan bool
+}
+
+func (st *ScanTable) TableName() string {
+	return "scan_table"
 }
 
 type DataStore struct {
@@ -34,13 +37,13 @@ func New() *DataStore {
 	}
 }
 
-func (ds *DataStore) Set(value InternalChar) {
+func (ds *DataStore) set(value InternalChar) {
 	ds.Lock()
 	defer ds.Unlock()
 	ds.cache = append(ds.cache, value)
 }
 
-func (ds *DataStore) Get(name string) *InternalChar {
+func (ds *DataStore) get(name string) *InternalChar {
 	ds.Lock()
 	defer ds.Unlock()
 	for _, e := range ds.cache {
@@ -51,7 +54,7 @@ func (ds *DataStore) Get(name string) *InternalChar {
 	return nil
 }
 
-func (ds *DataStore) Flush() {
+func (ds *DataStore) flush() {
 	ds.cache = []InternalChar{}
 	ds.counter = 0
 	ds.total = 0
@@ -62,7 +65,7 @@ var (
 	trackpool, updatepool                                                chan struct{}
 )
 
-func (ds *DataStore) ScanTracks() {
+func (ds *DataStore) scanTracks() {
 	defer masterwg.Done()
 	start := time.Now()
 	trackpool = make(chan struct{}, 500)
@@ -97,32 +100,21 @@ func (ds *DataStore) ScanTracks() {
 
 	trackwg.Wait()
 	logger.Infof("Scan concluido em %vs!\nHTTP Requests made: %d\nTotal size: %d", time.Since(start).Seconds(), ds.counter, ds.total)
-	ds.Flush()
+	ds.flush()
 }
 
-func (ds *DataStore) TrackingController() {
+func (ds *DataStore) trackingController() {
 	table := ScanTable{}
-	done := make(chan bool, 1)
 	go func() {
 		for {
 			err := common.GORM.Where(&table).First(&table).Error
-			alreadySet := err != gorm.ErrRecordNotFound
-			if err != nil && err != gorm.ErrRecordNotFound {
+			if err != nil || !table.RunScan {
 				return
 			}
-			if !alreadySet || !table.RunScan {
-				done <- true
-			}
-			select {
-			case <-done:
-				close(done)
-				logger.Info("Track Finished")
-				return
-			default:
-				masterwg.Add(1)
-				logger.Info("Running Track")
-				ds.ScanTracks()
-			}
+
+			masterwg.Add(1)
+			logger.Info("Running Track")
+			ds.scanTracks()
 			masterwg.Wait()
 			time.Sleep(10 * time.Second)
 		}
@@ -134,7 +126,7 @@ func StartLoop() (string, error) {
 	err := common.GORM.Where(&table).First(&table).Error
 	alreadySet := err != gorm.ErrRecordNotFound
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", err
 	}
 
 	if alreadySet && table.RunScan {
@@ -149,7 +141,7 @@ func StartLoop() (string, error) {
 	}
 
 	store := New()
-	store.TrackingController()
+	store.trackingController()
 
 	return "Tudo certo! O tracking está rolando", nil
 }
@@ -159,7 +151,7 @@ func StopLoop() (string, error) {
 	err := common.GORM.Where(&table).First(&table).Error
 	alreadySet := err != gorm.ErrRecordNotFound
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", err
 	}
 
 	if !alreadySet || !table.RunScan {
@@ -299,7 +291,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	var char InternalChar
 	found := false
 	ds.total += 1
-	currentChar := ds.Get(input.Name)
+	currentChar := ds.get(input.Name)
 
 	if currentChar != nil {
 		char = *currentChar
@@ -313,7 +305,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 			return
 		}
 		char = *income
-		ds.Set(char)
+		ds.set(char)
 	}
 
 	if char.Name != input.Name {
@@ -480,7 +472,7 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 				defer func() { <-updatepool }()
 				var char *InternalChar
 				var err error
-				if a := ds.Get(k.Name); a == nil {
+				if a := ds.get(k.Name); a == nil {
 					char, err = GetTibiaChar(k.Name, true)
 					ds.counter += 1
 					if err != nil || char == nil {
@@ -505,8 +497,8 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 				counter++
 			}
 
-			if ds.Get(e.Name) == nil {
-				ds.Set(e)
+			if ds.get(e.Name) == nil {
+				ds.set(e)
 			}
 		}
 	}

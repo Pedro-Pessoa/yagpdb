@@ -32,6 +32,7 @@ func (r *readyTracker) shardsAdded(shardIDs ...int) {
 	for _, v := range shardIDs {
 		r.allProcessShards[v] = true
 	}
+
 	go eventsystem.QueueEventNonDiscord(eventsystem.NewEventData(nil, eventsystem.EventYagShardsAdded, shardIDs))
 }
 

@@ -167,6 +167,7 @@ func (p *Plugin) HandleEdit(w http.ResponseWriter, r *http.Request) (templateDat
 	if err == nil {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedFeed, &cplogs.Param{Type: cplogs.ParamTypeString, Value: sub.YoutubeChannelName}))
 	}
+
 	return
 }
 
@@ -183,6 +184,7 @@ func (p *Plugin) HandleRemove(w http.ResponseWriter, r *http.Request) (templateD
 	go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyRemovedFeed, &cplogs.Param{Type: cplogs.ParamTypeString, Value: sub.YoutubeChannelName}))
 
 	p.MaybeRemoveChannelWatch(sub.YoutubeChannelID)
+
 	return
 }
 

@@ -28,7 +28,6 @@ var ThirdpartyDiscordSites = []*InviteSource{
 var AllInviteSources = append([]*InviteSource{DiscordInviteSource}, ThirdpartyDiscordSites...)
 
 func ReplaceServerInvites(msg string, guildID int64, replacement string) string {
-
 	for _, s := range AllInviteSources {
 		msg = s.Regex.ReplaceAllString(msg, replacement)
 	}

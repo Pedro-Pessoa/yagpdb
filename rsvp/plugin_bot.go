@@ -52,7 +52,6 @@ func (p *Plugin) AddCommands() {
 		Description: "Creates an event, You will be led through an interactive setup",
 		Plugin:      p,
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			count, err := models.RSVPSessions(models.RSVPSessionWhere.GuildID.EQ(parsed.GS.ID)).CountG(parsed.Context())
 			if err != nil {
 				return nil, err
@@ -213,7 +212,6 @@ func (p *Plugin) AddCommands() {
 			{Name: "ID", Type: dcmd.Int},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			m, err := models.RSVPSessions(
 				models.RSVPSessionWhere.GuildID.EQ(parsed.GS.ID),
 				models.RSVPSessionWhere.LocalID.EQ(parsed.Args[0].Int64()),
@@ -244,7 +242,6 @@ func (p *Plugin) AddCommands() {
 		RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
 		Plugin:              p,
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			p.setupSessionsMU.Lock()
 			for _, v := range p.setupSessions {
 				if v.SetupChannel == parsed.CS.ID {
@@ -284,7 +281,6 @@ func (p *Plugin) handleMessageCreate(evt *eventsystem.EventData) {
 }
 
 func UpdateEventEmbed(m *models.RSVPSession) error {
-
 	usersToFetch := []int64{
 		m.AuthorID,
 	}
@@ -299,7 +295,6 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 	}
 
 	fetchedMembers, _ := bot.GetMembers(m.GuildID, usersToFetch...)
-
 	author := findUser(fetchedMembers, m.AuthorID)
 
 	embed := &discordgo.MessageEmbed{
@@ -324,9 +319,7 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 	}
 
 	UTCTime := m.StartsAt.UTC()
-
 	const timeFormat = "02 Jan 2006 15:04"
-
 	embed.Description = timeUntilStr
 
 	embed.Fields = append(embed.Fields, &discordgo.MessageEmbedField{
@@ -350,14 +343,9 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 		Value:  "```\n",
 	}
 
-	addedParticipants := 0
-	numWaitingList := 0
+	var addedParticipants, numWaitingList, numParticipantsShown, numWaitingListShown int
+	var waitingListHitMax, participantsHitMax bool
 
-	numParticipantsShown := 0
-	numWaitingListShown := 0
-
-	waitingListHitMax := false
-	participantsHitMax := false
 	for _, v := range participants {
 		if v.JoinState != int16(ParticipantStateJoining) && v.JoinState != int16(ParticipantStateWaitlist) {
 			continue
@@ -367,7 +355,6 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 		if (addedParticipants >= m.MaxParticipants && m.MaxParticipants > 0) || v.JoinState == int16(ParticipantStateWaitlist) {
 			// On the waiting list
 			if !waitingListHitMax {
-
 				// we hit the max limit so add them to the waiting list instead
 				toAdd := user.Username + "#" + user.Discriminator + "\n"
 				if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(waitingListField.Value) >= 990 {
@@ -434,7 +421,6 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 }
 
 func findUser(members []*dstate.MemberState, target int64) *discordgo.User {
-
 	for _, v := range members {
 		if v.ID == target {
 			dgoUser := v.DGoUser()
@@ -493,13 +479,14 @@ func ParticipantField(state ParticipantState, participants []*models.RSVPPartici
 func NextUpdateTime(m *models.RSVPSession) time.Time {
 	timeUntil := time.Until(m.StartsAt)
 
-	if timeUntil < time.Second*15 {
+	switch {
+	case timeUntil < time.Second*15:
 		return time.Now().Add(time.Second * 1)
-	} else if timeUntil < time.Minute*2 {
+	case timeUntil < time.Minute*2:
 		return time.Now().Add(time.Second * 10)
-	} else if timeUntil < time.Minute*15 {
+	case timeUntil < time.Minute*15:
 		return time.Now().Add(time.Minute)
-	} else {
+	default:
 		return time.Now().Add(time.Minute * 10)
 	}
 }
@@ -550,7 +537,6 @@ const (
 )
 
 func (p *Plugin) startEvent(m *models.RSVPSession) error {
-
 	p.sendReminders(m, "Event starting now!", "The event you signed up for: **"+m.Title+"** is starting now!")
 
 	_ = common.BotSession.MessageReactionsRemoveAll(m.ChannelID, m.MessageID)
@@ -559,7 +545,6 @@ func (p *Plugin) startEvent(m *models.RSVPSession) error {
 }
 
 func (p *Plugin) sendReminders(m *models.RSVPSession, title, desc string) {
-
 	serverName := strconv.FormatInt(m.GuildID, 10)
 	gs := bot.State.Guild(true, m.GuildID)
 	if gs != nil {
@@ -674,12 +659,15 @@ func (p *Plugin) handleMessageReactionAdd(evt *eventsystem.EventData) {
 	if !joining {
 		reactionsToRemove = append(reactionsToRemove, EmojiJoining)
 	}
+
 	if !notJoining {
 		reactionsToRemove = append(reactionsToRemove, EmojiNotJoining)
 	}
+
 	if !maybe {
 		reactionsToRemove = append(reactionsToRemove, EmojiMaybe)
 	}
+
 	if !waitlist {
 		reactionsToRemove = append(reactionsToRemove, EmojiWaitlist)
 	}

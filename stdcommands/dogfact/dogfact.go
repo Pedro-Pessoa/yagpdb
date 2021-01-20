@@ -14,7 +14,6 @@ var Command = &commands.YAGCommand{
 	Description: "Dog Facts",
 
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		df := dogfacts[rand.Intn(len(dogfacts))]
-		return df, nil
+		return dogfacts[rand.Intn(len(dogfacts))], nil
 	},
 }

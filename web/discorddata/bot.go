@@ -40,6 +40,7 @@ func (p *Plugin) handleInvalidateGuildCache(evt *eventsystem.EventData) (retry b
 	}
 
 	PubEvictGuild(evt.GS.ID)
+
 	return false, nil
 }
 

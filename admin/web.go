@@ -324,7 +324,6 @@ func (p *Plugin) handleEditConfig(w http.ResponseWriter, r *http.Request) (web.T
 } */
 
 func (p *Plugin) handleReconnectShard(w http.ResponseWriter, r *http.Request) {
-
 	forceReidentify := r.URL.Query().Get("identify") == "1"
 	shardID := pat.Param(r, "shardid")
 
@@ -351,7 +350,6 @@ func (p *Plugin) handleReconnectShard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) handleReconnectAll(w http.ResponseWriter, r *http.Request) {
-
 	totalShards, err := common.ServicePoller.GetShardCount()
 	if err != nil {
 		logger.WithError(err).Error("failed getting total shard count")

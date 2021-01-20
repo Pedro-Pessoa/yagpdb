@@ -81,11 +81,12 @@ func (r BaseRule) PushViolation(key string) (p Punishment, err error) {
 	kick := r.KickAfter > 0 && violations >= r.KickAfter
 	ban := r.BanAfter > 0 && violations >= r.BanAfter
 
-	if ban {
+	switch {
+	case ban:
 		p = PunishBan
-	} else if kick {
+	case kick:
 		p = PunishKick
-	} else if mute {
+	case mute:
 		p = PunishMute
 	}
 
@@ -147,7 +148,6 @@ func (s *SpamRule) FindSpam(evt *discordgo.Message, cs *dstate.ChannelState) boo
 	now := time.Now()
 
 	amount := 1
-
 	for i := len(cs.Messages) - 1; i >= 0; i-- {
 		cMsg := cs.Messages[i]
 
@@ -255,6 +255,7 @@ func (m *MentionRule) Check(evt *discordgo.Message, cs *dstate.ChannelState) (de
 	if err != nil {
 		return
 	}
+
 	msg = "Sending too many mentions."
 	return
 }
@@ -264,7 +265,6 @@ type LinksRule struct {
 }
 
 func (l *LinksRule) Check(evt *discordgo.Message, cs *dstate.ChannelState) (del bool, punishment Punishment, msg string, err error) {
-
 	if !common.LinkRegex.MatchString(forwardSlashReplacer.Replace(evt.Content)) {
 		return
 	}
@@ -302,7 +302,6 @@ func (w *WordsRule) GetCompiled() map[string]bool {
 }
 
 func (w *WordsRule) Check(evt *discordgo.Message, cs *dstate.ChannelState) (del bool, punishment Punishment, msg string, err error) {
-
 	word := w.CheckMessage(evt.Content)
 	if word == "" {
 		return
@@ -352,7 +351,6 @@ func (w *SitesRule) GetCompiled() []string {
 	}
 
 	fields := strings.Fields(w.BannedWebsites)
-
 	w.compiledWebsites = make([]string, len(fields))
 
 	for i, field := range fields {
@@ -383,7 +381,6 @@ func (s *SitesRule) checkMessage(message string) (banned bool, item string, thre
 	matches := common.LinkRegex.FindAllString(message, -1)
 
 	for _, v := range matches {
-
 		if !strings.HasPrefix(v, "http://") && !strings.HasPrefix(v, "https://") && !strings.HasPrefix(v, "steam://") {
 			v = "http://" + v
 		}
@@ -434,7 +431,6 @@ func (s *SitesRule) isBanned(host string) (bool, string) {
 }
 
 func (s *SitesRule) matchesItem(filter, str string) bool {
-
 	if strings.HasSuffix(str, "."+filter) {
 		return true
 	}

@@ -58,7 +58,6 @@ func GetMemberColors(guildID int64, members ...int64) (m map[string]int, err err
 }
 
 func GetMemberMultiGuild(userID int64, guilds ...int64) (members []*discordgo.Member, err error) {
-
 	members = make([]*discordgo.Member, 0, len(guilds))
 
 	for _, v := range guilds {

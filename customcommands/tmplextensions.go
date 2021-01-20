@@ -518,7 +518,6 @@ func tmplDBCount(ctx *templates.Context) interface{} {
 		var userID null.Int64
 		var pattern null.String
 		if len(variadicArg) > 0 {
-
 			switch arg := variadicArg[0].(type) {
 			case int64:
 				userID.Int64 = arg
@@ -546,6 +545,7 @@ func tmplDBCount(ctx *templates.Context) interface{} {
 				if err != nil {
 					return "", err
 				}
+
 				userID = q.UserID
 				pattern = q.Pattern
 				pattern.String = limitString(pattern.String, 256)
@@ -743,6 +743,7 @@ func newDecoder(buf *bytes.Buffer) *msgpack.Decoder {
 				mi[mk] = mv
 			}
 		}
+
 		if isStringKeysOnly {
 			return ms, nil
 		}
@@ -832,11 +833,13 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 		if err != nil {
 			return "", err
 		}
+
 		var q Query
 		encoded, err := json.Marshal(dict)
 		if err != nil {
 			return "", err
 		}
+
 		err = json.Unmarshal(encoded, &q)
 		if err != nil {
 			return "", err
@@ -846,6 +849,7 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 		if amount > 100 {
 			amount = 100
 		}
+
 		skip := int(templates.ToInt64(iSkip))
 		orderby := "value_num DESC, id DESC"
 		if q.Reverse {
@@ -856,13 +860,16 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 		if q.Pattern.Valid {
 			qms = append(qms, qm.Where("key LIKE ?", limitString(q.Pattern.String, 256)))
 		}
+
 		if q.UserID.Valid {
 			qms = append(qms, qm.Where("user_id = ?", q.UserID.Int64))
 		}
+
 		rows, err := models.TemplatesUserDatabases(qms...).AllG(context.Background())
 		if err != nil {
 			return "", err
 		}
+
 		cleared, err := rows.DeleteAllG(context.Background())
 
 		return cleared, err
@@ -899,6 +906,7 @@ func tmplDBRank(ctx *templates.Context) interface{} {
 		if q.Reverse {
 			order = `ASC`
 		}
+
 		q.Pattern.String = limitString(q.Pattern.String, 256)
 		if q.UserID.Valid && (q.UserID.Int64 != userID) { // some optimization
 			return 0, nil
@@ -924,7 +932,7 @@ WHERE user_id = $5 AND key = $6`
 		if err == sql.ErrNoRows {
 			return 0, nil
 		}
-		return rank, err
 
+		return rank, err
 	}
 }

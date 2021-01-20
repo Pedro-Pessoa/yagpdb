@@ -47,7 +47,6 @@ func (c *flagCache) getGuildFlags(guildID int64) ([]string, error) {
 		c.l.RUnlock()
 		return flags, nil
 	}
-
 	c.l.RUnlock()
 
 	// need to fetch from redis, upgrade lock
@@ -103,6 +102,7 @@ func (c *flagCache) initCahceBatch(guilds []int64) error {
 	for i, g := range fetchingGuilds {
 		c.cache[g] = results[i]
 	}
+
 	return nil
 }
 
@@ -131,7 +131,9 @@ func BatchInitCache(guilds []int64) error {
 				toFetchHere = append(toFetchHere, g)
 			}
 		}
+
 		wg.Add(1)
+
 		go func(cacheID int, guildsToFetch []int64) {
 			defer wg.Done()
 
@@ -226,7 +228,6 @@ func UpdatePluginFeatureFlags(guildID int64, p PluginWithFeatureFlags) error {
 }
 
 func updatePluginFeatureFlags(guildID int64, p PluginWithFeatureFlags) error {
-
 	allFlags := p.AllFeatureFlags()
 
 	activeFlags, err := p.UpdateFeatureFlags(guildID)
@@ -258,7 +259,6 @@ func updatePluginFeatureFlags(guildID int64, p PluginWithFeatureFlags) error {
 	key := keyGuildFlags(guildID)
 
 	err = common.RedisPool.Do(radix.WithConn(key, func(conn radix.Conn) error {
-
 		// apply the added/unchanged flags first
 		if len(filtered) > 0 {
 			err := conn.Do(radix.Cmd(nil, "SADD", append([]string{key}, filtered...)...))

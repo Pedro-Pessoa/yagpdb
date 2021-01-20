@@ -106,7 +106,6 @@ func (p *Plugin) run(muxer *goji.Mux) {
 	common.ServiceTracker.SetAPIAddress(fmt.Sprintf("%s:%d", listenAddr, port))
 
 	go func() {
-
 		err := p.srv.Serve(l)
 		if err != nil {
 			if err == http.ErrServerClosed {
@@ -127,7 +126,6 @@ func (p *Plugin) createListener(addr string) (net.Listener, int, error) {
 	}
 
 	for {
-
 		for _, port := range ports {
 			listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 			if err != nil {

@@ -55,6 +55,7 @@ func main() {
 		VersionCmdName: "./yagpdb",
 		VersionArgs:    []string{"-version"},
 	}
+
 	orch.Logger = &dshardorchestrator.StdLogger{
 		Level: dshardorchestrator.LogWarning,
 	}
@@ -101,7 +102,6 @@ func main() {
 const RedisNodesKey = "dshardorchestrator_nodes_z"
 
 func UpdateRedisNodes(orch *orchestrator.Orchestrator) {
-
 	t := time.NewTicker(time.Second * 10)
 	for {
 		<-t.C

@@ -81,16 +81,17 @@ func TmplExecCmdFuncs(ctx *templates.Context, maxExec int, dryRun bool) (userCtx
 		if ctx.CurrentFrame.CS != nil { //Check if CS is not a nil pointer
 			messageCopy.ChannelID = ctx.CurrentFrame.CS.ID
 		}
-		mc := &discordgo.MessageCreate{Message: &messageCopy}
+
 		if maxExec < 1 {
 			return "", errors.New("Max number of commands executed in custom command")
 		}
+
 		maxExec -= 1
-		return execCmd(ctx, dryRun, mc, cmd, args...)
+
+		return execCmd(ctx, dryRun, &discordgo.MessageCreate{Message: &messageCopy}, cmd, args...)
 	}
 
 	execBot := func(cmd string, args ...interface{}) (interface{}, error) {
-
 		botUserCopy := *common.BotUser
 		botUserCopy.Username = "YAGPDB (cc: " + ctx.Msg.Author.Username + "#" + ctx.Msg.Author.Discriminator + ")"
 
@@ -107,12 +108,13 @@ func TmplExecCmdFuncs(ctx *templates.Context, maxExec int, dryRun bool) (userCtx
 
 		messageCopy.Member = botMember.DGoCopy()
 
-		mc := &discordgo.MessageCreate{Message: &messageCopy}
 		if maxExec < 1 {
 			return "", errors.New("Max number of commands executed in custom command")
 		}
+
 		maxExec -= 1
-		return execCmd(ctx, dryRun, mc, cmd, args...)
+
+		return execCmd(ctx, dryRun, &discordgo.MessageCreate{Message: &messageCopy}, cmd, args...)
 	}
 
 	return execUser, execBot
@@ -173,6 +175,7 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 		default:
 			return "", errors.New("Unknown type in exec, only strings, numbers, users and string slices are supported")
 		}
+
 		cmdLine += " "
 	}
 

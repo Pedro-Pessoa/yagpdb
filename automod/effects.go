@@ -111,7 +111,6 @@ func (del *DeleteMessagesEffect) UserSettings() []*SettingDef {
 }
 
 func (del *DeleteMessagesEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
-
 	settingsCast := settings.(*DeleteMessagesEffectData)
 	timeLimit := time.Now().Add(-time.Second * time.Duration(settingsCast.TimeLimit))
 
@@ -122,7 +121,6 @@ func (del *DeleteMessagesEffect) Apply(ctxData *TriggeredRuleData, settings inte
 	if ctxData.CS != nil {
 		channel = ctxData.CS
 	} else {
-
 		// no channel in context, attempt to find the last channel the user spoke in
 		var lastMessage *dstate.MessageState
 
@@ -817,7 +815,6 @@ func (slow *EnableChannelSlowmodeEffect) Apply(ctxData *TriggeredRuleData, setti
 		qm.Where("guild_id = ?", ctxData.GS.ID),
 		qm.Where("(data->>'channel_id')::bigint = ?", ctxData.CS.ID),
 		qm.Where("processed = false")).DeleteAll(context.Background(), common.PQ)
-
 	if err != nil {
 		return err
 	}

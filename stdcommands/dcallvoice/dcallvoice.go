@@ -19,9 +19,7 @@ var Command = &commands.YAGCommand{
 	HideFromHelp:         true,
 	IsModCmd:             true,
 	RunFunc: util.RequireBotAdmin(func(data *dcmd.Data) (interface{}, error) {
-
 		vcs := make([]*discordgo.VoiceState, 0)
-
 		guilds := bot.State.GuildsSlice(true)
 
 		for _, g := range guilds {

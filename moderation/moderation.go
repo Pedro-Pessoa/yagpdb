@@ -73,6 +73,7 @@ func GetConfig(guildID int64) (*Config, error) {
 	if err == configstore.ErrNotFound {
 		err = nil
 	}
+
 	return &config, err
 }
 

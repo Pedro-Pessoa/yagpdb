@@ -374,7 +374,6 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 	var guild *dstate.GuildState
 
 	if data.Source != dcmd.DMSource {
-
 		canExecute = false
 		guild = cState.Guild
 
@@ -561,7 +560,6 @@ func GetOverridesForChannel(channelID, channelParentID, guildID int64) ([]*model
 
 // GetSettings returns the settings from the command, generated from the servers channel and command overrides
 func (cs *YAGCommand) GetSettings(containerChain []*dcmd.Container, channelID, channelParentID, guildID int64) (settings *CommandSettings, err error) {
-
 	// Fetch the overrides from the database, we treat the global settings as an override for simplicity
 	channelOverrides, err := GetOverridesForChannel(channelID, channelParentID, guildID)
 	if err != nil {
@@ -731,6 +729,7 @@ func (cs *YAGCommand) SetCooldownUser(cc []*dcmd.Container, userID int64) error 
 	now := time.Now().Unix()
 
 	err := common.RedisPool.Do(radix.FlatCmd(nil, "SET", RKeyCommandCooldown(userID, cs.FindNameFromContainerChain(cc)), now, "EX", cs.Cooldown))
+
 	return errors.WithStackIf(err)
 }
 
@@ -769,9 +768,11 @@ func (yc *YAGCommand) Logger(data *dcmd.Data) *logrus.Entry {
 func (yc *YAGCommand) GetTrigger() *dcmd.Trigger {
 	trigger := dcmd.NewTrigger(yc.Name, yc.Aliases...).SetDisableInDM(!yc.RunInDM)
 	trigger = trigger.SetHideFromHelp(yc.HideFromHelp)
+
 	if len(yc.Middlewares) > 0 {
 		trigger = trigger.SetMiddlewares(yc.Middlewares...)
 	}
+
 	return trigger
 }
 

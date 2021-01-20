@@ -24,6 +24,5 @@ var Command = &commands.YAGCommand{
 
 		common.SetLoggingLevel(logrus.DebugLevel)
 		return "Enabled debug logging", nil
-
 	}),
 }

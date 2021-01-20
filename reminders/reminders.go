@@ -74,6 +74,7 @@ func (r *Reminder) Trigger() error {
 
 		Priority: 10, // above all feeds
 	})
+
 	return nil
 }
 
@@ -82,6 +83,7 @@ func GetUserReminders(userID int64) (results []*Reminder, err error) {
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
+
 	return
 }
 
@@ -90,6 +92,7 @@ func GetChannelReminders(channel int64) (results []*Reminder, err error) {
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
+
 	return
 }
 
@@ -110,6 +113,7 @@ func NewReminder(userID int64, guildID int64, channelID int64, message string, w
 
 	err = scheduledevents2.ScheduleEvent("reminders_check_user", guildID, when, userID)
 	// err = scheduledevents.ScheduleEvent("reminders_check_user:"+strconv.FormatInt(whenUnix, 10), discordgo.StrID(userID), when)
+
 	return reminder, err
 }
 

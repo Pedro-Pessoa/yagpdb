@@ -117,6 +117,7 @@ func cleanupRecent() error {
 	for i, v := range recent {
 		sqlArgs[i] = v
 	}
+
 	result, err := models.ScheduledEvents(qm.WhereIn("id in ?", sqlArgs...)).DeleteAll(context.Background(), common.PQ)
 	if err != nil {
 		return err

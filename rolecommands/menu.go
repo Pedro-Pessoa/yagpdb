@@ -100,6 +100,7 @@ func cmdFuncRoleMenuCreate(parsed *dcmd.Data) (interface{}, error) {
 	recentMenusTracker.AddMenu(model.MessageID)
 	resp, err := NextRoleMenuSetupStep(parsed.Context(), model, true)
 	updateSetupMessage(parsed.Context(), model, resp)
+
 	return nil, err
 }
 
@@ -144,11 +145,11 @@ func UpdateMenu(parsed *dcmd.Data, menu *models.RoleMenu) (interface{}, error) {
 		createSetupMessage(parsed.Context(), menu, resp, true)
 	}
 	ClearRolemenuCacheGS(parsed.GS)
+
 	return nil, err
 }
 
 func NextRoleMenuSetupStep(ctx context.Context, rm *models.RoleMenu, first bool) (resp string, err error) {
-
 	commands := rm.R.RoleGroup.R.RoleCommands
 	sort.Slice(commands, RoleCommandsLessFunc(commands))
 
@@ -186,6 +187,7 @@ OUTER:
 		ClearRolemenuCache(rm.GuildID)
 
 		flagHelp := StrFlags(rm)
+
 		return fmt.Sprintf("Done setting up! You can delete all the messages now (except for the menu itself)\n\nFlags:\n%s%s", flagHelp, extra), nil
 	}
 
@@ -202,6 +204,7 @@ OUTER:
 func StrFlags(rm *models.RoleMenu) string {
 	nodmFlagHelp := fmt.Sprintf("`-nodm: %t` toggle with `rolemenu update -nodm %d`: disables dm messages.", rm.DisableSendDM, rm.MessageID)
 	rrFlagHelp := fmt.Sprintf("`-rr: %t` toggle with `rolemenu update -rr %d`: removing reactions removes the role.", rm.RemoveRoleOnReactionRemove, rm.MessageID)
+
 	return nodmFlagHelp + "\n" + rrFlagHelp
 }
 
@@ -213,7 +216,6 @@ func UpdateRoleMenuMessage(ctx context.Context, rm *models.RoleMenu) error {
 
 	for _, opt := range opts {
 		cmd := opt.R.RoleCommand
-
 		emoji := opt.UnicodeEmoji
 		if opt.EmojiID != 0 {
 			if opt.EmojiAnimated {
@@ -227,6 +229,7 @@ func UpdateRoleMenuMessage(ctx context.Context, rm *models.RoleMenu) error {
 	}
 
 	_, err := common.BotSession.ChannelMessageEdit(rm.ChannelID, rm.MessageID, newMsg)
+
 	return err
 }
 

@@ -107,6 +107,7 @@ func FindLegacyWatchItem(source []*LegacySubredditWatchItem, id int) *LegacySubr
 			return c
 		}
 	}
+
 	return nil
 }
 
@@ -115,6 +116,7 @@ func (item *LegacySubredditWatchItem) Set() error {
 	if err != nil {
 		return err
 	}
+
 	guild := item.Guild
 
 	err = common.RedisPool.Do(radix.Pipeline(
@@ -132,6 +134,7 @@ func (item *LegacySubredditWatchItem) Remove() error {
 		radix.FlatCmd(nil, "HDEL", "guild_subreddit_watch:"+guild, item.ID),
 		radix.FlatCmd(nil, "HDEL", "global_subreddit_watch:"+strings.ToLower(item.Sub), fmt.Sprintf("%s:%d", guild, item.ID)),
 	))
+
 	return err
 }
 

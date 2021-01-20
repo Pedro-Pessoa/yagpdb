@@ -63,5 +63,6 @@ func GetCPLogEntriesLegacy(guild int64) ([]*CPLogEntryLegacy, error) {
 			result[k] = decoded
 		}
 	}
+
 	return result, nil
 }

@@ -39,7 +39,6 @@ func ParseDuration(str string) (time.Duration, error) {
 			}
 
 			currentNumBuf += string(v)
-
 		} else {
 			currentModifierBuf += string(v)
 		}

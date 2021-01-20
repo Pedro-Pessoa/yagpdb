@@ -175,7 +175,6 @@ func HandleCommands(w http.ResponseWriter, r *http.Request) (web.TemplateData, e
 	prefix, _ := prfx.GetCommandPrefixRedis(activeGuild.ID)
 
 	templateData["CommandPrefix"] = prefix
-
 	templateData["VisibleURL"] = "/manage/" + discordgo.StrID(activeGuild.ID) + "/commands/settings"
 
 	return templateData, nil
@@ -262,6 +261,7 @@ func HandleCreateChannelsOverride(w http.ResponseWriter, r *http.Request) (web.T
 	if err != nil {
 		return templateData, errors.WithMessage(err, "count2")
 	}
+
 	if count > 100 {
 		return templateData.AddAlerts(web.ErrorAlert("Max 100 channel overrides allowed")), nil
 	}
@@ -284,17 +284,15 @@ func HandleCreateChannelsOverride(w http.ResponseWriter, r *http.Request) (web.T
 		featureflags.MarkGuildDirty(activeGuild.ID)
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyNewChannelOverride))
 	}
+
 	return templateData, errors.WithMessage(err, "InsertG")
 }
 
 func HandleUpdateChannelsOverride(w http.ResponseWriter, r *http.Request, currentOverride *models.CommandsChannelsOverride) (web.TemplateData, error) {
 	activeGuild, templateData := web.GetBaseCPContextData(r.Context())
-
 	formData := r.Context().Value(common.ContextKeyParsedForm).(*ChannelOverrideForm)
-
 	count, err := models.CommandsChannelsOverrides(
 		qm.Where("guild_id = ?", activeGuild.ID), qm.Where("channels && ?", types.Int64Array(formData.Channels)), qm.Where("id != ?", currentOverride.ID)).CountG(r.Context())
-
 	if err != nil {
 		return templateData, errors.WithMessage(err, "count")
 	}
@@ -317,6 +315,7 @@ func HandleUpdateChannelsOverride(w http.ResponseWriter, r *http.Request, curren
 	if err == nil {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedChannelOverride))
 	}
+
 	return templateData, errors.WithMessage(err, "UpdateG")
 }
 
@@ -327,6 +326,7 @@ func HandleDeleteChannelsOverride(w http.ResponseWriter, r *http.Request, curren
 	if rows > 0 {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyRemovedChannelOverride))
 	}
+
 	return templateData, errors.WithMessage(err, "DeleteG")
 }
 

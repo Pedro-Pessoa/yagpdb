@@ -25,7 +25,6 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 var logger = common.GetPluginLogger(&Plugin{})
 
 func RegisterPlugin() {
-
 	w := when.New(&rules.Options{
 		Distance:     10,
 		MatchByOrder: true})

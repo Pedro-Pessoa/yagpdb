@@ -16,11 +16,7 @@ var (
 		Description:  "Create very simple reaction poll. Example: `poll \"favorite color?\" blue red pink`",
 		RequiredArgs: 3,
 		Arguments: []*dcmd.ArgDef{
-			{
-				Name: "Topic",
-				Type: dcmd.String,
-				Help: "Description of the poll",
-			},
+			{Name: "Topic", Type: dcmd.String, Help: "Description of the poll"},
 			{Name: "Option1", Type: dcmd.String},
 			{Name: "Option2", Type: dcmd.String},
 			{Name: "Option3", Type: dcmd.String},
@@ -74,8 +70,10 @@ func createPoll(data *dcmd.Data) (interface{}, error) {
 	if err != nil {
 		return nil, errors.WrapIf(err, "failed to add poll description")
 	}
+
 	for i := range options {
 		_ = common.BotSession.MessageReactionAdd(pollMsg.ChannelID, pollMsg.ID, pollReactions[i])
 	}
+
 	return nil, nil
 }

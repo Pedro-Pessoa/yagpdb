@@ -17,7 +17,6 @@ var Command = &commands.YAGCommand{
 	Aliases:     []string{"wyr"},
 	Description: "Get presented with 2 options.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-
 		q1, q2, err := wouldYouRather()
 		if err != nil {
 			return nil, err

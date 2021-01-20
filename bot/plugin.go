@@ -97,8 +97,7 @@ type ShardMigrationReceiver interface {
 var BotPlugin = new(botPlugin)
 var logger = common.GetPluginLogger(BotPlugin)
 
-type botPlugin struct {
-}
+type botPlugin struct{}
 
 func (p *botPlugin) PluginInfo() *common.PluginInfo {
 	return &common.PluginInfo{

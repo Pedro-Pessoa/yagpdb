@@ -14,7 +14,6 @@ type ModlogAction struct {
 	Emoji  string
 	Color  int
 	Name   string
-
 	Footer string
 }
 
@@ -121,6 +120,7 @@ func CreateModlogEmbed(config *Config, author *discordgo.User, action ModlogActi
 		updateEmbedReason(nil, placeholder, embed)
 		_, err = common.BotSession.ChannelMessageEditEmbed(channelID, m.ID, embed)
 	}
+
 	return err
 }
 

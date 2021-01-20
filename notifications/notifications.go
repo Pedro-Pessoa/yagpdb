@@ -102,6 +102,7 @@ func (c *Config) BeforeSave() (err error) {
 			if s == "" {
 				continue
 			}
+
 			if msgsJoined >= MaxUserMessages {
 				break
 			}
@@ -129,6 +130,7 @@ func (c *Config) AfterFind() (err error) {
 		c.JoinServerMsgs = append(c.JoinServerMsgs, c.JoinServerMsg)
 		c.JoinServerMsg = ""
 	}
+
 	if c.JoinServerMsgs_ != "" {
 		c.JoinServerMsgs = append(c.JoinServerMsgs, strings.Split(c.JoinServerMsgs_, RecordSeparator)...)
 	}
@@ -137,6 +139,7 @@ func (c *Config) AfterFind() (err error) {
 		c.LeaveMsgs = append(c.LeaveMsgs, c.LeaveMsg)
 		c.LeaveMsg = ""
 	}
+
 	if c.LeaveMsgs_ != "" {
 		c.LeaveMsgs = append(c.LeaveMsgs, strings.Split(c.LeaveMsgs_, RecordSeparator)...)
 	}

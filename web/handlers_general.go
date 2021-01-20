@@ -39,12 +39,10 @@ type serverHomeWidgetCategory struct {
 
 func HandleServerHome(w http.ResponseWriter, r *http.Request) (TemplateData, error) {
 	_, templateData := GetBaseCPContextData(r.Context())
-
 	containers := make([]*serverHomeWidgetCategory, 0)
 
 	for _, v := range common.Plugins {
 		if _, ok := v.(PluginWithServerHomeWidget); ok {
-
 			// find the category
 			var cat *serverHomeWidgetCategory
 			for _, c := range containers {
@@ -106,6 +104,7 @@ func HandleCPLogs(w http.ResponseWriter, r *http.Request) interface{} {
 	} else {
 		templateData["entries"] = logs
 	}
+
 	return templateData
 }
 
@@ -364,6 +363,7 @@ func HandleReconnectShard(w http.ResponseWriter, r *http.Request) (TemplateData,
 	if err != nil {
 		tmpl.AddAlerts(ErrorAlert(err.Error()))
 	}
+
 	return HandleStatusHTML(w, r)
 }
 
@@ -589,10 +589,8 @@ type WidgetCacheItem struct {
 
 // Writes the request log into logger, returns a new middleware
 func GuildScopeCacheMW(plugin common.Plugin, inner http.Handler) http.Handler {
-
 	mw := func(w http.ResponseWriter, r *http.Request) {
 		g, _ := GetBaseCPContextData(r.Context())
-
 		cacheKey := discordgo.StrID(g.ID) + "_" + plugin.PluginInfo().SysName
 
 		if v, ok := WidgetCache.Get(cacheKey); ok {

@@ -38,6 +38,7 @@ func mergedMessageSender() {
 		for c, m := range mergedQueue {
 			go sendMergedBatch(c, m)
 		}
+
 		mergedQueue = make(map[int64][]*QueuedMergedMessage)
 		mergedQueueLock.Unlock()
 
@@ -83,8 +84,7 @@ OUTER:
 		}
 	}
 
-	hasParseRoles := false
-	hasParseUsers := false
+	var hasParseRoles, hasParseUsers bool
 	for _, p := range a.Parse {
 		switch p {
 		case discordgo.AllowedMentionTypeRoles:

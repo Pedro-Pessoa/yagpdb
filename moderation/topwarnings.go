@@ -37,10 +37,9 @@ func TopWarns(guildID int64, offset, limit int) ([]*WarnRankEntry, error) {
 	result := make([]*WarnRankEntry, 0, limit)
 	for rows.Next() {
 		//var member []*discordgo.Member
-		var rank int
 		//var tmp []*dstate.MemberState
-		var userID int64
-		var warncount int64
+		var rank int
+		var userID, warncount int64
 		var err = rows.Scan(&rank, &warncount, &userID)
 		if err != nil {
 			return nil, err
@@ -57,6 +56,7 @@ func TopWarns(guildID int64, offset, limit int) ([]*WarnRankEntry, error) {
 			username = m.User.Username + "#" + m.User.Discriminator
 			break
 		}*/
+
 		userSlice := bot.GetUsers(guildID, userID)
 		var username string
 		for _, u := range userSlice {

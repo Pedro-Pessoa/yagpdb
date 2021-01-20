@@ -106,7 +106,6 @@ func init() {
 }
 
 func loadTemplates() {
-
 	coreTemplates := []string{
 		"templates/index.html", "templates/cp_main.html",
 		"templates/cp_nav.html", "templates/cp_selectserver.html", "templates/cp_logs.html",
@@ -255,7 +254,6 @@ func runServers(mainMuxer *goji.Mux) {
 }
 
 func setupRoutes() *goji.Mux {
-
 	// setup the root routes and middlewares
 	setupRootMux()
 

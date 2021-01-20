@@ -12,59 +12,59 @@ import (
 type Event int
 
 const (
-	EventNewGuild                 Event = 0
-	EventAll                      Event = 1
-	EventAllPre                   Event = 2
-	EventAllPost                  Event = 3
-	EventMemberFetched            Event = 4
-	EventYagShardReady            Event = 5
-	EventYagShardsAdded           Event = 6
-	EventYagShardRemoved          Event = 7
-	EventChannelCreate            Event = 8
-	EventChannelDelete            Event = 9
-	EventChannelPinsUpdate        Event = 10
-	EventChannelUpdate            Event = 11
-	EventConnect                  Event = 12
-	EventDisconnect               Event = 13
-	EventGuildBanAdd              Event = 14
-	EventGuildBanRemove           Event = 15
-	EventGuildCreate              Event = 16
-	EventGuildDelete              Event = 17
-	EventGuildEmojisUpdate        Event = 18
-	EventGuildIntegrationsUpdate  Event = 19
-	EventGuildMemberAdd           Event = 20
-	EventGuildMemberRemove        Event = 21
-	EventGuildMemberUpdate        Event = 22
-	EventGuildMembersChunk        Event = 23
-	EventGuildRoleCreate          Event = 24
-	EventGuildRoleDelete          Event = 25
-	EventGuildRoleUpdate          Event = 26
-	EventGuildUpdate              Event = 27
-	EventInviteCreate             Event = 28
-	EventInviteDelete             Event = 29
-	EventMessageAck               Event = 30
-	EventMessageCreate            Event = 31
-	EventMessageDelete            Event = 32
-	EventMessageDeleteBulk        Event = 33
-	EventMessageReactionAdd       Event = 34
-	EventMessageReactionRemove    Event = 35
-	EventMessageReactionRemoveAll Event = 36
-	EventMessageUpdate            Event = 37
-	EventPresenceUpdate           Event = 38
-	EventPresencesReplace         Event = 39
-	EventRateLimit                Event = 40
-	EventReady                    Event = 41
-	EventRelationshipAdd          Event = 42
-	EventRelationshipRemove       Event = 43
-	EventResumed                  Event = 44
-	EventTypingStart              Event = 45
-	EventUserGuildSettingsUpdate  Event = 46
-	EventUserNoteUpdate           Event = 47
-	EventUserSettingsUpdate       Event = 48
-	EventUserUpdate               Event = 49
-	EventVoiceServerUpdate        Event = 50
-	EventVoiceStateUpdate         Event = 51
-	EventWebhooksUpdate           Event = 52
+	EventNewGuild Event = iota
+	EventAll
+	EventAllPre
+	EventAllPost
+	EventMemberFetched
+	EventYagShardReady
+	EventYagShardsAdded
+	EventYagShardRemoved
+	EventChannelCreate
+	EventChannelDelete
+	EventChannelPinsUpdate
+	EventChannelUpdate
+	EventConnect
+	EventDisconnect
+	EventGuildBanAdd
+	EventGuildBanRemove
+	EventGuildCreate
+	EventGuildDelete
+	EventGuildEmojisUpdate
+	EventGuildIntegrationsUpdate
+	EventGuildMemberAdd
+	EventGuildMemberRemove
+	EventGuildMemberUpdate
+	EventGuildMembersChunk
+	EventGuildRoleCreate
+	EventGuildRoleDelete
+	EventGuildRoleUpdate
+	EventGuildUpdate
+	EventInviteCreate
+	EventInviteDelete
+	EventMessageAck
+	EventMessageCreate
+	EventMessageDelete
+	EventMessageDeleteBulk
+	EventMessageReactionAdd
+	EventMessageReactionRemove
+	EventMessageReactionRemoveAll
+	EventMessageUpdate
+	EventPresenceUpdate
+	EventPresencesReplace
+	EventRateLimit
+	EventReady
+	EventRelationshipAdd
+	EventRelationshipRemove
+	EventResumed
+	EventTypingStart
+	EventUserGuildSettingsUpdate
+	EventUserNoteUpdate
+	EventUserSettingsUpdate
+	EventUserUpdate
+	EventVoiceServerUpdate
+	EventVoiceStateUpdate
+	EventWebhooksUpdate
 )
 
 var EventNames = []string{
@@ -370,7 +370,6 @@ func (data *EventData) WebhooksUpdate() *discordgo.WebhooksUpdate {
 }
 
 func fillEvent(evtData *EventData) {
-
 	switch evtData.EvtInterface.(type) {
 	case *discordgo.ChannelCreate:
 		evtData.Type = Event(8)

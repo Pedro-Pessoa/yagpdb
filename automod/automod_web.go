@@ -122,8 +122,7 @@ func (p *Plugin) handleGetLogs(w http.ResponseWriter, r *http.Request) (web.Temp
 	before := r.URL.Query().Get("before")
 	after := r.URL.Query().Get("after")
 
-	var beforeParsed int
-	var afterParsed int
+	var beforeParsed, afterParsed int
 	if before != "" {
 		beforeParsed, _ = strconv.Atoi(before)
 	} else if after != "" {
@@ -190,6 +189,7 @@ func (p *Plugin) handlePostAutomodCreateList(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return tmpl, err
 	}
+
 	if totalLists >= int64(GuildMaxLists(g.ID)) {
 		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Reached max number of lists, %d for normal servers and %d for premium servers", MaxLists, MaxListsPremium)))
 		return tmpl, nil
@@ -208,6 +208,7 @@ func (p *Plugin) handlePostAutomodCreateList(w http.ResponseWriter, r *http.Requ
 		bot.EvictGSCache(g.ID, CacheKeyLists)
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyNewList))
 	}
+
 	return tmpl, err
 }
 
@@ -231,6 +232,7 @@ func (p *Plugin) handlePostAutomodUpdateList(w http.ResponseWriter, r *http.Requ
 		bot.EvictGSCache(g.ID, CacheKeyLists)
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedList))
 	}
+
 	return tmpl, err
 }
 
@@ -248,6 +250,7 @@ func (p *Plugin) handlePostAutomodDeleteList(w http.ResponseWriter, r *http.Requ
 		bot.EvictGSCache(g.ID, CacheKeyLists)
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyRemovedList))
 	}
+
 	return tmpl, err
 }
 
@@ -280,6 +283,7 @@ func (p *Plugin) currentRulesetMW(backupHandler http.Handler) func(http.Handler)
 			r = r.WithContext(context.WithValue(r.Context(), CtxKeyCurrentRuleset, ruleset))
 			inner.ServeHTTP(w, r)
 		}
+
 		return http.HandlerFunc(mw)
 	}
 }
@@ -294,7 +298,6 @@ type CreateRuleData struct {
 
 func (p *Plugin) handlePostAutomodCreateRule(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	ruleset := r.Context().Value(CtxKeyCurrentRuleset).(*models.AutomodRuleset)
 
 	totalRules, err := models.AutomodRules(qm.Where("guild_id = ? ", g.ID)).CountG(r.Context())
@@ -332,7 +335,6 @@ type UpdateRulesetData struct {
 
 func (p *Plugin) handlePostAutomodUpdateRuleset(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	data := r.Context().Value(common.ContextKeyParsedForm).(*UpdateRulesetData)
 
 	// The form parsing utility dosen't take care of maps, so manually do that parsing for now
@@ -435,7 +437,6 @@ type RuleRowData struct {
 
 func (p *Plugin) handlePostAutomodUpdateRule(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	data := r.Context().Value(common.ContextKeyParsedForm).(*UpdateRuleData)
 
 	combinedParts := make([]*models.AutomodRuleDatum, 0, 10)
@@ -556,7 +557,6 @@ func CheckLimits(exec boil.ContextExecutor, rule *models.AutomodRule, tmpl web.T
 				numViolationTriggers++
 				break
 			}
-
 		}
 	}
 
@@ -567,6 +567,7 @@ func CheckLimits(exec boil.ContextExecutor, rule *models.AutomodRule, tmpl web.T
 	if err != nil {
 		return
 	}
+
 	for _, v := range allParts {
 		for _, p := range RulePartList {
 			if p.ID != v.TypeID {
@@ -604,7 +605,6 @@ func ReadRuleRowData(guild *discordgo.Guild, tmpl web.TemplateData, rawData []Ru
 
 	for i, entry := range rawData {
 		for k, fv := range form {
-
 			if strings.HasPrefix(k, namePrefix+"."+strconv.Itoa(i)+".Data.") {
 				dataKey := strings.TrimPrefix(k, namePrefix+"."+strconv.Itoa(i)+".Data.")
 				if entry.Data == nil {
@@ -627,7 +627,6 @@ func ReadRuleRowData(guild *discordgo.Guild, tmpl web.TemplateData, rawData []Ru
 		// Process the settings for this part type if it has any
 		dst := pType.DataType()
 		if dst != nil {
-
 			// Decode map[string][]string into the struct
 			dec := schema.NewDecoder()
 			dec.IgnoreUnknownKeys(true)
@@ -643,7 +642,6 @@ func ReadRuleRowData(guild *discordgo.Guild, tmpl web.TemplateData, rawData []Ru
 			}
 
 			parsed.ParsedSettings = dst
-
 		}
 
 		parsedSettings = append(parsedSettings, parsed)
@@ -780,7 +778,6 @@ func WebLoadRuleSettings(r *http.Request, tmpl web.TemplateData, ruleset *models
 			m := structs.Map(dst)
 			parsedRSData[i] = m
 		}
-
 	}
 
 	tmpl["RulePartData"] = parsedData

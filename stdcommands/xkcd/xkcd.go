@@ -39,7 +39,6 @@ var Command = &commands.YAGCommand{
 		{Switch: "l", Name: "Latest comic"},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-
 		//first query to get latest number
 		latest := false
 		xkcd, err := getComic()
@@ -80,6 +79,7 @@ var Command = &commands.YAGCommand{
 				URL: xkcd.Img,
 			},
 		}
+
 		return embed, nil
 	},
 }

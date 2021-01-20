@@ -122,6 +122,7 @@ var cmdListCommands = &commands.YAGCommand{
 			if len(list) == 0 {
 				return "This server has no custom commands, sry.", nil
 			}
+
 			if provided {
 				return "No command by that name or id found, here is a list of them all:\n" + list, nil
 			} else {
@@ -147,7 +148,8 @@ func FindCommands(ccs []*models.CustomCommand, data *dcmd.Data) (foundCCS []*mod
 	foundCCS = make([]*models.CustomCommand, 0, len(ccs))
 
 	provided = true
-	if data.Args[0].Value != nil {
+	switch {
+	case data.Args[0].Value != nil:
 		// Find by ID
 		id := data.Args[0].Int64()
 		for _, v := range ccs {
@@ -155,7 +157,7 @@ func FindCommands(ccs []*models.CustomCommand, data *dcmd.Data) (foundCCS []*mod
 				foundCCS = append(foundCCS, v)
 			}
 		}
-	} else if data.Args[1].Value != nil {
+	case data.Args[1].Value != nil:
 		// Find by name
 		name := data.Args[1].Str()
 		for _, v := range ccs {
@@ -163,7 +165,7 @@ func FindCommands(ccs []*models.CustomCommand, data *dcmd.Data) (foundCCS []*mod
 				foundCCS = append(foundCCS, v)
 			}
 		}
-	} else {
+	default:
 		provided = false
 	}
 
@@ -482,7 +484,6 @@ func findMessageTriggerCustomCommands(ctx context.Context, cs *dstate.ChannelSta
 		}
 
 		if didMatch, stripped, args := CheckMatch(prefix, cmd, mc.Content); didMatch {
-
 			matched = append(matched, &TriggeredCC{
 				CC:       cmd,
 				Args:     args,
@@ -518,7 +519,6 @@ func findReactionTriggerCustomCommands(ctx context.Context, cs *dstate.ChannelSt
 		}
 
 		if didMatch := CheckMatchReaction(cmd, reaction, add); didMatch {
-
 			matched = append(matched, &TriggeredCC{
 				CC: cmd,
 			})
@@ -564,15 +564,12 @@ func sortTriggeredCCs(ccs []*TriggeredCC) {
 		a := ccs[i]
 		b := ccs[j]
 
-		if a.CC.TriggerType == b.CC.TriggerType {
+		switch {
+		case a.CC.TriggerType == b.CC.TriggerType:
 			return a.CC.LocalID < b.CC.LocalID
-		}
-
-		if a.CC.TriggerType == int(CommandTriggerRegex) {
+		case a.CC.TriggerType == int(CommandTriggerRegex):
 			return false
-		}
-
-		if b.CC.TriggerType == int(CommandTriggerRegex) {
+		case b.CC.TriggerType == int(CommandTriggerRegex):
 			return true
 		}
 
@@ -675,6 +672,7 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
+
 	return nil
 }
 

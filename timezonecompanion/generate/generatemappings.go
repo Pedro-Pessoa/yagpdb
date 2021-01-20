@@ -11,11 +11,11 @@ import (
 const zonecsv = "generate/zone.csv"
 
 func main() {
-
 	fzone, err := os.Open(zonecsv)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer fzone.Close()
 
 	// fcountries, err := os.Open(countrycsv)
@@ -64,6 +64,7 @@ func ReadZones(f *os.File) map[string][]string {
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			log.Fatal(err)
 		}

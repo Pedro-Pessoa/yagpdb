@@ -40,7 +40,6 @@ func HandleGuildMemberAdd(evtData *eventsystem.EventData) (retry bool, err error
 	}
 
 	gs := bot.State.Guild(true, evt.GuildID)
-
 	ms := dstate.MSFromDGoMember(gs, evt.Member)
 
 	// Beware of the pyramid and its curses
@@ -109,7 +108,6 @@ func HandleGuildMemberRemove(evt *eventsystem.EventData) (retry bool, err error)
 	}
 
 	ms := dstate.MSFromDGoMember(gs, memberRemove.Member)
-
 	chanMsg := config.LeaveMsgs[rand.Intn(len(config.LeaveMsgs))]
 
 	go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_leave_server_msg")
@@ -147,12 +145,13 @@ func sendTemplate(cs *dstate.ChannelState, tmpl string, ms *dstate.MemberState, 
 		return false
 	}
 
-	if cs.Type == discordgo.ChannelTypeDM {
+	switch {
+	case cs.Type == discordgo.ChannelTypeDM:
 		_, err = common.BotSession.ChannelMessageSend(cs.ID, msg)
-	} else if !ctx.CurrentFrame.DelResponse {
+	case !ctx.CurrentFrame.DelResponse:
 		send := ctx.MessageSend("")
 		bot.QueueMergedMessage(cs.ID, msg, send.AllowedMentions)
-	} else {
+	default:
 		var m *discordgo.Message
 		m, err = common.BotSession.ChannelMessageSendComplex(cs.ID, ctx.MessageSend(msg))
 		if err == nil && ctx.CurrentFrame.DelResponse {

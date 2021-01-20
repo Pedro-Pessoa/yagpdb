@@ -201,17 +201,19 @@ func HumanizeAssignError(guild *dstate.GuildState, err error) (string, error) {
 
 			return roleError.PrettyError(guild.Guild.Roles), nil
 		}
+
 		return err.Error(), nil
 	}
 
 	if code, msg := common.DiscordError(err); code != 0 {
-		if code == discordgo.ErrCodeMissingPermissions {
+		switch code {
+		case discordgo.ErrCodeMissingPermissions:
 			return "O bot está abaixo desse cargo, fale com o administrador do servidor.", err
-		} else if code == discordgo.ErrCodeMissingAccess {
+		case discordgo.ErrCodeMissingAccess:
 			return "O bot não tem permissão suficiente para te dar esse cargo, fale com o administrador do servidor", err
+		default:
+			return "Ocorreu um erro ao tentar te dar o cargo: " + msg, err
 		}
-
-		return "Ocorreu um erro ao tentar te dar o cargo: " + msg, err
 	}
 
 	return "Ocorreu um erro ao tentar te dar o cargo", err
@@ -324,6 +326,7 @@ func GetRolemenuCached(ctx context.Context, gs *dstate.GuildState, messageID int
 			if err != sql.ErrNoRows {
 				return nil, err
 			}
+
 			return nil, nil
 		}
 

@@ -32,6 +32,7 @@ func RegisterPlugin() {
 		logrus.Warn("No prom ports defined, not launching prom server")
 		return
 	}
+
 	go startHTTPServer()
 }
 

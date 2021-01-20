@@ -6,15 +6,17 @@
 package timezonecompanion
 
 func lowest(a, b, c int) int {
-	if a < b {
+	switch {
+	case a < b:
 		if a < c {
 			return a
 		}
-	} else {
+	default:
 		if b < c {
 			return b
 		}
 	}
+
 	return c
 }
 
@@ -26,6 +28,7 @@ func levenshtein(str1, str2 []rune) int {
 	for i := 1; i <= str1len; i++ {
 		distance[i] = i
 	}
+
 	for j := 1; j <= str2len; j++ {
 		distance[0] = j
 		lastkey := j - 1

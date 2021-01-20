@@ -21,7 +21,6 @@ func prettyTime(t time.Time) string {
 // and call templates almost as if they were functions with arguments
 // makes certain templates a lot simpler
 func mTemplate(name string, values ...interface{}) (template.HTML, error) {
-
 	data, err := templates.Dictionary(values...)
 	if err != nil {
 		return "", err
@@ -91,6 +90,7 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 		if k == len(roles)-1 {
 			break
 		}
+
 		if role.Managed && highestBotRole != nil {
 			continue
 		}
@@ -113,6 +113,7 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 				optName += " (role is above bot)"
 			}
 		}
+
 		output += ">" + optName + "</option>\n"
 	}
 
@@ -125,7 +126,6 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 
 // Same as tmplRoleDropdown but supports multiple selections
 func tmplRoleDropdownMutli(roles []*discordgo.Role, highestBotRole *discordgo.Role, selections []int64) template.HTML {
-
 	var builder strings.Builder
 
 	// show deleted roles
@@ -175,6 +175,7 @@ OUTER:
 				optName += " (role is above bot)"
 			}
 		}
+
 		builder.WriteString(">" + optName + "</option>\n")
 	}
 
@@ -184,9 +185,7 @@ OUTER:
 func tmplChannelOpts(channelTypes []discordgo.ChannelType, optionPrefix string) interface{} {
 	optsBuilder := tmplChannelOptsMulti(channelTypes, optionPrefix)
 	return func(channels []*discordgo.Channel, selection interface{}, allowEmpty bool, emptyName string) template.HTML {
-
 		// const unknownName = "Deleted channel"
-
 		var builder strings.Builder
 
 		if allowEmpty {
@@ -217,7 +216,6 @@ func tmplChannelOpts(channelTypes []discordgo.ChannelType, optionPrefix string) 
 
 func tmplChannelOptsMulti(channelTypes []discordgo.ChannelType, optionPrefix string) func(channels []*discordgo.Channel, selections []int64) template.HTML {
 	return func(channels []*discordgo.Channel, selections []int64) template.HTML {
-
 		var builder strings.Builder
 
 		channelOpt := func(id int64, name string) {
@@ -290,9 +288,11 @@ func tmplCheckbox(name, id, description string, checked bool, extraInputAttrs ..
 	if checked {
 		builder.WriteString(" checked")
 	}
+
 	if len(extraInputAttrs) > 0 {
 		builder.WriteString(" " + strings.Join(extraInputAttrs, " "))
 	}
+
 	builder.WriteString(`><label for="` + id + `" class="tgl-btn mb-2"></label>`)
 	// builder.WriteString(`><div class="switch"></div>`)
 	builder.WriteString(`<span class="ml-2 mb-2">` + description + `</span></div>`)

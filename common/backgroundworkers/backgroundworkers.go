@@ -10,12 +10,12 @@ import (
 	"goji.io"
 )
 
-var HTTPAddr = config.RegisterOption("yagpdb.bgworker.http_server_addr", "Backgroundn worker http server address", "localhost:5004")
-var RESTServerMuxer *goji.Mux
-
-var restServer *http.Server
-
-var logger = common.GetFixedPrefixLogger("bgworkers")
+var (
+	HTTPAddr        = config.RegisterOption("yagpdb.bgworker.http_server_addr", "Backgroundn worker http server address", "localhost:5004")
+	RESTServerMuxer *goji.Mux
+	restServer      *http.Server
+	logger          = common.GetFixedPrefixLogger("bgworkers")
+)
 
 type BackgroundWorkerPlugin interface {
 	RunBackgroundWorker()

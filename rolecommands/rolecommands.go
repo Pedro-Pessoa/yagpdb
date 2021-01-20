@@ -303,7 +303,6 @@ func GroupMaybeScheduleRoleRemoval(ctx context.Context, ms *dstate.MemberState, 
 }
 
 func CanAssignRoleCmdTo(r *models.RoleCommand, memberRoles []int64) error {
-
 	if len(r.RequireRoles) > 0 {
 		if !CheckRequiredRoles(r.RequireRoles, memberRoles) {
 			return NewSimpleError("This self assignable role has been configured to require another role by the server admins.")
@@ -367,6 +366,7 @@ func (r *RoleError) Error() string {
 	if r.Role == 0 {
 		return r.Message
 	}
+
 	return r.Message + ": " + strconv.FormatInt(r.Role, 10)
 }
 
@@ -377,7 +377,6 @@ func (r *RoleError) PrettyError(roles []*discordgo.Role) string {
 	}
 
 	idStr := strconv.FormatInt(r.Role, 10)
-
 	roleStr := ""
 
 	for _, v := range roles {

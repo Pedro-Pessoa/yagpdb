@@ -58,7 +58,6 @@ func getMemberWithFallback(gs *dstate.GuildState, user *discordgo.User) (ms *dst
 
 // Kick or bans someone, uploading a hasebin log, and sending the report message in the action channel
 func punish(config *Config, p Punishment, guildID int64, channel *dstate.ChannelState, message *discordgo.Message, author *discordgo.User, reason string, user *discordgo.User, duration time.Duration, variadicBanDeleteDays ...int) error {
-
 	config, err := getConfigIfNotSet(guildID, config)
 	if err != nil {
 		return common.ErrWithCaller(err)
@@ -145,6 +144,7 @@ func punish(config *Config, p Punishment, guildID int64, channel *dstate.Channel
 	}
 
 	err = CreateModlogEmbed(config, author, action, user, reason, logLink)
+
 	return err
 }
 
@@ -215,6 +215,7 @@ func KickUser(config *Config, guildID int64, channel *dstate.ChannelState, messa
 	if channel != nil {
 		_, err = DeleteMessages(channel.ID, user.ID, 100, 100)
 	}
+
 	return err
 }
 
@@ -228,7 +229,6 @@ func DeleteMessages(channelID int64, filterUser int64, deleteNum, fetchNum int) 
 	now := time.Now()
 	for i := len(msgs) - 1; i >= 0; i-- {
 		if filterUser == 0 || msgs[i].Author.ID == filterUser {
-
 			// Can only bulk delete messages up to 2 weeks (but add 1 minute buffer account for time sync issues and other smallies)
 			if now.Sub(msgs[i].ParsedCreated) > (time.Hour*24*14)-time.Minute {
 				continue
@@ -246,15 +246,17 @@ func DeleteMessages(channelID int64, filterUser int64, deleteNum, fetchNum int) 
 		return 0, nil
 	}
 
-	if len(toDelete) < 1 {
+	l := len(toDelete)
+	switch {
+	case l < 1:
 		return 0, nil
-	} else if len(toDelete) == 1 {
+	case l == 1:
 		err = common.BotSession.ChannelMessageDelete(channelID, toDelete[0])
-	} else {
+	default:
 		err = common.BotSession.ChannelMessagesBulkDelete(channelID, toDelete)
 	}
 
-	return len(toDelete), err
+	return l, err
 }
 
 func BanUserWithDuration(config *Config, guildID int64, channel *dstate.ChannelState, message *discordgo.Message, author *discordgo.User, reason string, user *discordgo.User, duration time.Duration, deleteMessageDays int) error {
@@ -263,6 +265,7 @@ func BanUserWithDuration(config *Config, guildID int64, channel *dstate.ChannelS
 	if deleteMessageDays > 7 {
 		deleteMessageDays = 7
 	}
+
 	if deleteMessageDays < 0 {
 		deleteMessageDays = 0
 	}
@@ -367,22 +370,26 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 		action = MALock
 		outDur = "permanentemente!"
 		action.Footer = "Duração: Permanente"
+
 		if dur > 0 {
 			humandur := common.HumanizeDuration(common.DurationPrecisionMinutes, dur)
 			outDur = "por `" + humandur + "`!"
 			action.Footer = "Duração: " + humandur
 			currentLockdown.ExpiresAt = time.Now().Add(dur)
 		}
+
 		err = common.GORM.Save(&currentLockdown).Error
 		if err != nil {
 			return nil, errors.WithMessage(err, "failed inserting/updating lockdown")
 		}
+
 		reason = reason + "\nPermissões atualmente bloqueadas - `" + strings.Join(common.HumanizePermissions(int64(totalPerms)), ", ") + "`" + "\nForce unlock flag - `" + fmt.Sprint(force) + "`"
 	} else {
 		if totalPerms == 0 { //This happens during scheduled Unlock events
 			totalPerms = int(currentLockdown.PermsToggle)
 			force = currentLockdown.Overwrite
 		}
+
 		if force {
 			newPerms = role.Permissions | totalPerms
 		} else {
@@ -395,12 +402,16 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 		if err != nil {
 			return nil, err
 		}
+
 		toggledPerms := newPerms &^ role.Permissions
+
 		if lock {
 			toggledPerms = role.Permissions &^ newPerms
 		}
+
 		outPerms = "\nPermissões afetadas - `" + strings.Join(common.HumanizePermissions(int64(toggledPerms)), ", ") + "`"
 	}
+
 	reason = reason + outPerms
 
 	if dur > 0 && lock {

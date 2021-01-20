@@ -31,7 +31,6 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 	runtime.ReadMemStats(&memStats)
 
 	servers, _ := common.GetJoinedServerCount()
-
 	sysMem, err := mem.VirtualMemory()
 	sysMemStats := ""
 	if err == nil {
@@ -51,11 +50,8 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 	}
 
 	uptime := time.Since(bot.Started)
-
 	allocated := float64(memStats.Alloc) / 1000000
-
 	numGoroutines := runtime.NumGoroutine()
-
 	botUser := common.BotUser
 
 	embed := &discordgo.MessageEmbed{

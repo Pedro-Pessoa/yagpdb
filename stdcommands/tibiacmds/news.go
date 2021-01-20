@@ -8,6 +8,7 @@ import (
 	"github.com/jonas747/dcmd"
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/jonas747/yagpdb/tibia"
 )
 
@@ -21,7 +22,7 @@ var NewsCommand = &commands.YAGCommand{
 		{Name: "ID da notícia", Type: dcmd.Int},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
@@ -60,7 +61,7 @@ var NewsTickerCommand = &commands.YAGCommand{
 	Description: "Último newsticker do tibia.",
 	Cooldown:    10,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Source == dcmd.DMSource {
+		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 

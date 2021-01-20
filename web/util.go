@@ -32,6 +32,7 @@ func SetContextTemplateData(ctx context.Context, data map[string]interface{}) co
 		for k, v := range data {
 			cast[k] = v
 		}
+
 		return ctx
 	}
 
@@ -45,6 +46,7 @@ func DiscordSessionFromContext(ctx context.Context) *discordgo.Session {
 			return cast
 		}
 	}
+
 	return nil
 }
 
@@ -67,6 +69,7 @@ func GenSessionCookie() *http.Cookie {
 		MaxAge: 86400,
 		Path:   "/",
 	}
+
 	return cookie
 }
 
@@ -99,8 +102,10 @@ func GetCreateTemplateData(ctx context.Context) (context.Context, TemplateData) 
 	if v := ctx.Value(common.ContextKeyTemplateData); v != nil {
 		return ctx, v.(TemplateData)
 	}
+
 	tmplData := TemplateData(make(map[string]interface{}))
 	ctx = context.WithValue(ctx, common.ContextKeyTemplateData, tmplData)
+
 	return ctx, tmplData
 }
 
@@ -184,7 +189,6 @@ func CheckErr(t TemplateData, err error, errMsg string, logger func(...interface
 
 // Checks the context if there is a logged in user and if so if he's and admin or not
 func IsAdminRequest(ctx context.Context, r *http.Request) (read bool, write bool) {
-
 	isReadOnlyReq := strings.EqualFold(r.Method, "GET") || strings.EqualFold(r.Method, "OPTIONS")
 
 	if v := ctx.Value(common.ContextKeyCurrentGuild); v != nil {

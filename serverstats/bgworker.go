@@ -528,14 +528,17 @@ func (c *Compressor) cleanTempRedisStats(year, day int) error {
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
+
 	err = common.RedisPool.Do(radix.Cmd(nil, "DEL", keyOnlineMembers(year, day)))
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
+
 	err = common.RedisPool.Do(radix.Cmd(nil, "DEL", keyJoinedMembers(year, day)))
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
+
 	err = common.RedisPool.Do(radix.Cmd(nil, "DEL", keyLeftMembers(year, day)))
 	if err != nil {
 		return errors.WithStackIf(err)

@@ -130,7 +130,6 @@ func keyGuildMember(guildID int64, userID int64) string {
 
 func GetMember(guildID, userID int64) (*discordgo.Member, error) {
 	result, err := applicationCache.Fetch(keyGuildMember(guildID, userID), time.Minute*10, func() (interface{}, error) {
-
 		results, err := botrest.GetMembers(guildID, userID)
 
 		var m *discordgo.Member

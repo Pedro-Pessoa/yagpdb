@@ -211,7 +211,6 @@ var cmdWhois = &commands.YAGCommand{
 		}
 
 		if config.NicknameLoggingEnabled.Bool {
-
 			nicknames, err := GetNicknames(parsed.Context(), member.ID, parsed.GS.ID, 5, 0)
 			if err != nil {
 				return err, err
@@ -331,7 +330,6 @@ var cmdNicknames = &commands.YAGCommand{
 		}
 
 		_, err = paginatedmessages.CreatePaginatedMessage(parsed.GS.ID, parsed.CS.ID, 1, 0, func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
-
 			offset := (page - 1) * 15
 
 			nicknames, err := GetNicknames(context.Background(), target, parsed.GS.ID, 15, offset)
@@ -513,7 +511,6 @@ func CheckUsername(exec boil.ContextExecutor, ctx context.Context, usernameStmt 
 }
 
 func CheckNickname(exec boil.ContextExecutor, ctx context.Context, nicknameStmt *sql.Stmt, userID, guildID int64, nickname string) error {
-
 	var lastNickname string
 	row := nicknameStmt.QueryRow(userID, guildID)
 	err := row.Scan(&lastNickname)
@@ -683,12 +680,9 @@ var confEnableUsernameTracking = config.RegisterOption("yagpdb.enable_username_t
 
 // Queue up all the events and process them one by one, because of limited connections
 func EvtProcesser() {
-
 	queuedMembers := make([]*discordgo.Member, 0)
 	queuedUsers := make([]*UserGuildPair, 0)
-
 	ticker := time.NewTicker(time.Second * 10)
-
 	enabled := confEnableUsernameTracking.GetBool()
 
 	for {

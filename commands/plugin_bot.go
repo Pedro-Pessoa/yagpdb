@@ -45,7 +45,6 @@ func (p *Plugin) customUsernameSearchFunc(gs *dstate.GuildState, query string) (
 	}
 
 	lowerIn := strings.ToLower(query)
-
 	partialMatches := make([]*discordgo.Member, 0, 5)
 	fullMatches := make([]*discordgo.Member, 0, 5)
 
@@ -295,7 +294,6 @@ func GetCommandPrefixBotEvt(evt *eventsystem.EventData) (string, error) {
 }
 
 func (p *Plugin) Prefix(data *dcmd.Data) string {
-
 	prefix, err := prfx.GetCommandPrefixRedis(data.GS.ID)
 	if err != nil {
 		logger.WithError(err).Error("Failed retrieving commands prefix")
@@ -338,7 +336,6 @@ var cmdPrefix = &YAGCommand{
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Server ID", Type: dcmd.Int, Default: 0},
 	},
-
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		targetGuildID := data.Args[0].Int64()
 		if targetGuildID == 0 {

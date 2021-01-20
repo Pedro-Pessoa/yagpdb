@@ -22,7 +22,6 @@ import (
 )
 
 func (p *Plugin) BotInit() {
-
 	commands.MessageFilterFuncs = append(commands.MessageFilterFuncs, p.checkMessage)
 
 	eventsystem.AddHandlerAsyncLastLegacy(p, p.handleGuildMemberUpdate, eventsystem.EventGuildMemberUpdate)
@@ -288,7 +287,6 @@ func (p *Plugin) CheckTriggers(rulesets []*ParsedRuleset, ms *dstate.MemberState
 
 	OUTER:
 		for _, rule := range rs.Rules {
-
 			// Check the rule conditions
 			ctxData.CurrentRule = rule
 			if !p.CheckConditions(ctxData, rule.Conditions) {
@@ -297,7 +295,6 @@ func (p *Plugin) CheckTriggers(rulesets []*ParsedRuleset, ms *dstate.MemberState
 			ctxData.CurrentRule = nil
 
 			for _, trig := range rule.Triggers {
-
 				activated, err := checkF(trig)
 				if err != nil {
 					logger.WithError(err).WithField("part_id", trig.RuleModel.ID).Error("failed checking trigger")
@@ -309,9 +306,7 @@ func (p *Plugin) CheckTriggers(rulesets []*ParsedRuleset, ms *dstate.MemberState
 					activatedTriggers = append(activatedTriggers, trig)
 					break
 				}
-
 			}
-
 		}
 
 		if len(triggeredRules) < 1 {
@@ -387,7 +382,6 @@ func (p *Plugin) CheckConditions(ctxData *TriggeredRuleData, conditions []*Parse
 }
 
 func (p *Plugin) RulesetRulesTriggeredCondsPassed(ruleset *ParsedRuleset, triggeredRules []*ParsedRule, ctxData *TriggeredRuleData) {
-
 	loggedModels := make([]*models.AutomodTriggeredRule, len(triggeredRules))
 
 	go analytics.RecordActiveUnit(ruleset.RSModel.GuildID, p, "rule_triggered")

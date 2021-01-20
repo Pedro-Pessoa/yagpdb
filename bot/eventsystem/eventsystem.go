@@ -101,7 +101,6 @@ func EmitEvent(data *EventData, evt Event) {
 }
 
 func runEvents(h []*Handler, data *EventData) {
-
 	retryCount := 0
 	for _, v := range h {
 		retry := true
@@ -131,6 +130,7 @@ func runEvents(h []*Handler, data *EventData) {
 				if guildIDProvider, ok := data.EvtInterface.(discordgo.GuildEvent); ok {
 					guildID = guildIDProvider.GetGuildID()
 				}
+
 				if err != nil {
 					logrus.WithField("guild", guildID).WithField("evt", data.Type.String()).Errorf("%s: An error occured in a discord event handler: %+v", v.Plugin.PluginInfo().SysName, err)
 				}
@@ -138,12 +138,10 @@ func runEvents(h []*Handler, data *EventData) {
 				if retry {
 					logrus.WithField("guild", guildID).WithField("evt", data.Type.String()).Errorf("%s: Retrying event handler... %dc", v.Plugin.PluginInfo().SysName, retryCount)
 				}
-
 			} else {
 				retry = false
 				v.FLegacy(data)
 			}
-
 		}
 	}
 }
@@ -324,7 +322,6 @@ func RequireCSMW(inner HandlerFunc) HandlerFunc {
 var workers []chan *EventData
 
 func InitWorkers(totalShards int) {
-
 	workers = make([]chan *EventData, totalShards)
 	for i := range workers {
 		workers[i] = make(chan *EventData, 1000)
@@ -373,5 +370,4 @@ func handleEvent(evtData *EventData) {
 	EmitEvent(evtData, EventAllPre)
 	EmitEvent(evtData, evtData.Type)
 	EmitEvent(evtData, EventAllPost)
-
 }

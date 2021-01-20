@@ -55,6 +55,7 @@ func LoadPosts() error {
 			logrus.WithError(err).WithField("post", name).Error("Blog: Failed parsing post id")
 			continue
 		}
+
 		if parsedID >= len(posts) {
 			oldPosts := posts
 			posts = make([]*Post, parsedID+1)

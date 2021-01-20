@@ -134,6 +134,7 @@ func HandleResetReputation(w http.ResponseWriter, r *http.Request) (templateData
 	if err == nil {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyResetReputation))
 	}
+
 	return templateData, err
 }
 

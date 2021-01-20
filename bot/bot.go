@@ -206,6 +206,7 @@ func StopAllPlugins(wg *sync.WaitGroup) {
 			if !ok {
 				continue
 			}
+
 			wg.Add(1)
 			logger.Debug("Calling bot stopper for: ", v.PluginInfo().Name)
 			go stopper.StopBot(wg)
@@ -247,7 +248,6 @@ type identifyRatelimiter struct {
 func (rl *identifyRatelimiter) RatelimitIdentify(shardID int) {
 	const key = "yagpdb.gateway.identify.limit"
 	for {
-
 		if rl.checkSameBucket(shardID) {
 			return
 		}
@@ -350,10 +350,7 @@ func setupState() {
 
 	// track cache hits/misses
 	go func() {
-		lastHits := int64(0)
-		lastMisses := int64(0)
-		lastEvictionsCache := int64(0)
-		lastEvictionsMembers := int64(0)
+		var lastHits, lastMisses, lastEvictionsCache, lastEvictionsMembers int64
 
 		ticker := time.NewTicker(time.Minute)
 		for {

@@ -32,7 +32,6 @@ var (
 )
 
 func Run() {
-
 	accessToken := confAccessToken.GetString()
 	refreshToken := confRefreshToken.GetString()
 	clientID := confClientID.GetString()
@@ -97,6 +96,7 @@ func Run() {
 	ActivePoller = poller
 
 	logger.Info("Patreon integration activated as ", user.Data.ID, ": ", user.Data.Attributes.FullName)
+
 	go poller.Run()
 }
 

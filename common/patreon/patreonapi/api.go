@@ -34,6 +34,7 @@ func (c *Client) Get(path string, dataDst interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
@@ -95,5 +96,6 @@ func (c *Client) FetchMembers(campaign string, count int, cursor string) (r *Mem
 	if err == nil {
 		err = DecodeIncludes(r.Included)
 	}
+
 	return
 }

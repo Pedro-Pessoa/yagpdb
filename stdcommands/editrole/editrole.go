@@ -2,8 +2,6 @@ package editrole
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"emperror.dev/errors"
 	"github.com/jonas747/dcmd"
@@ -13,7 +11,6 @@ import (
 	"github.com/jonas747/yagpdb/common"
 	"github.com/jonas747/yagpdb/moderation"
 	"github.com/jonas747/yagpdb/stdcommands/util"
-	"golang.org/x/image/colornames"
 )
 
 var Command = &commands.YAGCommand{
@@ -33,21 +30,14 @@ var Command = &commands.YAGCommand{
 		{Switch: "hoist", Help: "Role Hoisted - 1 for true 0 for false", Type: &dcmd.IntArg{Min: 0, Max: 1}},
 		{Switch: "perms", Help: "Role Permissions - 0 to 2147483647", Type: &dcmd.IntArg{Min: 0, Max: 2147483647}},
 	},
-	RunFunc:            cmdFuncEditRole,
-	GuildScopeCooldown: 15,
+	RunFunc:             cmdFuncEditRole,
+	GuildScopeCooldown:  15,
+	RequireDiscordPerms: []int64{discordgo.PermissionManageRoles},
 }
 
 func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
-	if util.IsExecedByCC(data) {
-		if !bot.IsGuildWhiteListed(data.GS.ID) {
-			return "", errors.New("Esse comando não pode ser invocado através de um Custom Command.")
-		}
-	}
-	cID := data.CS.ID
-	if ok, err := bot.AdminOrPermMS(cID, data.MS, discordgo.PermissionManageRoles); err != nil {
-		return "Failed checking perms", err
-	} else if !ok {
-		return "You need manage roles perms to use this command", nil
+	if util.IsExecedByCC(data) && !bot.IsGuildWhiteListed(data.GS.ID) {
+		return "", errors.New("Esse comando não pode ser invocado através de um Custom Command.")
 	}
 
 	roleS := data.Args[0].Str()
@@ -65,31 +55,36 @@ func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
 	data.GS.RUnlock()
 
 	change := false
+	cID := data.CS.ID
 
 	name := role.Name
 	if n := data.Switch("name").Str(); n != "" {
 		name = limitString(n, 100)
 		change = true
 	}
+
 	color := role.Color
 	if c := data.Switch("color").Str(); c != "" {
-		parsedColor, ok := ParseColor(c)
+		parsedColor, ok := util.ParseColor(c)
 		if !ok {
 			return "Unknown color: " + c + ", can be either hex color code or name for a known color", nil
 		}
 		color = parsedColor
 		change = true
 	}
+
 	mentionable := role.Mentionable
 	if m := data.Switch("mention"); m != nil {
 		mentionable = m.Bool()
 		change = true
 	}
+
 	hoisted := role.Hoist
 	if h := data.Switch("hoist"); h != nil {
 		hoisted = h.Bool()
 		change = true
 	}
+
 	perms := role.Permissions
 	if p := data.Switch("perms"); p != nil {
 		perms = p.Int()
@@ -113,32 +108,6 @@ func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
 	}
 
 	return nil, err
-}
-
-func ParseColor(raw string) (int, bool) {
-	raw = strings.TrimPrefix(raw, "#")
-
-	// try to parse as hex color code first
-	parsed, err := strconv.ParseInt(raw, 16, 32)
-	if err == nil {
-		temp := int(parsed)
-		if temp > 16777215 {
-			temp = 16777215
-		}
-		return temp, true
-	}
-
-	// look up the color code table
-	for _, v := range colornames.Names {
-		if strings.EqualFold(v, raw) {
-			cStruct := colornames.Map[v]
-
-			color := (int(cStruct.R) << 16) | (int(cStruct.G) << 8) | int(cStruct.B)
-			return color, true
-		}
-	}
-
-	return 0, false
 }
 
 // limitstring cuts off a string at max l length, supports multi byte characters

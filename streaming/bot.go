@@ -46,7 +46,6 @@ func HandleUpdateStreaming(event *pubsub.Event) {
 }
 
 func CheckGuildFull(gs *dstate.GuildState, fetchMembers bool) {
-
 	config, err := GetConfig(gs.ID)
 	if err != nil {
 		logger.WithError(err).WithField("guild", gs.ID).Error("Failed retrieving streaming config")
@@ -60,14 +59,11 @@ func CheckGuildFull(gs *dstate.GuildState, fetchMembers bool) {
 	gs.RLock()
 
 	var wg sync.WaitGroup
-
 	slowCheck := make([]*dstate.MemberState, 0, len(gs.Members))
 
 	err = common.RedisPool.Do(radix.WithConn(KeyCurrentlyStreaming(gs.ID), func(conn radix.Conn) error {
 		for _, ms := range gs.Members {
-
 			if !ms.MemberSet || !ms.PresenceSet {
-
 				if ms.PresenceSet && fetchMembers {
 					// If were fetching members, then fetch the missing members
 					// TODO: Maybe use the gateway request for this?
@@ -110,7 +106,6 @@ func CheckGuildFull(gs *dstate.GuildState, fetchMembers bool) {
 	defer gs.RUnlock()
 	err = common.RedisPool.Do(radix.WithConn(KeyCurrentlyStreaming(gs.ID), func(conn radix.Conn) error {
 		for _, ms := range slowCheck {
-
 			if !ms.MemberSet || !ms.PresenceSet {
 				continue
 			}
@@ -165,7 +160,6 @@ func HandleGuildMemberUpdate(evt *eventsystem.EventData) (retry bool, err error)
 }
 
 func HandleGuildCreate(evt *eventsystem.EventData) {
-
 	g := evt.GuildCreate()
 
 	if !evt.HasFeatureFlag(featureFlagEnabled) {
@@ -181,6 +175,7 @@ func HandleGuildCreate(evt *eventsystem.EventData) {
 	if !config.Enabled {
 		return
 	}
+
 	gs := bot.State.Guild(true, g.ID)
 	if gs == nil {
 		logger.WithField("guild", g.ID).Error("Guild not found in state")
@@ -191,9 +186,7 @@ func HandleGuildCreate(evt *eventsystem.EventData) {
 	defer gs.RUnlock()
 
 	err = common.RedisPool.Do(radix.WithConn(KeyCurrentlyStreaming(g.ID), func(conn radix.Conn) error {
-
 		for _, ms := range gs.Members {
-
 			if !ms.MemberSet || !ms.PresenceSet {
 				continue
 			}
@@ -213,7 +206,6 @@ func HandleGuildCreate(evt *eventsystem.EventData) {
 
 func HandlePresenceUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 	p := evt.PresenceUpdate()
-
 	gs := evt.GS
 
 	if !evt.HasFeatureFlag(featureFlagEnabled) {
@@ -249,9 +241,7 @@ func CheckPresenceSparse(client radix.Client, config *Config, p *discordgo.Prese
 	// Now the real fun starts
 	// Either add or remove the stream
 	if p.Status != discordgo.StatusOffline && mainActivity != nil && mainActivity.URL != "" && mainActivity.Type == 1 {
-
 		// Streaming
-
 		if !config.MeetsRequirements(p.Roles, mainActivity.State, mainActivity.Details) {
 			RemoveStreaming(client, config, gs.ID, p.User.ID, p.Roles)
 			return nil
@@ -278,7 +268,6 @@ func CheckPresenceSparse(client radix.Client, config *Config, p *discordgo.Prese
 
 			SendStreamingAnnouncement(config, gs, ms)
 		}
-
 	} else {
 		// Not streaming
 		RemoveStreaming(client, config, gs.ID, p.User.ID, p.Roles)
@@ -311,7 +300,6 @@ func CheckPresence(client radix.Client, config *Config, ms *dstate.MemberState, 
 	// Either add or remove the stream
 	if ms.PresenceStatus != dstate.StatusOffline && ms.PresenceGame != nil && ms.PresenceGame.URL != "" && ms.PresenceGame.Type == 1 {
 		// Streaming
-
 		if !config.MeetsRequirements(ms.Roles, ms.PresenceGame.State, ms.PresenceGame.Details) {
 			RemoveStreaming(client, config, gs.ID, ms.ID, ms.Roles)
 			return nil
@@ -333,7 +321,6 @@ func CheckPresence(client radix.Client, config *Config, ms *dstate.MemberState, 
 		if config.AnnounceChannel != 0 && config.AnnounceMessage != "" {
 			SendStreamingAnnouncement(config, gs, ms)
 		}
-
 	} else {
 		// Not streaming
 		RemoveStreaming(client, config, gs.ID, ms.ID, ms.Roles)

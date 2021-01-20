@@ -55,6 +55,7 @@ var Command = &commands.YAGCommand{
 		if err = bot.SendDM(data.Msg.Author.ID, "discord.gg/"+invite.Code); err != nil {
 			return fmt.Sprintf("I failed to send the DM :(\nError: %v", err), nil
 		}
+
 		return "Sent invite expiring in 120 seconds and with 1 use in DM", nil
 	}),
 }

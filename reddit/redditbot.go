@@ -161,7 +161,6 @@ func (p *PostHandlerImpl) getConfigs(subreddit string) ([]*models.RedditFeed, er
 }
 
 func (p *PostHandlerImpl) handlePost(post *reddit.Link, filterGuild int64) error {
-
 	// createdSince := time.Since(time.Unix(int64(post.CreatedUtc), 0))
 	// logger.Printf("[%5.1fs] /r/%-15s: %s, %s", createdSince.Seconds(), post.Subreddit, post.Title, post.ID)
 
@@ -383,6 +382,7 @@ func (r RedditIdSlice) Less(i, j int) bool {
 	if err1 != nil {
 		logger.WithError(err1).Error("Failed parsing id")
 	}
+
 	if err2 != nil {
 		logger.WithError(err2).Error("Failed parsing id")
 	}

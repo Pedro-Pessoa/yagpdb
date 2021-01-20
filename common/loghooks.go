@@ -44,6 +44,7 @@ func (hook ContextHook) Fire(entry *logrus.Entry) error {
 			break
 		}
 	}
+
 	return nil
 }
 
@@ -118,8 +119,7 @@ func DiscordGatewayLogger(shardID int, connectionID int, msgL int, msgf string, 
 	}
 }
 
-type GORMLogger struct {
-}
+type GORMLogger struct{}
 
 func (g *GORMLogger) Print(v ...interface{}) {
 	logrus.WithField("stck", "...").Error(v...)
@@ -161,7 +161,6 @@ var (
 )
 
 func (t *LoggingTransport) RoundTrip(request *http.Request) (*http.Response, error) {
-
 	/* 	bucketI := request.Context().Value(discordgo.CtxKeyRatelimitBucket)
 	   	var rlBucket *discordgo.Bucket
 	   	if bucketI != nil {

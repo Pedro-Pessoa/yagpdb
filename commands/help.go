@@ -19,7 +19,6 @@ var cmdHelp = &YAGCommand{
 	Arguments: []*dcmd.ArgDef{
 		{Name: "command", Type: dcmd.String},
 	},
-
 	RunFunc:  cmdFuncHelp,
 	Cooldown: 10,
 }
@@ -81,6 +80,7 @@ Para mais informações, acesse https://docs.yagpdb.xyz e acesse o servidor de s
 	for i, v := range helpEmbeds {
 		pageLayout.WriteString(fmt.Sprintf("**Page %d**: %s\n", i+2, v.Title))
 	}
+
 	firstPage.Fields = []*discordgo.MessageEmbedField{
 		{Name: "Help pages", Value: pageLayout.String()},
 	}
@@ -93,7 +93,6 @@ Para mais informações, acesse https://docs.yagpdb.xyz e acesse o servidor de s
 	})
 	if err != nil {
 		return "Something went wrong, make sure you don't have the bot blocked!", err
-
 	}
 
 	return nil, nil

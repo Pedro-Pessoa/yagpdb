@@ -28,7 +28,6 @@ func (p *Plugin) StartFeed() {
 }
 
 func (p *Plugin) StopFeed(wg *sync.WaitGroup) {
-
 	if p.Stop != nil {
 		wg.Add(1)
 		p.Stop <- wg
@@ -39,7 +38,6 @@ func (p *Plugin) StopFeed(wg *sync.WaitGroup) {
 }
 
 func (p *Plugin) runFeedLoop() {
-
 	var currentFeeds []*models.TwitterFeed
 	var stream *twitter.Stream
 
@@ -95,7 +93,6 @@ func (p *Plugin) runFeedLoop() {
 }
 
 func (p *Plugin) runFeed(feeds []*models.TwitterFeed, stoppedCheck *int32) (*twitter.Stream, error) {
-
 	follow := make([]string, 0, len(feeds))
 
 OUTER:
@@ -126,6 +123,7 @@ OUTER:
 	}
 
 	go p.handleStream(stream, stoppedCheck)
+
 	return stream, nil
 }
 
@@ -142,6 +140,7 @@ func (p *Plugin) handleStream(stream *twitter.Stream, stoppedCheck *int32) {
 			logger.Info("Unknown event: ", m)
 		}
 	}
+
 	logger.Info("stopped listening for events")
 }
 
@@ -222,6 +221,7 @@ func createTweetEmbed(tweet *twitter.Tweet) *discordgo.MessageEmbed {
 	if tweet.FullText != "" {
 		text = tweet.FullText
 	}
+
 	if tweet.ExtendedTweet != nil && tweet.ExtendedTweet.FullText != "" {
 		text = tweet.ExtendedTweet.FullText
 	}
@@ -237,21 +237,22 @@ func createTweetEmbed(tweet *twitter.Tweet) *discordgo.MessageEmbed {
 		Color:       0x38A1F3,
 	}
 
-	if tweet.Entities != nil && len(tweet.Entities.Media) > 0 {
+	switch {
+	case tweet.Entities != nil && len(tweet.Entities.Media) > 0:
 		m := tweet.Entities.Media[0]
 		if m.Type == "photo" || m.Type == "animated_gif" {
 			embed.Image = &discordgo.MessageEmbedImage{
 				URL: m.MediaURLHttps,
 			}
 		}
-	} else if tweet.ExtendedTweet != nil && tweet.ExtendedTweet.Entities != nil && len(tweet.ExtendedTweet.Entities.Media) > 0 {
+	case tweet.ExtendedTweet != nil && tweet.ExtendedTweet.Entities != nil && len(tweet.ExtendedTweet.Entities.Media) > 0:
 		m := tweet.ExtendedTweet.Entities.Media[0]
 		if m.Type == "photo" || m.Type == "animated_gif" {
 			embed.Image = &discordgo.MessageEmbedImage{
 				URL: m.MediaURLHttps,
 			}
 		}
-	} else if embed.Image == nil && tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0 {
+	case embed.Image == nil && tweet.ExtendedEntities != nil && len(tweet.ExtendedEntities.Media) > 0:
 		m := tweet.ExtendedEntities.Media[0]
 		if m.Type == "photo" || m.Type == "animated_gif" {
 			embed.Image = &discordgo.MessageEmbedImage{

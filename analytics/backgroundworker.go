@@ -57,7 +57,6 @@ func (p *Plugin) saveTempStats() error {
 
 		var key string
 		for s.Next(&key) {
-
 			// copy it to a safe location first
 			err := c.Do(radix.Cmd(nil, "RENAME", key, "temp_"+key))
 			if err != nil {
@@ -128,5 +127,6 @@ func (p *Plugin) saveTempStats() error {
 			}
 		}
 	}
+
 	return nil
 }

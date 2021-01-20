@@ -21,8 +21,10 @@ import (
 	"github.com/volatiletech/sqlboiler/queries/qm"
 )
 
-var _ bot.BotInitHandler = (*Plugin)(nil)
-var _ commands.CommandProvider = (*Plugin)(nil)
+var (
+	_ bot.BotInitHandler       = (*Plugin)(nil)
+	_ commands.CommandProvider = (*Plugin)(nil)
+)
 
 func (p *Plugin) AddCommands() {
 	commands.AddRootCommands(p, cmds...)
@@ -202,7 +204,6 @@ var cmds = []*commands.YAGCommand{
 			}
 
 			targetID := parsed.Args[0].Int64()
-
 			const entriesPerPage = 20
 			offset := (parsed.Args[1].Int() - 1) * entriesPerPage
 
@@ -270,6 +271,7 @@ var cmds = []*commands.YAGCommand{
 				if entry.SetFixedAmount {
 					f = "#%2d: %-15s: %s set %s points to: %d"
 				}
+
 				out.WriteString(fmt.Sprintf(f, i+offset+1, entry.CreatedAt.UTC().Format("02 Jan 06 15:04"), sender, receiver, entry.Amount))
 				out.WriteRune('\n')
 			}

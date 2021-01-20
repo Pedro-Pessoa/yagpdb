@@ -76,9 +76,11 @@ var Command = &commands.YAGCommand{
 		if ipJSON.Status == "fail" {
 			return nil, commands.NewPublicError("Cannot fetch IP-location from given data: ", ipArg)
 		}
+
 		if ipJSON.Org == "" {
 			ipJSON.Org = "-"
 		}
+
 		embed := &discordgo.MessageEmbed{
 			Title:       fmt.Sprintf("Query: %s", ipJSON.Query),
 			URL:         fmt.Sprintf("https://%s/%s", ipAPIHost, ipJSON.Query),
@@ -88,6 +90,7 @@ var Command = &commands.YAGCommand{
 				URL: "https://ip-api.com/docs/static/logo.png",
 			},
 		}
+
 		return embed, nil
 	},
 }
@@ -106,5 +109,6 @@ func getData(query string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return body, nil
 }

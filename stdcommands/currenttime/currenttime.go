@@ -41,6 +41,7 @@ func cmdFuncCurrentTime(data *dcmd.Data) (interface{}, error) {
 				return "Unknown timezone :(", err
 			}
 		}
+
 		return now.In(location).Format(format), nil
 	} else if data.Args[1].Value != nil {
 		location := time.FixedZone("", data.Args[1].Int()*60*60)

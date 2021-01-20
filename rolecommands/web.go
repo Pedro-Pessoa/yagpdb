@@ -218,7 +218,6 @@ func HandleNewCommand(w http.ResponseWriter, r *http.Request) (web.TemplateData,
 
 func HandleUpdateCommand(w http.ResponseWriter, r *http.Request) (tmpl web.TemplateData, err error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	formCmd := r.Context().Value(common.ContextKeyParsedForm).(*FormCommand)
 
 	cmd, err := models.FindRoleCommandG(r.Context(), formCmd.ID)
@@ -241,13 +240,13 @@ func HandleUpdateCommand(w http.ResponseWriter, r *http.Request) (tmpl web.Templ
 	}
 
 	if groupChanged {
-
 		// validate group change
 		if formCmd.Group != -1 {
 			group, err := models.FindRoleGroupG(r.Context(), formCmd.Group)
 			if err != nil {
 				return tmpl, err
 			}
+
 			if group.GuildID != g.ID {
 				return tmpl.AddAlerts(web.ErrorAlert("That's not your group")), nil
 			}
@@ -271,6 +270,7 @@ func HandleUpdateCommand(w http.ResponseWriter, r *http.Request) (tmpl web.Templ
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedCommand, &cplogs.Param{Type: cplogs.ParamTypeString, Value: cmd.Name}))
 		sendEvictMenuCachePubSub(g.ID)
 	}
+
 	return
 }
 
@@ -350,7 +350,6 @@ func HandleMoveCommand(w http.ResponseWriter, r *http.Request) (web.TemplateData
 
 func HandleDeleteRoleCommands(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	idParsed, _ := strconv.ParseInt(r.FormValue("group"), 10, 64)
 
 	var qmRoleGroupID qm.QueryMod
@@ -359,6 +358,7 @@ func HandleDeleteRoleCommands(w http.ResponseWriter, r *http.Request) (web.Templ
 	} else {
 		qmRoleGroupID = qm.Where("role_group_id=?", idParsed)
 	}
+
 	result, err := models.RoleCommands(qm.Where("guild_id=?", g.ID), qmRoleGroupID).DeleteAll(r.Context(), common.PQ)
 	if err != nil {
 		return nil, err
@@ -378,8 +378,8 @@ func HandleDeleteRoleCommands(w http.ResponseWriter, r *http.Request) (web.Templ
 
 func HandleRemoveCommand(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	idParsed, _ := strconv.ParseInt(r.FormValue("ID"), 10, 64)
+
 	_, err := models.RoleCommands(qm.Where("guild_id=?", g.ID), qm.Where("id=?", idParsed)).DeleteAll(r.Context(), common.PQ)
 	if err != nil {
 		return nil, err
@@ -393,7 +393,6 @@ func HandleRemoveCommand(w http.ResponseWriter, r *http.Request) (web.TemplateDa
 
 func HandleNewGroup(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	form := r.Context().Value(common.ContextKeyParsedForm).(*FormGroup)
 	form.Name = strings.TrimSpace(form.Name)
 
@@ -436,7 +435,6 @@ func HandleNewGroup(w http.ResponseWriter, r *http.Request) (web.TemplateData, e
 
 func HandleUpdateGroup(w http.ResponseWriter, r *http.Request) (tmpl web.TemplateData, err error) {
 	g, tmpl := web.GetBaseCPContextData(r.Context())
-
 	formGroup := r.Context().Value(common.ContextKeyParsedForm).(*FormGroup)
 
 	group, err := models.RoleGroups(qm.Where("guild_id=?", g.ID), qm.Where("id=?", formGroup.ID)).OneG(r.Context())
@@ -473,8 +471,8 @@ func HandleUpdateGroup(w http.ResponseWriter, r *http.Request) (tmpl web.Templat
 
 func HandleRemoveGroup(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, _ := web.GetBaseCPContextData(r.Context())
-
 	idParsed, _ := strconv.ParseInt(r.FormValue("ID"), 10, 64)
+
 	_, err := models.RoleGroups(qm.Where("guild_id=?", g.ID), qm.Where("id=?", idParsed)).DeleteAll(r.Context(), common.PQ)
 	if err == nil {
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyRemovedGroup, &cplogs.Param{Type: cplogs.ParamTypeInt, Value: idParsed}))

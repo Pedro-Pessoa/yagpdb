@@ -20,7 +20,6 @@ var Command = &commands.YAGCommand{
 	HideFromCommandsPage: true,
 	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
-
 		rlEvt := &discordgo.RateLimit{
 			URL: "Wew",
 			TooManyRequests: &discordgo.TooManyRequests{

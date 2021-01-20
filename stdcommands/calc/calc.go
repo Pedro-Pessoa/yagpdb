@@ -27,12 +27,10 @@ var Command = &commands.YAGCommand{
 	Arguments: []*dcmd.ArgDef{
 		{Name: "Expression", Type: dcmd.String},
 	},
-
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		computeLock.Lock()
 		defer computeLock.Unlock()
-		toCompute := data.Args[0].Str()
-		toCompute = replacer.Replace(toCompute)
+		toCompute := replacer.Replace(data.Args[0].Str())
 		result, err := compute.Evaluate(toCompute)
 		if err != nil {
 			return err, err

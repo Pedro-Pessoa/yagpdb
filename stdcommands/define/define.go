@@ -18,7 +18,6 @@ var Command = &commands.YAGCommand{
 		{Name: "Topic", Type: dcmd.String},
 	},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-
 		qResp, err := urbandictionary.Query(data.Args[0].Str())
 		if err != nil {
 			return "Failed querying :(", err

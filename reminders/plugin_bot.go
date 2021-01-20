@@ -17,10 +17,12 @@ import (
 	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
 )
 
-var logger = common.GetPluginLogger(&Plugin{})
+var (
+	logger = common.GetPluginLogger(&Plugin{})
 
-var _ bot.BotInitHandler = (*Plugin)(nil)
-var _ commands.CommandProvider = (*Plugin)(nil)
+	_ bot.BotInitHandler       = (*Plugin)(nil)
+	_ commands.CommandProvider = (*Plugin)(nil)
+)
 
 func (p *Plugin) AddCommands() {
 	commands.AddRootCommands(p, cmds...)
@@ -81,22 +83,16 @@ var cmds = []*commands.YAGCommand{
 			out := "Your reminders:\n"
 			out += stringReminders(currentReminders, false)
 			out += "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above"
+
 			return out, nil
 		},
 	},
 	{
-		CmdCategory: commands.CategoryTool,
-		Name:        "CReminders",
-		Description: "Lists reminders in channel, only users with 'manage server' permissions can use this.",
+		CmdCategory:         commands.CategoryTool,
+		Name:                "CReminders",
+		Description:         "Lists reminders in channel, only users with 'manage server' permissions can use this.",
+		RequireDiscordPerms: []int64{discordgo.PermissionManageChannels},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-			ok, err := bot.AdminOrPermMS(parsed.CS.ID, parsed.MS, discordgo.PermissionManageChannels)
-			if err != nil {
-				return nil, err
-			}
-			if !ok {
-				return "You do not have access to this command (requires manage channel permission)", nil
-			}
-
 			currentReminders, err := GetChannelReminders(parsed.CS.ID)
 			if err != nil {
 				return nil, err
@@ -105,6 +101,7 @@ var cmds = []*commands.YAGCommand{
 			out := "Reminders in this channel:\n"
 			out += stringReminders(currentReminders, true)
 			out += "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above"
+
 			return out, nil
 		},
 	},
@@ -118,13 +115,13 @@ var cmds = []*commands.YAGCommand{
 			{Name: "ID", Type: dcmd.Int},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-
 			var reminder Reminder
 			err := common.GORM.Where(parsed.Args[0].Int()).First(&reminder).Error
 			if err != nil {
 				if err == gorm.ErrRecordNotFound {
 					return "No reminder by that id found", nil
 				}
+
 				return "Error retrieving reminder", err
 			}
 
@@ -189,12 +186,12 @@ func stringReminders(reminders []*Reminder, displayUsernames bool) string {
 			out += fmt.Sprintf("**%d**: %s: '%s' - %s from now (%s)\n", v.ID, username, limitString(v.Message), timeFromNow, tStr)
 		}
 	}
+
 	return out
 }
 
 func checkUserScheduledEvent(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
 	// !important! the evt.GuildID can be 1 in cases where it was migrated from the legacy scheduled event system
-
 	userID := *data.(*int64)
 
 	reminders, err := GetUserReminders(userID)

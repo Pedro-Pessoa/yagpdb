@@ -30,9 +30,10 @@ var Command = &commands.YAGCommand{
 				Name        string
 				Place       int64
 			}
-			var serverID int64
+
 			var position serverIDQuery
-			serverID = data.Switch("id").Int64()
+			serverID := data.Switch("id").Int64()
+
 			const q = `SELECT member_count, name, row_number FROM (SELECT id, member_count, name, left_at, row_number() OVER (ORDER BY member_count DESC) FROM joined_guilds WHERE left_at IS NULL) AS total WHERE id=$1 AND left_at IS NULL;`
 			err := common.PQ.QueryRow(q, serverID).Scan(&position.MemberCount, &position.Name, &position.Place)
 			return fmt.Sprintf("```Server with ID %d is placed:\n#%-2d: %-25s (%d members)\n```", serverID, position.Place, position.Name, position.MemberCount), err
@@ -47,6 +48,7 @@ var Command = &commands.YAGCommand{
 		for k, v := range results {
 			out += fmt.Sprintf("\n#%-2d: %-25s (%d members)", k+skip+1, v.Name, v.MemberCount)
 		}
+
 		return "Top servers the bot is on:\n" + out + "\n```", nil
 	},
 }

@@ -45,5 +45,6 @@ func GetGeneralConfig(guildID int64) (*GeneralConfig, error) {
 	if err != nil {
 		logger.WithError(err).WithField("guild", guildID).Error("failed retreiving autorole config")
 	}
+
 	return conf, err
 }

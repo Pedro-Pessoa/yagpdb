@@ -53,6 +53,7 @@ func RandStringRunes(n int) string {
 	for i := range b {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
+
 	return string(b)
 }
 
@@ -108,7 +109,6 @@ func (p *Plugin) createVerificationSession(userID, guildID int64) (string, error
 }
 
 func (p *Plugin) startVerificationProcess(conf *models.VerificationConfig, guildID int64, target *discordgo.User) {
-
 	token, err := p.createVerificationSession(target.ID, guildID)
 	if err != nil {
 		logger.WithError(err).WithField("user", target.ID).WithField("guild", guildID).Error("failed creating verification session")
@@ -157,9 +157,11 @@ func (p *Plugin) startVerificationProcess(conf *models.VerificationConfig, guild
 	if err != nil {
 		logger.WithError(err).WithField("guild", gs.ID).WithField("user", ms.ID).Error("failed clearing past scheduled warn/kick events.")
 	}
+
 	if conf.WarnUnverifiedAfter > 0 && conf.WarnMessage != "" {
 		_ = scheduledevents2.ScheduleEvent("verification_user_warn", guildID, time.Now().Add(time.Minute*time.Duration(conf.WarnUnverifiedAfter)), evt)
 	}
+
 	if conf.KickUnverifiedAfter > 0 {
 		_ = scheduledevents2.ScheduleEvent("verification_user_kick", guildID, time.Now().Add(time.Minute*time.Duration(conf.KickUnverifiedAfter)), evt)
 	}
@@ -169,7 +171,6 @@ func (p *Plugin) startVerificationProcess(conf *models.VerificationConfig, guild
 
 func ScheduledEventMW(innerHandler func(ms *dstate.MemberState, guildID int64, conf *models.VerificationConfig, rawData interface{}) (bool, error)) func(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
 	return func(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
-
 		userID := int64(0)
 
 		switch t := data.(type) {
@@ -197,7 +198,6 @@ func ScheduledEventMW(innerHandler func(ms *dstate.MemberState, guildID int64, c
 
 		return innerHandler(ms, evt.GuildID, conf, data)
 	}
-
 }
 
 func (p *Plugin) handleUserVerifiedScheduledEvent(ms *dstate.MemberState, guildID int64, conf *models.VerificationConfig, rawData interface{}) (retry bool, err error) {
@@ -292,7 +292,6 @@ func (p *Plugin) clearScheduledEvents(ctx context.Context, guildID, userID int64
 }
 
 func (p *Plugin) findIPConflicts(guildID int64, userID int64, ip string) ([]*discordgo.User, error) {
-
 	conflicts, err := models.VerifiedUsers(models.VerifiedUserWhere.GuildID.EQ(guildID), models.VerifiedUserWhere.IP.EQ(ip)).AllG(context.Background())
 	if err != nil {
 		return nil, err
@@ -362,7 +361,6 @@ func (p *Plugin) handleWarnUserVerification(ms *dstate.MemberState, guildID int6
 }
 
 func (p *Plugin) sendWarning(ms *dstate.MemberState, gs *dstate.GuildState, token string, conf *models.VerificationConfig) error {
-
 	msg := conf.WarnMessage
 	if strings.TrimSpace(msg) == "" {
 		return nil // no message to send
@@ -386,7 +384,6 @@ func (p *Plugin) sendWarning(ms *dstate.MemberState, gs *dstate.GuildState, toke
 }
 
 func (p *Plugin) handleKickUser(ms *dstate.MemberState, guildID int64, conf *models.VerificationConfig, rawData interface{}) (retry bool, err error) {
-
 	dataCast := rawData.(*VerificationEventData)
 
 	exists, err := models.VerificationSessions(
@@ -489,6 +486,7 @@ func wasRecentlyBannedByVerification(guildID int64, userID int64) bool {
 		if v.GuildID != guildID || v.UserID != userID {
 			continue
 		}
+
 		if time.Since(v.T) > time.Second*10 {
 			continue
 		}

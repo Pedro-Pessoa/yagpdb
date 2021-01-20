@@ -13,6 +13,7 @@ func GetCommandPrefixRedis(guild int64) (string, error) {
 	if err == nil && prefix == "" {
 		prefix = DefaultCommandPrefix()
 	}
+
 	return prefix, err
 }
 
@@ -30,5 +31,6 @@ func GetPrefixIgnoreError(guild int64) string {
 	if featureflags.GuildHasFlagOrLogError(guild, "commands_has_custom_prefix") {
 		prefix, _ = GetCommandPrefixRedis(guild)
 	}
+
 	return prefix
 }

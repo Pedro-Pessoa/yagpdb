@@ -30,12 +30,10 @@ const (
 
 var (
 	confAllGuildsPremium = config.RegisterOption("yagpdb.premium.all_guilds_premium", "All servers have premium", false)
+	logger               = common.GetPluginLogger(&Plugin{})
 )
 
-var logger = common.GetPluginLogger(&Plugin{})
-
-type Plugin struct {
-}
+type Plugin struct{}
 
 func (p *Plugin) PluginInfo() *common.PluginInfo {
 	return &common.PluginInfo{
@@ -384,6 +382,7 @@ func AttachSlotToGuild(ctx context.Context, slotID int64, userID int64, guildID 
 	if err != nil {
 		return errors.WithStackIf(err)
 	}
+
 	return err
 }
 

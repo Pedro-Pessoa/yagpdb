@@ -14,7 +14,6 @@ var Command = &commands.YAGCommand{
 	Description: "Cat Facts",
 
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		cf := Catfacts[rand.Intn(len(Catfacts))]
-		return cf, nil
+		return Catfacts[rand.Intn(len(Catfacts))], nil
 	},
 }

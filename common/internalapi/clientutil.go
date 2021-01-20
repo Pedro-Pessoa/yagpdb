@@ -47,6 +47,7 @@ func GetWithAddress(addr string, url string, dest interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
@@ -89,10 +90,12 @@ func PostWithAddress(serverAddr string, url string, bodyData interface{}, dest i
 			return err
 		}
 	}
+
 	resp, err := http.Post("http://"+serverAddr+"/"+url, "application/json", &bodyBuf)
 	if err != nil {
 		return err
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {

@@ -147,7 +147,6 @@ func HandleLogsCP(w http.ResponseWriter, r *http.Request) (web.TemplateData, err
 func HandleLogsCPSaveGeneral(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	ctx := r.Context()
 	g, tmpl := web.GetBaseCPContextData(ctx)
-
 	form := ctx.Value(common.ContextKeyParsedForm).(*ConfigFormData)
 
 	config := &models.GuildLoggingConfig{
@@ -165,8 +164,8 @@ func HandleLogsCPSaveGeneral(w http.ResponseWriter, r *http.Request) (web.Templa
 	if err == nil {
 		bot.EvictGSCache(g.ID, CacheKeyConfig)
 		go cplogs.RetryAddEntry(web.NewLogEntryFromContext(r.Context(), panelLogKeyUpdatedSettings))
-
 	}
+
 	return tmpl, err
 }
 
@@ -197,7 +196,6 @@ func HandleLogsCPDelete(w http.ResponseWriter, r *http.Request) (web.TemplateDat
 
 func CheckCanAccessLogs(w http.ResponseWriter, r *http.Request, config *models.GuildLoggingConfig) bool {
 	_, tmpl := web.GetBaseCPContextData(r.Context())
-
 	isAdmin, _ := web.IsAdminRequest(r.Context(), r)
 
 	// check if were allowed access to logs on this server
@@ -230,7 +228,6 @@ const (
 func LogFetchMW(inner web.CustomHandlerFunc, legacy bool) web.CustomHandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) interface{} {
 		g, tmpl := web.GetBaseCPContextData(r.Context())
-
 		idString := pat.Param(r, "id")
 
 		parsed, err := strconv.ParseInt(idString, 10, 64)
@@ -289,11 +286,12 @@ func HandleLogsHTML(w http.ResponseWriter, r *http.Request) interface{} {
 	isAdmin, _ := web.IsAdminRequest(r.Context(), r)
 
 	var canViewDeleted = false
-	if isAdmin && !web.GetIsReadOnly(r.Context()) {
+	switch {
+	case isAdmin && !web.GetIsReadOnly(r.Context()):
 		canViewDeleted = true
-	} else if config.EveryoneCanViewDeleted.Bool {
+	case config.EveryoneCanViewDeleted.Bool:
 		canViewDeleted = true
-	} else if config.ManageMessagesCanViewDeleted.Bool && !canViewDeleted {
+	case config.ManageMessagesCanViewDeleted.Bool && !canViewDeleted:
 		canViewDeleted = web.HasPermissionCTX(r.Context(), discordgo.PermissionManageMessages)
 	}
 

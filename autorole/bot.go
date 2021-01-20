@@ -102,7 +102,6 @@ func HandleUpdateAutoroles(event *pubsub.Event) {
 // }
 
 func saveGeneral(guildID int64, config *GeneralConfig) {
-
 	err := common.SetRedisJson(KeyGeneral(guildID), config)
 	if err != nil {
 		logger.WithError(err).Error("Failed saving autorole config")
@@ -249,6 +248,7 @@ func assignFromGuildChunk(guildID int64, config *GeneralConfig, members []*disco
 		if err != nil {
 			logger.WithError(err).WithField("user", m.User.ID).WithField("guild", guildID).Error("failed adding autorole role")
 		}
+
 		if disabled {
 			break
 		}

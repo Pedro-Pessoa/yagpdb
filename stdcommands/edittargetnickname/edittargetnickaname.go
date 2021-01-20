@@ -22,6 +22,7 @@ var Command = &commands.YAGCommand{
 		{Name: "Usuário", Type: dcmd.UserID},
 		{Name: "Nick", Type: dcmd.String},
 	},
+	RequireDiscordPerms: []int64{discordgo.PermissionManageNicknames},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		if !bot.IsGuildWhiteListed(data.GS.ID) {
 			return "Esse servidor não pode usar esse comando.", nil
@@ -29,12 +30,6 @@ var Command = &commands.YAGCommand{
 
 		if util.IsExecedByCC(data) {
 			return "O comando EditTargetNickname não pode ser usado através de um CC.", nil
-		}
-
-		if ok, err := bot.AdminOrPermMS(data.CS.ID, data.MS, discordgo.PermissionManageNicknames); err != nil {
-			return "Falha ao checar as permissões", err
-		} else if !ok {
-			return "Você precisa da permissão de gerenciar nicknames para usar esse comando!", nil
 		}
 
 		ms, err := bot.GetMember(data.GS.ID, data.Args[0].Int64())
