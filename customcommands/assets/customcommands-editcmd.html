@@ -46,7 +46,7 @@
                     {{$g := .ActiveGuild}}
                     {{$dot := .}}
                     <form class="form-horizontal" method="post"
-                        action="/manage/{{$guild}}/customcommands/commands/{{.CC.LocalID}}/update" data-async-form>
+                        action="/manage/{{$guild}}/customcommands/commands/{{.CC.LocalID}}/update" data-async-form id="tidForm">
                         <button type="submit" class="hidden"
                             formaction="/manage/{{$guild}}/customcommands/commands/{{.CC.LocalID}}/update"
                             data-async-form-alertsonly></button>
@@ -251,31 +251,52 @@
                         <div class="row mb-2">
                             <div class="col-lg-12">
                                 <div class="form-group">
-                                    <label for="responses">Response (<span
-                                            class="cc-length-counter">x</span>/10000)</label>
+                                    <div style="margin: 0 3px 7px 0px">Editor theme:
+                                        <select onchange="selectTheme()" id=themeSelect style="background-color: #282828;color:#a1a1a1;border-color:#a1a1a1;">
+                                            <option selected>no CodeMirror</option>
+                                            <option>ayu-dark</option>
+                                            <option>bespin</option>
+                                            <option>cobalt</option>
+                                            <option>darcula</option>
+                                            <option>gruvbox-dark</option>
+                                            <option>mbo</option>
+                                            <option>monokai</option>
+                                            <option>panda-syntax</option>
+                                            <option>vibrant-ink</option>
+                                            <option>yonce</option>
+                                        </select>
+                                        <span style="margin-left:5px">Auto-close brackets:<i style="position: relative; top: -0.5em; font-size: 75%;"class="fas fa-question-circle" title="If CodeMirror enabled"></i> &nbsp;<select onchange="selectBrackets()" id=bracketsSelect style="background-color: #282828;color:#a1a1a1;border-color:#a1a1a1;"><option selected>disabled</option><option>enabled</option></select></span><span style="margin-left:5px"><i>(alt+shift+s is quicksave)</i></span>
+                                    </div>
+                                    <label for="responses">Response (<span class="cc-length-counter">x</span>/10000)</label>
+
                                     <!-- Use .btn-add for simplicity and let the page loader adjust. -->
+
                                     {{range .CC.Responses}}
+                                    <div class="entry input-group input-group-sm">
+                                            <div class="form-control response-text-area tab-textbox withScrollbar">
+                                                <textarea class="tid-textarea form-control response-text-area tab-textbox withScrollbar" name="responses"
+                                                    placeholder="Command body here" rows="5" id="tid-textarea" onfocus="textAreaWrapper(this)" oninput="onCCChanged(this)">{{- . -}}
+                                                </textarea>
+                                            </div>
+                                            <span class="input-group-append">
+                                                <button class="btn btn-success btn-add btn-circle" onclick="textAreaWrapper(this),editorToTextArea()" type="button">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </span>
+                                    </div>
+
+                                    {{else}}{{/* quite redundant */}}
                                     <div class="entry input-group  input-group-sm">
-                                        <textarea class="form-control response-text-area tab-textbox" name="responses"
-                                            placeholder="Command body here" rows="5"
-                                            oninput="onCCChanged(this)">{{.}}</textarea>
+
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox" name="responses"
+                                            placeholder="Command body here" rows="5"></textarea>
                                         <span class="input-group-append">
                                             <button class="btn btn-success btn-add btn-circle" type="button">
                                                 <i class="fas fa-plus"></i>
                                             </button>
                                         </span>
                                     </div>
-                                    {{else}}
-                                    <div class="entry input-group  input-group-sm">
-                                        <textarea class="form-control response-text-area tab-textbox" name="responses"
-                                            placeholder="Command body here" rows="5"
-                                            oninput="onCCChanged(this)"></textarea>
-                                        <span class="input-group-append">
-                                            <button class="btn btn-success btn-add btn-circle" type="button">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </span>
-                                    </div>
+
                                     {{end}}
                                     <a class="mb-1 mt-1 mr-1 modal-basic btn btn-info btn-sm"
                                         href="#cc-help-modal">Info</a>
@@ -351,8 +372,10 @@
                         </div>
 
                         <div class="row mt-4">
+                            <script type="text/javascript" src="/static/js/shortcuts.js"></script>
+                            <script>shortcut.add("shift+alt+s",function(){document.getElementById('tidSubmitSave').click();});</script>
                             <div class="col">
-                                <button type="submit" class="btn btn-success btn-block"
+                                <button type="submit" id="tidSubmitSave" class="btn btn-success btn-block"
                                     formaction="/manage/{{$guild}}/customcommands/commands/{{.CC.LocalID}}/update"
                                     data-async-form-alertsonly>Save</button>
                             </div>
@@ -381,8 +404,8 @@
                     </p>
                     <p class="help-block">Execute bot commands using
                         <code>{{`{{exec "command" "arg1" "arg2"}}`}}</code>, Example:
-                        <code>{{"{{exec \"role\" \"yagpdb\"}}"}}</code> will be the same as the user typing
-                        <code>(mention or prefix) role yagpdb</code></p>
+                        <code>{{"{{exec \"role\" \"tid\"}}"}}</code> will be the same as the user typing
+                        <code>(mention or prefix) role tid</code></p>
                     <p class="help-block">Arguments are available in a string array: <code>.CmdArgs</code><br>
                         Access
                         single arguments by index using <code>{{"{{index .CmdArgs 0}}"}}</code><br>Get the number of
@@ -394,11 +417,11 @@
                         See the <a href="https://docs.yagpdb.xyz/templates" target="_blank">templating</a> and <a
                             href="https://docs.yagpdb.xyz/commands/custom-commands" target="_blank">custom
                             command</a>
-                        docs for more info and join the support server if you have further questions. Custom
+                        docs for more info and join the Tid Bot's support server if you have further questions. Custom
                         commands
-                        for yagpdb are rather complicated for the time being.</p>
+                        for yagpdb/tidbot are rather complicated for the time being.</p>
                     <p class="help-block">
-                        YAGPDB will pick one message at random from all configured responses.
+                        Tid Bot will pick one message at random from all configured responses.
                     </p>
                 </div>
             </div>
@@ -416,6 +439,23 @@
 <script src="/static/vendor/tln/tln.min.js"></script>
 <link rel="stylesheet" href="/static/vendor/tln/tln.min.css">
 
+<script src="/static/codemirror/lib/codemirror.js"></script>
+<link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+
+<script src="/static/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/static/codemirror/mode/go/go.js"></script>
+
+<link rel="stylesheet" href="/static/codemirror/theme/ayu-dark.css">
+<link rel="stylesheet" href="/static/codemirror/theme/bespin.css">
+<link rel="stylesheet" href="/static/codemirror/theme/cobalt.css">
+<link rel="stylesheet" href="/static/codemirror/theme/darcula.css">
+<link rel="stylesheet" href="/static/codemirror/theme/gruvbox-dark.css">
+<link rel="stylesheet" href="/static/codemirror/theme/mbo.css">
+<link rel="stylesheet" href="/static/codemirror/theme/monokai.css">
+<link rel="stylesheet" href="/static/codemirror/theme/panda-syntax.css">
+<link rel="stylesheet" href="/static/codemirror/theme/vibrant-ink.css">
+<link rel="stylesheet" href="/static/codemirror/theme/yonce.css">
+
 <script type="text/javascript">
     function isTextTrigger(t) {
         return t === "cmd" ||
@@ -427,7 +467,7 @@
 
     function triggerTypeChanged() {
         var dropdown = $("#trigger-type-dropdown")
-        console.log("wewwooewewooo", dropdown.val());
+        console.log("Tid Bot is awesome!", dropdown.val());
         if (dropdown.val() === "interval_hours" || dropdown.val() === "interval_minutes") {
             // Interval triggers
 
@@ -487,15 +527,68 @@
         triggerTypeChanged();
     })
 
-    function onCCChanged(textArea) {
-        var textAreas = textArea.parentElement.parentElement.querySelectorAll("textarea")
+    var textAreaTheme = "no CodeMirror"
+    var bracketsEnabled = false
+    var input = document.getElementById("themeSelect");
+    var bracketsInput = document.getElementById("bracketsSelect");
 
+    function selectTheme() {
+        textAreaTheme = input.options[input.selectedIndex].textContent;
+        location.hash = "#" + textAreaTheme;
+    }
+
+    function selectBrackets() {
+        if (bracketsInput.options[bracketsInput.selectedIndex].textContent == "enabled") {
+            bracketsEnabled = true;
+            return
+        }
+        bracketsEnabled = false;
+    }
+
+    function editorToTextArea(){
+        if (typeof editor !== 'undefined' && editor){
+            editor.toTextArea();
+            return
+        }
+        console.log("no CodeMirror, yet");
+        return
+    }
+    var choice = (location.hash && location.hash.slice(1)) ||
+               (document.location.search &&
+                decodeURIComponent(document.location.search.slice(1)));
+    if (choice) {
+        input.value = choice;
+        textAreaTheme = choice;
+    }
+
+    function textAreaWrapper(textAreaWrapperValue){
+    if (textAreaTheme == "no CodeMirror") {
+        return
+    }
+    editor = CodeMirror.fromTextArea(textAreaWrapperValue,{
+        mode: "go",
+        //tabSize: 4,
+        autoCloseBrackets: bracketsEnabled,
+        theme: textAreaTheme,
+        lineNumbers:true,
+        lineWrapping:true,
+        viewportMargin: Infinity
+    });
+    editor.setSize("100%",null);
+    editor.on("focus",function() {onCCChanged(document.querySelector('.CodeMirror'),editor)});
+    editor.on("change",function() {editor.save(),onCCChanged(document.querySelector('.CodeMirror'),editor)});
+    editor.on("blur",function() {editor.save(),editor.toTextArea()});
+    }
+
+    function onCCChanged(textArea,editor) {
+        var textAreas = textArea.parentElement.parentElement.parentElement.querySelectorAll('textarea.tid-textarea');
         var combinedLength = 0;
+
         textAreas.forEach(function (elem) {
             combinedLength += elem.value.length;
         })
 
-        var display = textArea.parentElement.parentElement.querySelector(".cc-length-counter")
+        var display = textArea.parentElement.parentElement.parentElement.querySelector(".cc-length-counter")
         display.textContent = combinedLength
 
         if (combinedLength > 10000) {
@@ -512,3 +605,5 @@
 {{template "cp_footer" .}}
 
 {{end}}
+
+<!-- Code mirror addition (themes, syntax hl, lines numbering) is from PAGST -->
