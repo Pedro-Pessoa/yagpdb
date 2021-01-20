@@ -20,7 +20,6 @@ const flushTresholdMinutes = 5
 var _ backgroundworkers.BackgroundWorkerPlugin = (*ScheduledEvents)(nil)
 
 func (p *ScheduledEvents) RunBackgroundWorker() {
-
 	go p.SecondaryCleaner()
 
 	checkNewEvents := time.NewTicker(time.Minute)
@@ -36,6 +35,7 @@ func (p *ScheduledEvents) RunBackgroundWorker() {
 			if err != nil {
 				logger.WithError(err).Error("failed moving scheduled events into redis")
 			}
+
 			logger.Info("DONE flushing new events...")
 		}
 	}
@@ -60,6 +60,7 @@ func (p *ScheduledEvents) SecondaryCleaner() {
 			if err != nil {
 				logger.WithError(err).Error("failed cleaning up recent scheduled events")
 			}
+
 			logger.Info("DONE cleaning up recent events...")
 		}
 	}
@@ -84,7 +85,7 @@ func runFlushNewEvents() error {
 	err = common.RedisPool.Do(radix.WithConn("a", func(c radix.Conn) error {
 		for _, v := range eventsTriggeringSoon {
 			isDone := false
-			c.Do(radix.FlatCmd(&isDone, "SISMEMBER", "recently_done_scheduled_events", v.ID))
+			_ = c.Do(radix.FlatCmd(&isDone, "SISMEMBER", "recently_done_scheduled_events", v.ID))
 			if isDone {
 				continue
 			}
@@ -159,6 +160,7 @@ func cleanupRecent() error {
 			return err
 		}
 		i += 100
+
 		if i >= len(recent) {
 			break
 		}

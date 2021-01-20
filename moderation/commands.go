@@ -1196,14 +1196,13 @@ func FindRole(gs *dstate.GuildState, roleS string) *discordgo.Role {
 	parsedNumber, parseErr := strconv.ParseInt(roleS, 10, 64)
 	var name string
 	var id int64
-	var err error
 
 	if parseErr != nil { // it's a mention or a name
 		if strings.HasPrefix(roleS, "<@&") && strings.HasSuffix(roleS, ">") && len(roleS) > 4 {
-			id, err = strconv.ParseInt(roleS[3:len(roleS)-1], 10, 64) // if no error, it's the id
-			if err != nil {                                           // it's the name
-				name = roleS
-			}
+			id, _ = strconv.ParseInt(roleS[3:len(roleS)-1], 10, 64) // parse the id
+		} else {
+			// it's a name afterall
+			name = roleS
 		}
 	} else {
 		id = parsedNumber

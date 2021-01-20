@@ -5,6 +5,8 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jonas747/dcmd"
+	"github.com/jonas747/discordgo"
+	"github.com/jonas747/dstate/v2"
 	"github.com/jonas747/yagpdb/commands"
 	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/jonas747/yagpdb/tibia"
@@ -170,6 +172,86 @@ var TibiaGetGuild = &commands.YAGCommand{
 	Description: "Retorna a guild deste servidor.",
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		out, err := tibia.GetServerGuild(data.GS.ID)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	},
+}
+
+var TibiaCreateNewsFeed = &commands.YAGCommand{
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "CreateNewsFeed",
+	Aliases:             []string{"cnf"},
+	Description:         "Cria o news feed.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
+	Arguments: []*dcmd.ArgDef{
+		{Name: "Canal para enviar as notícias", Type: dcmd.Channel},
+	},
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		cID := data.Msg.ChannelID
+		if data.Args[0].Value != nil {
+			cID = data.Args[0].Value.(*dstate.ChannelState).ID
+		}
+
+		out, err := tibia.CreateNewsFeed(data.GS.ID, cID)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	},
+}
+
+var TibiaEnableNewsFeed = &commands.YAGCommand{
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "EnableNewsFeed",
+	Aliases:             []string{"enf"},
+	Description:         "Habilita o news feed.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		out, err := tibia.EnableNewsFeed(data.GS.ID)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	},
+}
+
+var TibiaDisableNewsFeed = &commands.YAGCommand{
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "DisableNewsFeed",
+	Aliases:             []string{"dnf"},
+	Description:         "Desabilita o news feed.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		out, err := tibia.DisableNewsFeed(data.GS.ID)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	},
+}
+
+var TibiaChangeNewsFeedChannel = &commands.YAGCommand{
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "ChangeNewsFeedChannel",
+	Aliases:             []string{"cnfc"},
+	Description:         "Troca o canal que as noticias do Tibia são enviadas.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
+	Arguments: []*dcmd.ArgDef{
+		{Name: "Canal para enviar as notícias", Type: dcmd.Channel},
+	},
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		cID := data.Msg.ChannelID
+		if data.Args[0].Value != nil {
+			cID = data.Args[0].Value.(*dstate.ChannelState).ID
+		}
+
+		out, err := tibia.ChangeNewsFeedChannel(data.GS.ID, cID)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}

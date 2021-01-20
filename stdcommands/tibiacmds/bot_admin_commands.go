@@ -165,12 +165,14 @@ var AdminTrackHuntedCommand = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
+
 		isPremium, _ := premium.IsGuildPremium(server)
-		a, err := tibia.TrackChar(data.Args[0].Str(), data.GS.ID, data.GS.Guild.MemberCount, isPremium, true)
+		out, err := tibia.TrackChar(data.Args[0].Str(), data.GS.ID, data.GS.Guild.MemberCount, isPremium, true)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -192,11 +194,13 @@ var AdminUntrackCommand = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
-		a, err := tibia.UnTrackChar(data.Args[0].Str(), server, false, false)
+
+		out, err := tibia.UnTrackChar(data.Args[0].Str(), server, false, false)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -218,11 +222,13 @@ var AdminUntrackHuntedCommand = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
-		a, err := tibia.UnTrackChar(data.Args[0].Str(), server, true, false)
+
+		out, err := tibia.UnTrackChar(data.Args[0].Str(), server, true, false)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -244,28 +250,31 @@ var AdminUntrackGuildCommand = &commands.YAGCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[1].Int64()
 		}
-		a, err := tibia.UnTrackChar(data.Args[0].Str(), server, false, true)
+
+		out, err := tibia.UnTrackChar(data.Args[0].Str(), server, false, true)
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
-var AdminDellAllCommand = &commands.YAGCommand{
+var AdminDelAllCommand = &commands.YAGCommand{
 	CmdCategory:          commands.CategoryTibia,
-	Name:                 "AdminDellAll",
+	Name:                 "AdminDelAll",
 	Aliases:              []string{"ada"},
 	Description:          "Deleta TODAS as databases de tibia.",
 	HideFromHelp:         true,
 	HideFromCommandsPage: true,
 	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
-		a, err := tibia.DeleteAll()
+		out, err := tibia.DeleteAll()
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -278,11 +287,12 @@ var AdminStartTrackingCommand = &commands.YAGCommand{
 	HideFromCommandsPage: true,
 	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
-		a, err := tibia.StartLoop()
+		out, err := tibia.StartLoop()
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -295,11 +305,12 @@ var AdminStopTrackingCommand = &commands.YAGCommand{
 	HideFromCommandsPage: true,
 	IsModCmd:             true,
 	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
-		a, err := tibia.StopLoop()
+		out, err := tibia.StopLoop()
 		if err != nil {
 			return fmt.Sprintln(err), err
 		}
-		return a, nil
+
+		return out, nil
 	}),
 }
 
@@ -323,31 +334,141 @@ var AdminDeleteTracksCommand = &commands.YAGCommand{
 		}
 		switch data.Args[0].Str() {
 		case "all":
-			a, err := tibia.DeleteTracks(server, false, false, true)
+			out, err := tibia.DeleteTracks(server, false, false, true)
 			if err != nil {
 				return fmt.Sprintln(err), err
 			}
-			return a, nil
+
+			return out, nil
 		case "hunted", "hunteds":
-			a, err := tibia.DeleteTracks(server, true, false, false)
+			out, err := tibia.DeleteTracks(server, true, false, false)
 			if err != nil {
 				return fmt.Sprintln(err), err
 			}
-			return a, nil
+
+			return out, nil
 		case "guild", "guilds":
-			a, err := tibia.DeleteTracks(server, false, true, false)
+			out, err := tibia.DeleteTracks(server, false, true, false)
 			if err != nil {
 				return fmt.Sprintln(err), err
 			}
-			return a, nil
+
+			return out, nil
 		case "track", "tracks":
-			a, err := tibia.DeleteTracks(server, false, false, false)
+			out, err := tibia.DeleteTracks(server, false, false, false)
 			if err != nil {
 				return fmt.Sprintln(err), err
 			}
-			return a, nil
+
+			return out, nil
 		default:
 			return "Track inválido.", nil
 		}
+	}),
+}
+
+var AdminStartNewsLoop = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryTibia,
+	Name:                 "StartNewsLoop",
+	Aliases:              []string{"snl"},
+	Description:          "Inicia o loop de news",
+	HideFromHelp:         true,
+	HideFromCommandsPage: true,
+	IsModCmd:             true,
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		out, err := tibia.StartNewsLoop()
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	}),
+}
+
+var AdminStopNewsLoop = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryTibia,
+	Name:                 "StopNewsLoop",
+	Aliases:              []string{"stnl"},
+	Description:          "Para o loop de news",
+	HideFromHelp:         true,
+	HideFromCommandsPage: true,
+	IsModCmd:             true,
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		out, err := tibia.StopNewsLoop()
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	}),
+}
+
+var AdminDisableNewsFeed = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryTibia,
+	Name:                 "AdminDisableNewsFeed",
+	Aliases:              []string{"adnf"},
+	Description:          "Para o loop de news no servidor (pode targetar um servidor opcionalmente)",
+	HideFromHelp:         true,
+	HideFromCommandsPage: true,
+	IsModCmd:             true,
+	Arguments: []*dcmd.ArgDef{
+		{Name: "id", Type: dcmd.Int},
+	},
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		server := data.GS.ID
+		if data.Args[0].Value != nil {
+			server = data.Args[0].Int64()
+		}
+
+		out, err := tibia.DisableNewsFeed(server)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	}),
+}
+
+var AdminEnableNewsFeed = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryTibia,
+	Name:                 "AdminEnableNewsFeed",
+	Aliases:              []string{"aenf"},
+	Description:          "Inicia o loop de news no servidor (pode targetar um servidor opcionalmente)",
+	HideFromHelp:         true,
+	HideFromCommandsPage: true,
+	IsModCmd:             true,
+	Arguments: []*dcmd.ArgDef{
+		{Name: "id", Type: dcmd.Int},
+	},
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		server := data.GS.ID
+		if data.Args[0].Value != nil {
+			server = data.Args[0].Int64()
+		}
+
+		out, err := tibia.EnableNewsFeed(server)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
+	}),
+}
+
+var AdminDebugNewsFeed = &commands.YAGCommand{
+	CmdCategory:          commands.CategoryTibia,
+	Name:                 "AdminDebugNewsFeed",
+	Aliases:              []string{"adnf", "adf"},
+	Description:          "Debug News Feed Cmd",
+	HideFromHelp:         true,
+	HideFromCommandsPage: true,
+	IsModCmd:             true,
+	RunFunc: util.RequireOwner(func(data *dcmd.Data) (interface{}, error) {
+		out, err := tibia.DebugNews(data.CS.ID)
+		if err != nil {
+			return fmt.Sprintln(err), err
+		}
+
+		return out, nil
 	}),
 }

@@ -42,6 +42,7 @@ var cmds = []*commands.YAGCommand{
 		Description:  "Schedules a reminder, example: 'remindme 1h30min are you alive still?'",
 		Aliases:      []string{"remind", "reminder"},
 		RequiredArgs: 2,
+		Cooldown:     5,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "Time", Type: &commands.DurationArg{}},
 			{Name: "Message", Type: dcmd.String},

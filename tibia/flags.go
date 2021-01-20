@@ -8,6 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jonas747/yagpdb/common"
 	"github.com/jonas747/yagpdb/premium"
+	"github.com/mediocregopher/radix/v3"
 )
 
 type TibiaFlags struct {
@@ -424,6 +425,26 @@ func DeleteAll() (interface{}, error) {
 	err = common.GORM.Where(&table).Delete(&table).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return "", common.ErrWithCaller(err)
+	}
+
+	news := NewsTable{}
+	err = common.GORM.Where(&news).Delete(&news).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return "", common.ErrWithCaller(err)
+	}
+
+	inner := InnerNewsStruct{}
+	err = common.GORM.Where(&inner).Delete(&inner).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return "", common.ErrWithCaller(err)
+	}
+
+	var i int
+	err = common.RedisPool.Do(radix.Cmd(&i, "DEL", "news_guilds"))
+	if err != nil {
+		return "", common.ErrWithCaller(err)
+	} else {
+		logger.Infof("Deleted %d entries", i)
 	}
 
 	return "Todas as databases foram apagadas!", nil

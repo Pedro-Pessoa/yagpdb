@@ -1,6 +1,7 @@
 package tibia
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -14,6 +15,17 @@ import (
 	"github.com/mediocregopher/radix/v3"
 )
 
+type NewsTable struct {
+	common.SmallModel
+
+	RunScan bool
+	LastID  int
+}
+
+func (nt *NewsTable) TableName() string {
+	return "news_table"
+}
+
 type InnerNewsStruct struct {
 	GuildID      int64 `gorm:"primary_key"`
 	IsChannelSet bool
@@ -26,15 +38,6 @@ func (ins *InnerNewsStruct) TableName() string {
 	return "inner_news_struct"
 }
 
-type NewsTable struct {
-	RunScan bool
-	LastID  int
-}
-
-func (nt *NewsTable) TableName() string {
-	return "news_table"
-}
-
 var (
 	newsMasterwg sync.WaitGroup // WaitGroup to be used on the newsController
 	newswg       sync.WaitGroup // WaitGroup to be used while ranging over guild channels and sending the new
@@ -44,20 +47,37 @@ var (
 )
 
 func newsController() {
-	table := ScanTable{}
+	table := NewsTable{}
+	done := make(chan bool, 1)
 	go func() {
 		for {
-			err := common.GORM.Where(&table).First(&table).Error
-			if err != nil || !table.RunScan {
+			err := common.GORM.Where(&NewsTable{}).First(&table).Error
+			alreadySet := err != gorm.ErrRecordNotFound
+			if err != nil && alreadySet {
+				logger.Errorf("Err on newsController: %v", err)
 				return
 			}
 
-			newsMasterwg.Add(1)
+			if !alreadySet || !table.RunScan {
+				done <- true
+			}
+
 			ct := time.Now()
-			logger.Info("Running news tracker")
-			scanNews()
+
+			select {
+			case <-done:
+				close(done)
+				logger.Info("News feed done")
+				return
+			default:
+				newsMasterwg.Add(1)
+				logger.Info("Running news tracker")
+				scanNews()
+			}
+
 			newsMasterwg.Wait()
 			logger.Infof("News tracker finished in %v", time.Since(ct).Seconds())
+
 			time.Sleep(30 * time.Second)
 		}
 	}()
@@ -78,6 +98,7 @@ func scanNews() {
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			lastID = news.ID
+			table.LastID = news.ID
 			err = common.GORM.Save(&table).Error
 			if err != nil {
 				logger.Error("Error setting last news id.")
@@ -90,7 +111,7 @@ func scanNews() {
 		lastID = table.LastID
 	}
 
-	if lastID == news.ID && err != gorm.ErrRecordNotFound {
+	if lastID == news.ID {
 		return // No news to send
 	}
 
@@ -120,13 +141,13 @@ func NewsLoop(news *discordgo.MessageEmbed) error {
 	defer newsLocker.Done()
 
 	var table []int64
-	err := common.RedisPool.Do(radix.Cmd(&table, "GET", "news_guilds"))
+	err := common.RedisPool.Do(radix.Cmd(&table, "SMEMBERS", "news_guilds"))
 	if err != nil {
 		return errors.WithMessage(err, "Error fetching table data for news loop.")
 	}
 
 	newspool = make(chan struct{}, 100)
-	outputChan = make(chan int64)
+	outputChan = make(chan int64, len(table))
 	rand.Seed(time.Now().UnixNano())
 	for _, g := range table {
 		newswg.Add(1)
@@ -137,14 +158,26 @@ func NewsLoop(news *discordgo.MessageEmbed) error {
 	close(newspool)
 	close(outputChan)
 
-	var goBack []int64
+	goBack := make([]string, len(outputChan)+1)
+	var i int
 	for v := range outputChan {
-		goBack = append(goBack, v)
+		goBack[i+1] = fmt.Sprint(v)
+		i++
 	}
 
-	err = common.RedisPool.Do(radix.FlatCmd(nil, "SET", "news_guilds", &goBack))
-	if err != nil {
-		return errors.WithMessage(err, "Error setting table data for news loop.")
+	goBack[0] = "news_guilds"
+
+	if len(goBack) > 1 {
+		err = common.RedisPool.Do(radix.Cmd(nil, "SADD", goBack...))
+		if err != nil {
+			return errors.WithMessage(err, "Error setting table data for news loop. (trying to add)")
+		}
+	} else {
+		logger.Info("else triggered")
+		err = common.RedisPool.Do(radix.Cmd(nil, "DEL", "news_guilds"))
+		if err != nil {
+			return errors.WithMessage(err, "Error setting table data for news loop. (trying to delete)")
+		}
 	}
 
 	return nil
@@ -195,7 +228,7 @@ func newsSender(g int64, news *discordgo.MessageEmbed) {
 		perms, _, err := bot.SendMessageEmbed(g, table.ChannelID, news)
 		if !perms {
 			if !table.DMSent {
-				err = bot.SendDM(gs.Guild.OwnerID, fmt.Sprintf("Looks like I don't have perms to send msgs on the news channel of your server. Please give me permission to Send Message on the channel <%d> or change the news feed to another channel.", table.ChannelID))
+				err = bot.SendDM(gs.Guild.OwnerID, fmt.Sprintf("Looks like I don't have perms to send msgs on the news channel of your server. Please give me permission to Send Message on the channel <#%d> or change the news feed to another channel.", table.ChannelID))
 				if err != nil {
 					logger.Errorf("Failed sending DM to the owner of Guild: %d -- User: %d", g, gs.Guild.OwnerID)
 				}
@@ -266,16 +299,20 @@ func StopNewsLoop() (string, error) {
 	return "Tudo certo! O tracking de news foi pausado.", nil
 }
 
-func EnableNewsFeed(g, c int64) (string, error) {
+func CreateNewsFeed(g, c int64) (string, error) {
 	table := InnerNewsStruct{}
 	err := common.GORM.Where(&InnerNewsStruct{GuildID: g}).First(&table).Error
 	alreadySet := err != gorm.ErrRecordNotFound
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", err
+		return "", errors.WithMessage(err, "ERROR 1:")
 	}
 
 	if alreadySet && table.RunNews {
 		return "O news feed ja está rolando.", nil
+	}
+
+	if table.IsChannelSet {
+		return "O feed ja foi criado, use o comando \"cnfc\" para mudar o canal.", nil
 	}
 
 	channel, err := common.BotSession.Channel(c)
@@ -287,27 +324,67 @@ func EnableNewsFeed(g, c int64) (string, error) {
 
 	newsLocker.Wait()
 	newsLocker.Add(1)
-	var beingTracked bool
-	err = common.RedisPool.Do(radix.FlatCmd(&beingTracked, "SADD", "news_guilds", g))
+	var added int
+	err = common.RedisPool.Do(radix.FlatCmd(&added, "SADD", "news_guilds", g))
 	newsLocker.Done()
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "ERROR 2:")
 	}
 
-	if beingTracked {
+	if added == 0 {
 		logger.Errorf("Weird bug with guild %d news feed - setting it up", g)
 	}
 
+	table.GuildID = g
 	table.IsChannelSet = true
 	table.RunNews = true
 	table.ChannelID = c
 
 	err = common.GORM.Save(&table).Error
 	if err != nil {
+		return "", errors.WithMessage(err, "ERROR 3:")
+	}
+
+	return fmt.Sprintf("Tudo certo! O feed de notícias será feito no canal <#%d>", c), nil
+}
+
+func EnableNewsFeed(g int64) (string, error) {
+	table := InnerNewsStruct{}
+	err := common.GORM.Where(&InnerNewsStruct{GuildID: g}).First(&table).Error
+	alreadySet := err != gorm.ErrRecordNotFound
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return "", err
 	}
 
-	return fmt.Sprintf("Tudo certo! O feed de notícias será feito no canal <%d>", c), nil
+	if alreadySet && table.RunNews {
+		return "O news feed ja está rolando.", nil
+	}
+
+	if !table.IsChannelSet {
+		return "Você, primeiro, precisa usar o comando \"CreateNewsFeed\" para configurar o feed.", nil
+	}
+
+	newsLocker.Wait()
+	newsLocker.Add(1)
+	var added int
+	err = common.RedisPool.Do(radix.FlatCmd(&added, "SADD", "news_guilds", g))
+	newsLocker.Done()
+	if err != nil {
+		return "", err
+	}
+
+	if added == 0 {
+		logger.Errorf("Weird bug with guild %d news feed - enabling it up", g)
+	}
+
+	table.RunNews = true
+
+	err = common.GORM.Save(&table).Error
+	if err != nil {
+		return "", err
+	}
+
+	return "Tudo certo! O feed de notícias está ativado!", nil
 }
 
 func DisableNewsFeed(g int64) (string, error) {
@@ -376,5 +453,56 @@ func ChangeNewsFeedChannel(g, c int64) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("Tudo certo! O canal do feed de notícias foi alterado para <%d>!", c), nil
+	return fmt.Sprintf("Tudo certo! O canal do feed de notícias foi alterado para <#%d>!", c), nil
+}
+
+func DebugNews(c int64) (string, error) {
+	var table []int64
+	err := common.RedisPool.Do(radix.Cmd(&table, "SMEMBERS", "news_guilds"))
+	if err != nil {
+		return "", errors.WithMessage(err, "Error: 1")
+	}
+
+	newsTable := NewsTable{}
+	err = common.GORM.Where(&newsTable).First(&newsTable).Error
+	alreadySet := err != gorm.ErrRecordNotFound
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return "", errors.WithMessage(err, "Error: 2")
+	}
+
+	out := "NewsTable:\n"
+
+	if !alreadySet {
+		out += "`NewsTable not found`\n\n\n"
+	} else {
+		out += fmt.Sprintf("`%#v`\n\n\n", newsTable)
+	}
+
+	out += fmt.Sprintf("**Redis**:\nLen: %d\n", len(table))
+
+	for i, v := range table {
+		out += fmt.Sprintf("**Index**: `%d` -- **Guild**: `%d`\n", i, v)
+	}
+
+	if len(out) <= 2000 {
+		return out, nil
+	}
+
+	msg := &discordgo.MessageSend{}
+
+	var buf bytes.Buffer
+	buf.WriteString(out)
+
+	msg.File = &discordgo.File{
+		Name:        "Attachment.txt",
+		ContentType: "text/plain",
+		Reader:      &buf,
+	}
+
+	_, err = common.BotSession.ChannelMessageSendComplex(c, msg)
+	if err != nil {
+		return "", errors.WithMessage(err, "Error: 3")
+	}
+
+	return "", nil
 }

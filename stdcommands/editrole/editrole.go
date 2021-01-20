@@ -44,7 +44,7 @@ func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
 	role := moderation.FindRole(data.GS, roleS)
 
 	if role == nil {
-		return "No role with the Name or ID`" + roleS + "` found", nil
+		return "No role with the Name or ID `" + roleS + "` found", nil
 	}
 
 	data.GS.RLock()

@@ -35,8 +35,8 @@ var (
 	MAWarned     = ModlogAction{Prefix: "Avisado:", Emoji: "⚠", Color: 0xfca253, Name: "⚠Avisado!"}
 	MASlowmode   = ModlogAction{Prefix: "Freiou", Emoji: "🐌", Color: 0xff9a00}
 	MARemoveSlow = ModlogAction{Prefix: "Desfreiou", Emoji: "💨", Color: 0x43ff00}
-	MAGiveRole   = ModlogAction{Prefix: "", Emoji: "➕", Color: 0x53fcf9}
-	MARemoveRole = ModlogAction{Prefix: "", Emoji: "➖", Color: 0x53fcf9}
+	MAGiveRole   = ModlogAction{Prefix: "", Emoji: "✅", Color: 0x53fcf9}
+	MARemoveRole = ModlogAction{Prefix: "", Emoji: "🛑", Color: 0x53fcf9}
 	MALock       = ModlogAction{Prefix: "trancado", Emoji: "🔒", Color: 0xEE00EE}
 	MAUnlock     = ModlogAction{Prefix: "destrancado", Emoji: "🔓", Color: 0x718AED}
 )

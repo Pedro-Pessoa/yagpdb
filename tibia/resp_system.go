@@ -1,303 +1,305 @@
 package tibia
 
-// import (
-// 	"sync"
-// 	"time"
+/*
+import (
+	"sync"
+	"time"
 
-// 	"github.com/jinzhu/gorm"
-// 	"github.com/jonas747/dcmd"
-// 	"github.com/jonas747/discordgo"
-// 	"github.com/jonas747/dstate/v2"
-// 	"github.com/jonas747/yagpdb/bot"
-// 	"github.com/jonas747/yagpdb/bot/eventsystem"
-// 	"github.com/jonas747/yagpdb/commands"
-// 	"github.com/jonas747/yagpdb/common"
-// 	"github.com/jonas747/yagpdb/common/scheduledevents2"
-// 	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-// )
+	"github.com/jinzhu/gorm"
+	"github.com/jonas747/dcmd"
+	"github.com/jonas747/discordgo"
+	"github.com/jonas747/dstate/v2"
+	"github.com/jonas747/yagpdb/bot"
+	"github.com/jonas747/yagpdb/bot/eventsystem"
+	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/scheduledevents2"
+	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
+)
 
-// type RespTable struct {
-// 	common.SmallModel
-// 	sync.Mutex
+type RespTable struct {
+	sync.Mutex
 
-// 	ServerID         int64 `gorm:"primary_key"`
-// 	EnableRespSystem bool
-// 	Channel          int64
-// 	ChannelIsSet     bool
-// 	IsPaused         bool
-// 	Msgs             []int64
-// 	DefaultDur       int
-// 	RespBetterRole   int64
-// 	RespBetterDur    int
-// 	RespHighRole     int64
-// 	RespHighDur      int
-// 	IsRoleOneSet     bool
-// 	IsRoleTwoSet     bool
-// 	IsDefaultRoleSet bool
-// 	DefaultRole      int64
-// 	IsModRoleSet     bool
-// 	ModRole          int64
-// }
+	ServerID         int64 `gorm:"primary_key"`
+	EnableRespSystem bool
+	Channel          int64
+	ChannelIsSet     bool
+	IsPaused         bool
+	Msgs             []int64
+	DefaultDur       int
+	RespBetterRole   int64
+	RespBetterDur    int
+	RespHighRole     int64
+	RespHighDur      int
+	IsRoleOneSet     bool
+	IsRoleTwoSet     bool
+	IsDefaultRoleSet bool
+	DefaultRole      int64
+	IsModRoleSet     bool
+	ModRole          int64
+}
 
-// type RespHandler struct {
-// 	RespID int `json:"resp_id"`
-// }
+type RespHandler struct {
+	RespID int `json:"resp_id"`
+}
 
-// type Respawns struct {
-// 	common.SmallModel
-// 	sync.Mutex
+type Respawns struct {
+	sync.Mutex
 
-// 	RespID      int `gorm:"primary_key"`
-// 	IsRespHigh  bool
-// 	Queue       []int64
-// 	Start       *time.Time
-// 	Pause       *time.Time
-// 	IsPaused    bool
-// 	IsRunning   bool
-// 	CurrentUser *int64
-// }
+	RespID      int `gorm:"primary_key"`
+	IsRespHigh  bool
+	Queue       []int64
+	Start       *time.Time
+	Pause       *time.Time
+	IsPaused    bool
+	IsRunning   bool
+	CurrentUser *int64
+}
 
-// func CreateRespawnMsg(cmdData *dcmd.Data, id int, guildID, userID int64, second bool) (string, error) {
-// 	respTable := RespTable{}
-// 	err := common.GORM.Where(&RespTable{ServerID: guildID}).First(&respTable).Error
-// 	if err != nil && err != gorm.ErrRecordNotFound {
-// 		return "", nil
-// 	}
+func CreateRespawnMsg(cmdData *dcmd.Data, id int, guildID, userID int64, second bool) (string, error) {
+	respTable := RespTable{}
+	err := common.GORM.Where(&RespTable{ServerID: guildID}).First(&respTable).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return "", nil
+	}
 
-// 	if err == gorm.ErrRecordNotFound {
-// 		return "O sistema de respawn não está ativo neste servidor.", nil
-// 	}
-// 	respTable.Lock()
-// 	defer respTable.Unlock()
+	if err == gorm.ErrRecordNotFound {
+		return "O sistema de respawn não está ativo neste servidor.", nil
+	}
+	respTable.Lock()
+	defer respTable.Unlock()
 
-// 	if !respTable.ChannelIsSet || !respTable.EnableRespSystem || !respTable.IsDefaultRoleSet {
-// 		return "O sistema de respawn não está ativo neste servidor.", nil
-// 	}
+	if !respTable.ChannelIsSet || !respTable.EnableRespSystem || !respTable.IsDefaultRoleSet {
+		return "O sistema de respawn não está ativo neste servidor.", nil
+	}
 
-// 	if respTable.IsPaused {
-// 		return "O respawn está pausado.", nil
-// 	}
+	if respTable.IsPaused {
+		return "O respawn está pausado.", nil
+	}
 
-// 	var member *dstate.MemberState
-// 	var hasDRole bool
-// 	var hasBRole bool
-// 	var hasHRole bool
-// 	var isMod bool
-// 	isOwner := userID == cmdData.GS.Guild.OwnerID
+	var member *dstate.MemberState
+	var hasDRole, hasBRole, hasHRole, isMod, isOwner bool
 
-// 	if cmdData != nil {
-// 		member, _ = bot.GetMember(guildID, userID)
-// 		if member == nil {
-// 			logger.Errorf("Weird member error on guild %d", guildID)
-// 			return "", nil
-// 		}
-// 		if !isOwner {
-// 			for _, r := range member.Roles {
-// 				if r == respTable.DefaultRole {
-// 					hasDRole = true
-// 				} else if r == respTable.RespBetterRole {
-// 					hasBRole = true
-// 				} else if r == respTable.RespHighRole {
-// 					hasHRole = true
-// 				} else if r == respTable.ModRole {
-// 					isMod = true
-// 					break
-// 				}
-// 			}
-// 		}
-// 		if !hasDRole && !hasBRole && !hasHRole && !isMod && !isOwner {
-// 			return "Você não tem permissão para usar o sistema de respawn", nil
-// 		}
-// 	}
+	if cmdData.GS != nil {
+		isOwner = userID == cmdData.GS.Guild.OwnerID
+	}
 
-// 	return "", nil
-// }
+	if cmdData != nil {
+		member, _ = bot.GetMember(guildID, userID)
+		if member == nil {
+			logger.Errorf("Weird member error on guild %d", guildID)
+			return "", nil
+		}
+		if !isOwner {
+		OUTER:
+			for _, r := range member.Roles {
+				switch r {
+				case respTable.DefaultRole:
+					hasDRole = true
+				case respTable.RespBetterRole:
+					hasBRole = true
+				case respTable.RespHighRole:
+					hasHRole = true
+				case respTable.ModRole:
+					isMod = true
+					break OUTER
+				}
+			}
+		}
+		if !hasDRole && !hasBRole && !hasHRole && !isMod && !isOwner {
+			return "Você não tem permissão para usar o sistema de respawn", nil
+		}
+	}
 
-// func HandleRespawns(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
-// 	dataCast := data.(*Respawns)
+	return "", nil
+}
 
-// 	gs := bot.State.Guild(true, evt.GuildID)
-// 	if gs == nil {
-// 		return false, nil
-// 	}
+func HandleRespawns(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {
+	dataCast := data.(*Respawns)
 
-// 	resp := Respawns{}
-// 	err = common.GORM.Where(&Respawns{RespID: dataCast.RespID}).First(&resp).Error
-// 	if err != nil {
-// 		return false, nil
-// 	}
+	gs := bot.State.Guild(true, evt.GuildID)
+	if gs == nil {
+		return false, nil
+	}
 
-// 	if resp.IsPaused {
-// 		time.Sleep(time.Minute * 2)
-// 		return true, nil
-// 	}
+	resp := Respawns{}
+	err = common.GORM.Where(&Respawns{RespID: dataCast.RespID}).First(&resp).Error
+	if err != nil {
+		return false, nil
+	}
 
-// 	gs.RLock()
-// 	defer gs.RUnlock()
-// 	resp.Lock()
-// 	defer resp.Unlock()
+	if resp.IsPaused {
+		time.Sleep(time.Minute * 2)
+		return true, nil
+	}
 
-// 	respTable := RespTable{}
-// 	err = common.GORM.Where(&RespTable{ServerID: evt.GuildID}).First(&respTable).Error
-// 	if err != nil {
-// 		return false, nil
-// 	}
-// 	respTable.Lock()
-// 	defer respTable.Unlock()
+	gs.RLock()
+	defer gs.RUnlock()
+	resp.Lock()
+	defer resp.Unlock()
 
-// 	if len(resp.Queue) == 0 {
-// 		resp.Start = nil
-// 		resp.IsRunning = false
-// 		err = common.GORM.Save(&resp).Error
-// 		if err != nil {
-// 			logger.Errorf("Error 1 handling respawn: %#v", err)
-// 		}
-// 		return false, nil
-// 	}
+	respTable := RespTable{}
+	err = common.GORM.Where(&RespTable{ServerID: evt.GuildID}).First(&respTable).Error
+	if err != nil {
+		return false, nil
+	}
+	respTable.Lock()
+	defer respTable.Unlock()
 
-// 	resp.Start = func() *time.Time {
-// 		a := time.Now()
-// 		return &a
-// 	}()
-// 	resp.CurrentUser = &resp.Queue[0]
-// 	resp.Queue = func(s []int64, i int) []int64 {
-// 		s[i] = s[len(s)-1]
-// 		return s[:len(s)-1]
-// 	}(resp.Queue, 0)
+	if len(resp.Queue) == 0 {
+		resp.Start = nil
+		resp.IsRunning = false
+		err = common.GORM.Save(&resp).Error
+		if err != nil {
+			logger.Errorf("Error 1 handling respawn: %#v", err)
+		}
+		return false, nil
+	}
 
-// 	nextState := gs.MemberCopy(true, *resp.CurrentUser)
-// 	if nextState == nil {
-// 		err = scheduledevents2.ScheduleEvent("resp_handler", evt.GuildID, time.Now().Add(time.Minute), &RespHandler{
-// 			RespID: dataCast.RespID,
-// 		})
+	resp.Start = func() *time.Time {
+		a := time.Now()
+		return &a
+	}()
+	resp.CurrentUser = &resp.Queue[0]
+	resp.Queue = func(s []int64, i int) []int64 {
+		s[i] = s[len(s)-1]
+		return s[:len(s)-1]
+	}(resp.Queue, 0)
 
-// 		if err != nil {
-// 			logger.Errorf("Error 2 handling respawn: %#v", err)
-// 		}
+	nextState := gs.MemberCopy(true, *resp.CurrentUser)
+	if nextState == nil {
+		err = scheduledevents2.ScheduleEvent("resp_handler", evt.GuildID, time.Now().Add(time.Minute), &RespHandler{
+			RespID: dataCast.RespID,
+		})
 
-// 		err = common.GORM.Save(&respTable).Error
-// 		if err != nil {
-// 			logger.Errorf("Error 3 handling respawn: %#v", err)
-// 		}
+		if err != nil {
+			logger.Errorf("Error 2 handling respawn: %#v", err)
+		}
 
-// 		return false, nil
-// 	}
+		err = common.GORM.Save(&respTable).Error
+		if err != nil {
+			logger.Errorf("Error 3 handling respawn: %#v", err)
+		}
 
-// 	var duration time.Time
-// 	if common.ContainsInt64Slice(nextState.Roles, respTable.RespHighRole) {
-// 		duration = time.Now().Add(time.Minute * time.Duration(respTable.RespHighDur))
-// 	} else if common.ContainsInt64Slice(nextState.Roles, respTable.RespBetterRole) {
-// 		duration = time.Now().Add(time.Minute * time.Duration(respTable.RespBetterDur))
-// 	} else {
-// 		duration = time.Now().Add(time.Minute * time.Duration(respTable.DefaultDur))
-// 	}
+		return false, nil
+	}
 
-// 	err = scheduledevents2.ScheduleEvent("resp_handler", evt.GuildID, duration, &RespHandler{
-// 		RespID: dataCast.RespID,
-// 	})
+	var duration time.Time
+	switch {
+	case common.ContainsInt64Slice(nextState.Roles, respTable.RespHighRole), common.ContainsInt64Slice(nextState.Roles, respTable.ModRole):
+		duration = time.Now().Add(time.Minute * time.Duration(respTable.RespHighDur))
+	case common.ContainsInt64Slice(nextState.Roles, respTable.RespBetterRole):
+		duration = time.Now().Add(time.Minute * time.Duration(respTable.RespBetterDur))
+	default:
+		duration = time.Now().Add(time.Minute * time.Duration(respTable.DefaultDur))
+	}
 
-// 	if err != nil {
-// 		logger.Errorf("Error 4 handling respawn: %#v", err)
-// 	}
+	err = scheduledevents2.ScheduleEvent("resp_handler", evt.GuildID, duration, &RespHandler{
+		RespID: dataCast.RespID,
+	})
 
-// 	err = common.GORM.Save(&respTable).Error
-// 	if err != nil {
-// 		logger.Errorf("Error 5 handling respawn: %#v", err)
-// 	}
+	if err != nil {
+		logger.Errorf("Error 4 handling respawn: %#v", err)
+	}
 
-// 	return false, nil
-// }
+	err = common.GORM.Save(&respTable).Error
+	if err != nil {
+		logger.Errorf("Error 5 handling respawn: %#v", err)
+	}
 
-// func HandleMessageDelete(evt *eventsystem.EventData) {
-// 	m := evt.MessageDelete()
+	return false, nil
+}
 
-// 	botUser := common.BotUser
-// 	if botUser == nil || (botUser.ID != m.Author.ID) || len(m.Embeds) == 0 {
-// 		return
-// 	}
+func HandleMessageDelete(evt *eventsystem.EventData) {
+	m := evt.MessageDelete()
 
-// 	resptable := RespTable{}
-// 	err := common.GORM.Where(&RespTable{ServerID: evt.GS.ID}).First(&resptable).Error
-// 	if err != nil {
-// 		return
-// 	}
-// 	resptable.Lock()
-// 	defer resptable.Unlock()
+	botUser := common.BotUser
+	if botUser == nil || (botUser.ID != m.Author.ID) || len(m.Embeds) == 0 {
+		return
+	}
 
-// 	if !resptable.ChannelIsSet || resptable.Channel != m.ChannelID {
-// 		return
-// 	}
+	resptable := RespTable{}
+	err := common.GORM.Where(&RespTable{ServerID: evt.GS.ID}).First(&resptable).Error
+	if err != nil {
+		return
+	}
+	resptable.Lock()
+	defer resptable.Unlock()
 
-// 	match := false
-// 	index := 0
-// 	for k, v := range resptable.Msgs {
-// 		if v == m.ID {
-// 			match = true
-// 			index = k
-// 			break
-// 		}
-// 	}
+	if !resptable.ChannelIsSet || resptable.Channel != m.ChannelID {
+		return
+	}
 
-// 	if !match {
-// 		return
-// 	}
+	match := false
+	index := 0
+	for k, v := range resptable.Msgs {
+		if v == m.ID {
+			match = true
+			index = k
+			break
+		}
+	}
 
-// 	newM, err := common.BotSession.ChannelMessageSend(resptable.Channel, m.Content)
-// 	logger.Infof("Respawn msg resent on Guild %d", evt.GS.ID)
-// 	if err != nil {
-// 		return
-// 	}
+	if !match {
+		return
+	}
 
-// 	newMsgs := func(s []int64, i int) []int64 {
-// 		s[i] = s[len(s)-1]
-// 		return s[:len(s)-1]
-// 	}(resptable.Msgs, index)
+	newM, err := common.BotSession.ChannelMessageSend(resptable.Channel, m.Content)
+	logger.Infof("Respawn msg resent on Guild %d", evt.GS.ID)
+	if err != nil {
+		return
+	}
 
-// 	newMsgs = append(newMsgs, newM.ID)
-// 	resptable.Msgs = newMsgs
+	newMsgs := func(s []int64, i int) []int64 {
+		s[i] = s[len(s)-1]
+		return s[:len(s)-1]
+	}(resptable.Msgs, index)
 
-// 	common.GORM.Save(&resptable)
-// 	return
-// }
+	newMsgs = append(newMsgs, newM.ID)
+	resptable.Msgs = newMsgs
 
-// var RespCommands = []*commands.YAGCommand{
-// 	&commands.YAGCommand{
-// 		CmdCategory: commands.CategoryTibia,
-// 		Name:        "EnableResp",
-// 		Aliases:     []string{"habilitarrespawn", "habilitarresp", "startresp", "hresp", "er"},
-// 		Description: "Adiciona você à fila do respawn especificado.",
-// 		RunFunc: func(data *dcmd.Data) (interface{}, error) {
-// 			hasPerms, err := bot.AdminOrPermMS(data.CS.ID, data.MS, discordgo.PermissionKickMembers)
-// 			if err != nil || !hasPerms {
-// 				return "", nil
-// 			}
-// 			return "", nil
-// 		},
-// 	},
-// 	&commands.YAGCommand{
-// 		CmdCategory:  commands.CategoryTibia,
-// 		Name:         "Resp",
-// 		Description:  "Adiciona você à fila do respawn especificado.",
-// 		RequiredArgs: 1,
-// 		Arguments: []*dcmd.ArgDef{
-// 			&dcmd.ArgDef{Name: "Respawn ID", Type: dcmd.Int},
-// 		},
-// 		RunFunc: func(data *dcmd.Data) (interface{}, error) {
-// 			respID := data.Args[0].Int()
-// 			found := false
-// 			var respawnName string
-// 			for k, v := range RespList {
-// 				if k == respID {
-// 					found = true
-// 					respawnName = v
-// 					break
-// 				}
-// 			}
-// 			if !found {
-// 				return "Número de respawn inválido.", nil
-// 			}
+	common.GORM.Save(&resptable)
+}
 
-// 			return respawnName, nil
-// 		},
-// 	},
-// }
+var RespCommands = []*commands.YAGCommand{
+	{
+		CmdCategory: commands.CategoryTibia,
+		Name:        "EnableResp",
+		Aliases:     []string{"habilitarrespawn", "habilitarresp", "startresp", "hresp", "er"},
+		Description: "Adiciona você à fila do respawn especificado.",
+		RunFunc: func(data *dcmd.Data) (interface{}, error) {
+			hasPerms, err := bot.AdminOrPermMS(data.CS.ID, data.MS, discordgo.PermissionKickMembers)
+			if err != nil || !hasPerms {
+				return "", nil
+			}
+			return "", nil
+		},
+	},
+	{
+		CmdCategory:  commands.CategoryTibia,
+		Name:         "Resp",
+		Description:  "Adiciona você à fila do respawn especificado.",
+		RequiredArgs: 1,
+		Arguments: []*dcmd.ArgDef{
+			{Name: "Respawn ID", Type: dcmd.Int},
+		},
+		RunFunc: func(data *dcmd.Data) (interface{}, error) {
+			respID := data.Args[0].Int()
+			found := false
+			var respawnName string
+			for k, v := range RespList {
+				if k == respID {
+					found = true
+					respawnName = v
+					break
+				}
+			}
+			if !found {
+				return "Número de respawn inválido.", nil
+			}
+
+			return respawnName, nil
+		},
+	},
+}
+*/

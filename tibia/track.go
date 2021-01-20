@@ -148,17 +148,18 @@ func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{
 
 	var deserialized []InternalChar
 
-	if guild {
+	switch {
+	case guild:
 		deserialized, err = deserializeValue(tracking.Guild)
 		if err != nil {
 			return "", err
 		}
-	} else if hunted {
+	case hunted:
 		deserialized, err = deserializeValue(tracking.Hunteds)
 		if err != nil {
 			return "", err
 		}
-	} else {
+	default:
 		deserialized, err = deserializeValue(tracking.Tracks)
 		if err != nil {
 			return "", err
@@ -190,11 +191,12 @@ func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{
 		return "", err
 	}
 
-	if guild {
+	switch {
+	case guild:
 		tracking.Guild = goback
-	} else if hunted {
+	case hunted:
 		tracking.Hunteds = goback
-	} else {
+	default:
 		tracking.Tracks = goback
 	}
 
@@ -323,15 +325,16 @@ func DeleteTracks(server int64, hunted bool, guild bool, all bool) (string, erro
 		return "Nenhum char está sendo trackeado nesse servidor.", nil
 	}
 
-	if all {
+	switch {
+	case all:
 		tracking.Guild = []byte{}
 		tracking.Hunteds = []byte{}
 		tracking.Tracks = []byte{}
-	} else if guild {
+	case guild:
 		tracking.Guild = []byte{}
-	} else if hunted {
+	case hunted:
 		tracking.Hunteds = []byte{}
-	} else {
+	default:
 		tracking.Tracks = []byte{}
 	}
 

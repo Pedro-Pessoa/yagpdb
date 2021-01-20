@@ -236,12 +236,22 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 		return "", errors.NewPlain("this command is on guild scope cooldown")
 	}
 
+	cdUser, err := cast.UserScopeCooldownLeft(data.ContainerChain, tmplCtx.MS.ID)
+	if err != nil {
+		return "", errors.WithStackIf(err)
+	}
+
+	if cdUser > 0 {
+		return "", errors.NewPlain("this command is on cooldown")
+	}
+
 	resp, err := runFunc(data)
 	if err != nil {
 		return "", errors.WithMessage(err, "exec/execadmin, run")
 	}
 
 	_ = cast.SetCooldownGuild(data.ContainerChain, tmplCtx.GS.ID)
+	_ = cast.SetCooldownUser(data.ContainerChain, tmplCtx.MS.ID)
 
 	switch v := resp.(type) {
 	case error:

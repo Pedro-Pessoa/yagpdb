@@ -15,6 +15,8 @@ import (
 )
 
 type ScanTable struct {
+	common.SmallModel
+
 	RunScan bool
 }
 
@@ -81,6 +83,7 @@ func (ds *DataStore) scanTracks() {
 			guildswg.Add(1)
 			go updateGuild(g, ds)
 		}
+
 		guildswg.Wait()
 		logger.Infof("Guilds atualizadas em %vs... Continuando...", time.Since(guildTimer).Seconds())
 	}
@@ -105,17 +108,33 @@ func (ds *DataStore) scanTracks() {
 
 func (ds *DataStore) trackingController() {
 	table := ScanTable{}
+	done := make(chan bool, 1)
 	go func() {
 		for {
-			err := common.GORM.Where(&table).First(&table).Error
-			if err != nil || !table.RunScan {
+			err := common.GORM.Where(&ScanTable{}).First(&table).Error
+			alreadySet := err != gorm.ErrRecordNotFound
+			if err != nil && alreadySet {
+				logger.Errorf("Err on trackingController: %v", err)
 				return
 			}
 
-			masterwg.Add(1)
-			logger.Info("Running Track")
-			ds.scanTracks()
+			if !alreadySet || !table.RunScan {
+				done <- true
+			}
+
+			select {
+			case <-done:
+				close(done)
+				logger.Info("Tracking done")
+				return
+			default:
+				masterwg.Add(1)
+				logger.Info("Running Track")
+				ds.scanTracks()
+			}
+
 			masterwg.Wait()
+
 			time.Sleep(10 * time.Second)
 		}
 	}()
@@ -312,52 +331,66 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		output = fmt.Sprintf("%s\nParece que ele tava insatisfeito com o nome e agora se chama **%s**!!", output, char.Name)
 		input.Name = char.Name
 	}
+
 	if char.Level != input.Level {
 		if char.Level > input.Level {
 			output = fmt.Sprintf("%s\nUPOOUU! Agora tá no level: **%d**!", output, char.Level)
 		}
+
 		input.Level = char.Level
 	}
+
 	if char.World != input.World {
 		output = fmt.Sprintf("%s\nDesertor ou auxiliar de guerra? Ele fez uma viagem longa e atracou em **%s**!!", output, char.World)
 		input.World = char.World
 	}
+
 	if char.Residence != input.Residence {
 		output = fmt.Sprintf("%s\nNão tava gostando da cidade natal né? O que você tá achando de **%s**?", output, char.Residence)
 		input.Residence = char.Residence
 	}
+
 	if char.AchievementPoints != input.AchievementPoints {
 		if char.AchievementPoints > input.AchievementPoints {
 			output = fmt.Sprintf("%s\nOlha o char lover ai!! Upando achievement, mano!! Agora tá com **%d** pontos!", output, char.AchievementPoints)
 		}
+
 		input.AchievementPoints = char.AchievementPoints
 	}
+
 	if char.Sex != input.Sex {
 		output = fmt.Sprintf("%s\nMomento de inclusão! Esse char agora é **%s**!", output, char.Sex)
 		input.Sex = char.Sex
 	}
+
 	if char.Married != input.Married {
 		if char.Married != "Ninguém" {
 			output = fmt.Sprintf("%s\nSe casou com **%s**!!", output, char.Married)
 		} else {
 			output = fmt.Sprintf("%s\nSe divorciou!!!", output)
 		}
+
 		input.Married = char.Married
 	}
+
 	if char.Guild != input.Guild {
 		if char.Guild != "Sem guild" {
 			output = fmt.Sprintf("%s\nAbre o olho ae em!! Mudou de guild e agora está na **%s**", output, char.Guild)
 		} else {
 			output = fmt.Sprintf("%s\nNão faz mais parte de guild nenhuma!", output)
 		}
+
 		input.Guild = char.Guild
 	}
+
 	if char.Rank != input.Rank {
 		if char.Rank != "Sem guild" {
 			output = fmt.Sprintf("%s\nMudou de cargo na guild e agora é um **%s**!!", output, char.Rank)
 		}
+
 		input.Rank = char.Rank
 	}
+
 	if !reflect.DeepEqual(char.Deaths, input.Deaths) {
 		if len(char.Deaths) > 0 {
 			if len(input.Deaths) > 0 {
@@ -368,14 +401,18 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 				deathsoutput = fmt.Sprintf("Level: **%d**\nMotivo: **%s**\nData: **%s**", char.Deaths[0].Level, char.Deaths[0].Reason, char.Deaths[0].Date)
 			}
 		}
+
 		input.Deaths = char.Deaths
 	}
+
 	channel <- input
+
 	msgSend := &discordgo.MessageSend{
 		AllowedMentions: discordgo.AllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeEveryone},
 		},
 	}
+
 	var title string
 	if flags.SendUpdates && len(output) > 0 {
 		if areHunteds {
@@ -383,26 +420,29 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		} else {
 			title = fmt.Sprintf("Tem novidade sobre %s (FRIEND)", input.Name)
 		}
-		embed := &discordgo.MessageEmbed{
+
+		msgSend.Embed = &discordgo.MessageEmbed{
 			Title:       title,
 			Description: output,
 			Color:       int(rand.Int63n(16777215)),
 		}
-		msgSend.Embed = embed
+
 		_, _ = common.BotSession.ChannelMessageSendComplex(flags.ChannelUpdates, msgSend)
 	}
+
 	if flags.SendDeaths && len(deathsoutput) > 0 {
 		if areHunteds {
 			title = fmt.Sprintf("ENEMY MORTO: %s", input.Name)
 		} else {
 			title = fmt.Sprintf("FRIEND MORTO: %s", input.Name)
 		}
-		embed := &discordgo.MessageEmbed{
+
+		msgSend.Embed = &discordgo.MessageEmbed{
 			Title:       title,
 			Description: deathsoutput,
 			Color:       int(rand.Int63n(16777215)),
 		}
-		msgSend.Embed = embed
+
 		_, _ = common.BotSession.ChannelMessageSendComplex(flags.ChannelDeaths, msgSend)
 	}
 }
@@ -459,7 +499,7 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 	}
 	loopCap := limit - length
 
-	fila := make(chan InternalChar)
+	fila := make(chan InternalChar, len(guild.Members))
 	updatepool = make(chan struct{}, 100)
 
 	for _, k := range guild.Members {
@@ -523,6 +563,7 @@ func alreadyTracked(list []InternalChar, e GuildMember) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -530,11 +571,13 @@ func msgsCleanUp(a, b bool) {
 	if r := recover(); r != nil {
 		logger.Infof("Recovered at: %v", r)
 	}
-	if b {
-		defer guildwg.Done()
-	} else if a {
+
+	switch {
+	case a:
 		defer msgshuntedwg.Done()
-	} else {
+	case b:
+		defer guildwg.Done()
+	default:
 		defer msgswg.Done()
 	}
 }
@@ -543,5 +586,6 @@ func trackCleanUp() {
 	if r := recover(); r != nil {
 		logger.Infof("Recovered at: %v", r)
 	}
+
 	defer trackwg.Done()
 }
