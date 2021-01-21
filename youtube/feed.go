@@ -3,15 +3,16 @@ package youtube
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/analytics"
+	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/common"
 	"github.com/jonas747/yagpdb/common/mqueue"
+	"github.com/jonas747/yagpdb/common/templates"
 	"github.com/jonas747/yagpdb/feeds"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
@@ -145,19 +146,33 @@ func (p *Plugin) syncWebSubs() {
 	go p.MaybeRemoveChannelWatch(channel)
 } */
 
-func (p *Plugin) sendNewVidMessage(guild, discordChannel string, channelTitle string, videoID string, mentionEveryone bool) {
-	content := fmt.Sprintf("**%s** uploaded a new youtube video!\n%s", channelTitle, "https://www.youtube.com/watch?v="+videoID)
-	if mentionEveryone {
-		content += " @everyone"
-	}
-
+func (p *Plugin) sendNewVidMessage(guild, discordChannel, channelTitle, channelID, videoID, msg string) {
 	parsedChannel, _ := strconv.ParseInt(discordChannel, 10, 64)
 	parsedGuild, _ := strconv.ParseInt(guild, 10, 64)
 
-	parseMentions := []discordgo.AllowedMentionType{}
-	if mentionEveryone {
-		parseMentions = []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeEveryone}
+	guildState := bot.State.Guild(true, parsedGuild)
+	if guildState == nil {
+		logger.Error("sendNewVidMessage for guild not in state")
+		return
 	}
+
+	ctx := templates.NewContext(guildState, guildState.Channels[parsedChannel], nil)
+	ctx.Data["URL"] = "https://www.youtube.com/watch?v=" + videoID
+	ctx.Data["ChannelName"] = channelTitle
+	ctx.Data["VideoID"] = videoID
+	ctx.Data["ChannelID"] = channelID
+
+	out, err := ctx.Execute(msg)
+	if err != nil {
+		logger.WithError(err).WithField("guild", parsedGuild).Warn("Failed executing template on sendNewVidMessage")
+		return
+	}
+
+	if out == "" { // Nothing to do
+		return
+	}
+
+	parseMentions := []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeEveryone, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeUsers}
 
 	go analytics.RecordActiveUnit(parsedGuild, p, "posted_youtube_message")
 	feeds.MetricPostedMessages.With(prometheus.Labels{"source": "youtube"}).Inc()
@@ -167,7 +182,7 @@ func (p *Plugin) sendNewVidMessage(guild, discordChannel string, channelTitle st
 		Channel:    parsedChannel,
 		Source:     "youtube",
 		SourceID:   "",
-		MessageStr: content,
+		MessageStr: out,
 		Priority:   2,
 		AllowedMentions: discordgo.AllowedMentions{
 			Parse: parseMentions,
@@ -188,11 +203,11 @@ var (
 	ErrNoChannel = errors.New("No channel with that id found")
 )
 
-func (p *Plugin) AddFeed(guildID, discordChannelID int64, youtubeChannelID, youtubeUsername string, mentionEveryone bool) (*ChannelSubscription, error) {
+func (p *Plugin) AddFeed(guildID, discordChannelID int64, youtubeChannelID, youtubeUsername, msg string) (*ChannelSubscription, error) {
 	sub := &ChannelSubscription{
-		GuildID:         discordgo.StrID(guildID),
-		ChannelID:       discordgo.StrID(discordChannelID),
-		MentionEveryone: mentionEveryone,
+		GuildID:    discordgo.StrID(guildID),
+		ChannelID:  discordgo.StrID(discordChannelID),
+		YoutubeMsg: msg,
 	}
 
 	call := p.YTService.Channels.List("snippet")
@@ -218,6 +233,7 @@ func (p *Plugin) AddFeed(guildID, discordChannelID int64, youtubeChannelID, yout
 	if err != nil {
 		return nil, err
 	}
+
 	defer common.UnlockRedisKey(RedisChannelsLockKey)
 
 	err = common.GORM.Create(sub).Error
@@ -271,6 +287,7 @@ func (p *Plugin) MaybeAddChannelWatch(lock bool, channel string) error {
 		if err != nil {
 			return common.ErrWithCaller(err)
 		}
+
 		defer common.UnlockRedisKey(RedisChannelsLockKey)
 	}
 
@@ -359,7 +376,7 @@ func (p *Plugin) postVideo(subs []*ChannelSubscription, publishedAt time.Time, v
 	}
 
 	for _, sub := range subs {
-		p.sendNewVidMessage(sub.GuildID, sub.ChannelID, video.Snippet.ChannelTitle, video.Id, sub.MentionEveryone)
+		p.sendNewVidMessage(sub.GuildID, sub.ChannelID, video.Snippet.ChannelTitle, sub.YoutubeChannelID, video.Id, sub.YoutubeMsg)
 	}
 
 	return nil

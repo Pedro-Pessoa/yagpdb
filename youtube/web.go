@@ -40,7 +40,7 @@ type Form struct {
 	YoutubeChannelUser string
 	DiscordChannel     int64 `valid:"channel,false"`
 	ID                 uint
-	MentionEveryone    bool
+	YoutubeMsg         string `json:"youtube_msg" schema:"youtube_msg" valid:"template,1000"`
 }
 
 func (p *Plugin) InitWeb() {
@@ -76,6 +76,10 @@ func (p *Plugin) InitWeb() {
 	web.RootMux.Handle(pat.New("/yt_new_upload/"+confWebsubVerifytoken.GetString()), http.HandlerFunc(p.HandleFeedUpdate))
 }
 
+const DefaultMessage = `Heey, {{mentionEveryone}}!
+**{{.ChannelName}}** just uploaded a new video!
+{{.URL}}`
+
 func (p *Plugin) HandleYoutube(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	ctx := r.Context()
 	ag, templateData := web.GetBaseCPContextData(ctx)
@@ -86,6 +90,7 @@ func (p *Plugin) HandleYoutube(w http.ResponseWriter, r *http.Request) (web.Temp
 		return templateData, err
 	}
 
+	templateData["YoutubeMsg"] = DefaultMessage
 	templateData["Subs"] = subs
 	templateData["VisibleURL"] = "/manage/" + discordgo.StrID(ag.ID) + "/youtube"
 
@@ -110,11 +115,16 @@ func (p *Plugin) HandleNew(w http.ResponseWriter, r *http.Request) (web.Template
 		return templateData.AddAlerts(web.ErrorAlert("Neither channelid or username specified.")), errors.New("ChannelID and username not specified")
 	}
 
-	sub, err := p.AddFeed(activeGuild.ID, data.DiscordChannel, data.YoutubeChannelID, data.YoutubeChannelUser, data.MentionEveryone)
+	if data.YoutubeMsg == "" {
+		return templateData.AddAlerts(web.ErrorAlert("Announce message can not be blank.")), errors.New("Announce message not specified - adding")
+	}
+
+	sub, err := p.AddFeed(activeGuild.ID, data.DiscordChannel, data.YoutubeChannelID, data.YoutubeChannelUser, data.YoutubeMsg)
 	if err != nil {
 		if err == ErrNoChannel {
 			return templateData.AddAlerts(web.ErrorAlert("No channel by that id/username found")), errors.New("Channel not found")
 		}
+
 		return templateData, err
 	}
 
@@ -160,7 +170,11 @@ func (p *Plugin) HandleEdit(w http.ResponseWriter, r *http.Request) (templateDat
 	sub := ctx.Value(ContextKeySub).(*ChannelSubscription)
 	data := ctx.Value(common.ContextKeyParsedForm).(*Form)
 
-	sub.MentionEveryone = data.MentionEveryone
+	if data.YoutubeMsg == "" {
+		return templateData.AddAlerts(web.ErrorAlert("Announce message can not be blank.")), errors.New("Announce message not specified - editing")
+	}
+
+	sub.YoutubeMsg = data.YoutubeMsg
 	sub.ChannelID = discordgo.StrID(data.DiscordChannel)
 
 	err = common.GORM.Save(sub).Error

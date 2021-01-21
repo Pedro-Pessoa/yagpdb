@@ -12,14 +12,14 @@
                 <h2 class="card-title">New feed</h2>
             </header>
             <div class="card-body">
-                <!-- <p>The subreddit field is just the name of the subreddit (no /r/ in front of it), examples: "games", "multicopter" -->
                 <form class="" method="post" action="/manage/{{.ActiveGuild.ID}}/youtube">
                     <p><b>Provide either channel ID OR username.</b> Only one of them, not both.<br>
                         When you go to the channel page, if the address bar has for example
                         <code>youtube.com/user/h3h3Productions</code> then the username is h3h3Productions<br>
                         if it's <code>youtube.com/channel/UCt-ERbX-2yA6cAqfdKOlUwQ</code> then the id is
                         <code>UCt-ERbX-2yA6cAqfdKOlUwQ</code><br>
-                        For any questions join the support server above</p>
+                        The announce message works like a custom command<br>
+                        For any questions join the support server</p>
                     <div class="form-group">
                         <label for="yt-channel-id">Youtube Channel ID</label>
                         <div class="input-group input-group-sm">
@@ -42,8 +42,11 @@
                             {{textChannelOptions .ActiveGuild.Channels nil false ""}}
                         </select>
                     </div>
-
-                    {{checkbox "MentionEveryone" "new-mention-everyone" `Mention everyone` false}}
+                    <div class="form-group">
+                        <label for="youtube_msg">Announce Message (max 1000 characters)</label>
+                        <textarea class="form-control" rows="5" id="youtube_msg" name="youtube_msg">{{.YoutubeMsg}}</textarea>
+                        <p class="help-block">Extra template data available is <code>{{"{{.URL}}"}}</code>, <code>{{"{{.ChannelName}}"}}</code>, <code>{{"{{.VideoID}}"}}</code> and <code>{{"{{.ChannelID}}"}}</code>.</p>
+                    </div>
                     <button type="submit" class="btn btn-success">Add</button>
                 </form>
             </div>
@@ -57,14 +60,14 @@
                 {{range .Subs}}
                 <form id="sub-item-{{.ID}}" data-async-form method="post"
                     action="/manage/{{$dot.ActiveGuild.ID}}/youtube/{{.ID}}/update"><input type="text"
-                        class="hidden form-control" name="id" value="{{.ID}}"></form>{{end}}
-
+                        class="hidden form-control" name="id" value="{{.ID}}"></form>
+                {{end}}
                 <table class="table table-responsive-md table-sm mb-0">
                     <thead>
                         <tr>
                             <th>Youtube</th>
                             <th>Discord channel</th>
-                            <th>Mention everyone</th>
+                            <th>Announce Message</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -82,7 +85,7 @@
                                 </select>
                             </td>
                             <td>
-                                {{checkbox "MentionEveryone" (joinStr "" "mention-everyone-" .ID) `Mention everyone` .MentionEveryone (joinStr "" `form="sub-item-` .ID `"`)}}
+                                <textarea form="sub-item-{{.ID}}" id="youtube_msg" name="youtube_msg" class="form-control" rows="5" data-requireperms-embed>{{.YoutubeMsg}}</textarea>
                             </td>
                             <td>
                                 <button form="sub-item-{{.ID}}" type="submit" class="btn btn-success"

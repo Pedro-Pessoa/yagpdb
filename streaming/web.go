@@ -17,10 +17,10 @@ import (
 	"goji.io/pat"
 )
 
-type ConextKey int
+type ContextKey int
 
 const (
-	ConextKeyConfig ConextKey = iota
+	ContextKeyConfig ContextKey = iota
 )
 
 var panelLogKey = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "streaming_settings_updated", FormatString: "Updated streaming settings"})
@@ -60,7 +60,7 @@ func baseData(inner http.Handler) http.Handler {
 			return
 		}
 		tmpl["StreamingConfig"] = config
-		inner.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ConextKeyConfig, config)))
+		inner.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), ContextKeyConfig, config)))
 	}
 
 	return http.HandlerFunc(mw)

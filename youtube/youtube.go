@@ -67,7 +67,7 @@ type ChannelSubscription struct {
 	ChannelID          string
 	YoutubeChannelID   string
 	YoutubeChannelName string
-	MentionEveryone    bool
+	YoutubeMsg         string `json:"youtube_msg" schema:"youtube_msg" valid:"template,1000"`
 }
 
 func (c *ChannelSubscription) TableName() string {
