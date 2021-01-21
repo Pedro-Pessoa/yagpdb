@@ -12,6 +12,7 @@ import (
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/mqueue"
 	"github.com/mediocregopher/radix/v3"
 )
 
@@ -30,7 +31,6 @@ type InnerNewsStruct struct {
 	GuildID      int64 `gorm:"primary_key"`
 	IsChannelSet bool
 	ChannelID    int64
-	DMSent       bool
 	RunNews      bool
 }
 
@@ -225,24 +225,16 @@ func newsSender(g int64, news *discordgo.MessageEmbed) {
 
 	if table.IsChannelSet && table.RunNews {
 		news.Color = int(rand.Int63n(16777215))
-		perms, _, err := bot.SendMessageEmbed(g, table.ChannelID, news)
-		if !perms {
-			if !table.DMSent {
-				err = bot.SendDM(gs.Guild.OwnerID, fmt.Sprintf("Looks like I don't have perms to send msgs on the news channel of your server. Please give me permission to Send Message on the channel <#%d> or change the news feed to another channel.", table.ChannelID))
-				if err != nil {
-					logger.Errorf("Failed sending DM to the owner of Guild: %d -- User: %d", g, gs.Guild.OwnerID)
-				}
 
-				table.DMSent = true
-			}
-		} else {
-			if err != nil {
-				logger.Errorf("Error sending news DM on guild %d", g)
-			} else if table.DMSent {
-				table.DMSent = false
-				logger.Infof("Guild %d news channel is now working!", g)
-			}
-		}
+		mqueue.QueueMessage(&mqueue.QueuedElement{
+			Guild:           table.GuildID,
+			Channel:         table.ChannelID,
+			Source:          "tibia",
+			SourceID:        "",
+			MessageEmbed:    news,
+			Priority:        2,
+			AllowedMentions: discordgo.AllowedMentions{},
+		})
 
 		err = common.GORM.Save(&table).Error
 		if err != nil {

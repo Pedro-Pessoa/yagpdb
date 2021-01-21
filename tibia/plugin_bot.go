@@ -2,6 +2,7 @@ package tibia
 
 import (
 	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/mqueue"
 )
 
 var logger = common.GetPluginLogger(&Plugin{})
@@ -23,6 +24,8 @@ func RegisterPlugin() {
 
 	common.GORM.AutoMigrate(&TibiaFlags{}, &TibiaTracking{}, &ScanTable{}, &InnerNewsStruct{}, &NewsTable{})
 
+	mqueue.RegisterSource("tibia", plugin)
+
 	table := ScanTable{}
 	err := common.GORM.Where(&table).First(&table).Error
 	if err == nil {
@@ -40,6 +43,35 @@ func RegisterPlugin() {
 		}
 	}
 }
+
+func (p *Plugin) DisableFeed(elem *mqueue.QueuedElement, PlaceHolder error) {
+	table := TibiaFlags{}
+	err := common.GORM.Where(&TibiaFlags{ServerID: elem.Guild}).First(&table).Error
+	if err != nil {
+		logger.Errorf("Error getting track on disable feed: %#v", err)
+	} else {
+		table.SendDeaths = false
+		table.SendUpdates = false
+		err = common.GORM.Save(&table).Error
+		if err != nil {
+			logger.Errorf("Error saving track on disable feed: %#v", err)
+		}
+	}
+
+	newstable := InnerNewsStruct{}
+	err = common.GORM.Where(&InnerNewsStruct{GuildID: elem.Guild}).First(&newstable).Error
+	if err != nil {
+		logger.Errorf("Error getting news on disable feed: %#v", err)
+	} else {
+		newstable.RunNews = false
+		err = common.GORM.Save(&newstable).Error
+		if err != nil {
+			logger.Errorf("Error saving news on disable feed: %#v", err)
+		}
+	}
+}
+
+var _ mqueue.PluginWithSourceDisabler = (*Plugin)(nil)
 
 // func (p *Plugin) AddCommands() {
 //	commands.AddRootCommands(p, RespCommands...)

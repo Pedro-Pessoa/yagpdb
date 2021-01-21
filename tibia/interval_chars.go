@@ -11,6 +11,7 @@ import (
 	"github.com/jonas747/discordgo"
 	"github.com/jonas747/yagpdb/bot"
 	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/mqueue"
 	"github.com/jonas747/yagpdb/premium"
 )
 
@@ -407,12 +408,6 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	channel <- input
 
-	msgSend := &discordgo.MessageSend{
-		AllowedMentions: discordgo.AllowedMentions{
-			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeEveryone},
-		},
-	}
-
 	var title string
 	if flags.SendUpdates && len(output) > 0 {
 		if areHunteds {
@@ -421,13 +416,21 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 			title = fmt.Sprintf("Tem novidade sobre %s (FRIEND)", input.Name)
 		}
 
-		msgSend.Embed = &discordgo.MessageEmbed{
+		embed := &discordgo.MessageEmbed{
 			Title:       title,
 			Description: output,
 			Color:       int(rand.Int63n(16777215)),
 		}
 
-		_, _ = common.BotSession.ChannelMessageSendComplex(flags.ChannelUpdates, msgSend)
+		mqueue.QueueMessage(&mqueue.QueuedElement{
+			Guild:           flags.ServerID,
+			Channel:         flags.ChannelUpdates,
+			Source:          "tibia",
+			SourceID:        "",
+			MessageEmbed:    embed,
+			Priority:        2,
+			AllowedMentions: discordgo.AllowedMentions{},
+		})
 	}
 
 	if flags.SendDeaths && len(deathsoutput) > 0 {
@@ -437,13 +440,21 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 			title = fmt.Sprintf("FRIEND MORTO: %s", input.Name)
 		}
 
-		msgSend.Embed = &discordgo.MessageEmbed{
+		embed := &discordgo.MessageEmbed{
 			Title:       title,
 			Description: deathsoutput,
 			Color:       int(rand.Int63n(16777215)),
 		}
 
-		_, _ = common.BotSession.ChannelMessageSendComplex(flags.ChannelDeaths, msgSend)
+		mqueue.QueueMessage(&mqueue.QueuedElement{
+			Guild:           flags.ServerID,
+			Channel:         flags.ChannelUpdates,
+			Source:          "tibia",
+			SourceID:        "",
+			MessageEmbed:    embed,
+			Priority:        2,
+			AllowedMentions: discordgo.AllowedMentions{},
+		})
 	}
 }
 
