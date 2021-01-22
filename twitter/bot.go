@@ -22,7 +22,6 @@ func (p *Plugin) Status() (string, string) {
 var _ mqueue.PluginWithSourceDisabler = (*Plugin)(nil)
 
 func (p *Plugin) DisableFeed(elem *mqueue.QueuedElement, PlaceHolder error) {
-
 	feedID, err := strconv.ParseInt(elem.SourceID, 10, 64)
 	if err != nil {
 		logger.WithError(err).WithField("source_id", elem.SourceID).Error("failed parsing sourceID!??!")
