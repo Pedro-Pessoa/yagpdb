@@ -78,6 +78,8 @@ func (p *Plugin) InitWeb() {
 		return http.HandlerFunc(h)
 	})
 
+	subMux.Use(web.NotFound())
+
 	subMux.Handle(pat.Get(""), getHandler)
 	subMux.Handle(pat.Get("/"), getHandler)
 

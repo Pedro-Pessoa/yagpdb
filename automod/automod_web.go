@@ -58,6 +58,8 @@ func (p *Plugin) InitWeb() {
 
 	muxer := goji.SubMux()
 
+	muxer.Use(web.NotFound())
+
 	web.CPMux.Handle(pat.New("/automod"), muxer)
 	web.CPMux.Handle(pat.New("/automod/*"), muxer)
 

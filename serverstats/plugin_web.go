@@ -47,6 +47,8 @@ func (p *Plugin) InitWeb() {
 	web.CPMux.Handle(pat.New("/stats"), statsCPMux)
 	web.CPMux.Handle(pat.New("/stats/*"), statsCPMux)
 
+	statsCPMux.Use(web.NotFound())
+
 	cpGetHandler := web.ControllerHandler(publicHandler(HandleStatsHtml, false), "cp_serverstats")
 	statsCPMux.Handle(pat.Get(""), cpGetHandler)
 	statsCPMux.Handle(pat.Get("/"), cpGetHandler)

@@ -39,6 +39,8 @@ func (p *Plugin) InitWeb() {
 	web.CPMux.Handle(pat.New("/automod_legacy/*"), autmodMux)
 	web.CPMux.Handle(pat.New("/automod_legacy"), autmodMux)
 
+	autmodMux.Use(web.NotFound())
+
 	// Alll handlers here require guild channels present
 	autmodMux.Use(web.RequireBotMemberMW)
 	autmodMux.Use(web.RequirePermMW(discordgo.PermissionManageRoles, discordgo.PermissionKickMembers, discordgo.PermissionBanMembers, discordgo.PermissionManageMessages))

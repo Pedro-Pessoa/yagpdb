@@ -41,6 +41,7 @@ func (p *Plugin) InitWeb() {
 	streamingMux.Use(web.RequireBotMemberMW)
 	streamingMux.Use(web.RequirePermMW(discordgo.PermissionManageRoles))
 	streamingMux.Use(baseData)
+	streamingMux.Use(web.NotFound())
 
 	// Get just renders the template, so let the renderhandler do all the work
 	streamingMux.Handle(pat.Get(""), web.RenderHandler(nil, "cp_streaming"))

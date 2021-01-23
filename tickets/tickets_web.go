@@ -11,6 +11,7 @@ import (
 	"github.com/jonas747/yagpdb/tickets/models"
 	"github.com/jonas747/yagpdb/web"
 	"github.com/volatiletech/sqlboiler/boil"
+	"goji.io"
 	"goji.io/pat"
 )
 
@@ -46,6 +47,9 @@ func (p *Plugin) InitWeb() {
 	web.CPMux.Handle(pat.Get("/tickets/settings/"), getHandler)
 
 	web.CPMux.Handle(pat.Post("/tickets/settings"), postHandler)
+
+	subMux := goji.SubMux()
+	subMux.Use(web.NotFound())
 }
 
 func (p *Plugin) handleGetSettings(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {

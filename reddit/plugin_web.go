@@ -67,6 +67,7 @@ func (p *Plugin) InitWeb() {
 	redditMux.Use(web.RequireBotMemberMW)
 	redditMux.Use(web.RequirePermMW(discordgo.PermissionManageWebhooks))
 	redditMux.Use(baseData)
+	redditMux.Use(web.NotFound())
 
 	redditMux.Handle(pat.Get("/"), web.RenderHandler(HandleReddit, "cp_reddit"))
 	redditMux.Handle(pat.Get(""), web.RenderHandler(HandleReddit, "cp_reddit"))

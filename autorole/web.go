@@ -59,6 +59,7 @@ func (p *Plugin) InitWeb() {
 
 	muxer.Use(web.RequireBotMemberMW) // need the bot's role
 	muxer.Use(web.RequirePermMW(discordgo.PermissionManageRoles))
+	muxer.Use(web.NotFound())
 
 	getHandler := web.RenderHandler(handleGetAutoroleMainPage, "cp_autorole")
 

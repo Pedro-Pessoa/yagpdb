@@ -55,6 +55,8 @@ func (p *Plugin) InitWeb() {
 	web.CPMux.Handle(pat.New("/twitter/*"), mux)
 	web.CPMux.Handle(pat.New("/twitter"), mux)
 
+	mux.Use(web.NotFound())
+
 	mainGetHandler := web.ControllerHandler(p.HandleTwitter, "cp_twitter")
 
 	mux.Handle(pat.Get("/"), mainGetHandler)

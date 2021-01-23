@@ -34,6 +34,7 @@ func (p *Plugin) InitWeb() {
 	web.RootMux.Handle(pat.New("/premium/*"), submux)
 
 	submux.Use(web.RequireSessionMiddleware)
+	submux.Use(web.NotFound())
 
 	mainHandler := web.ControllerHandler(HandleGetPremiumMainPage, "premium_user_setup")
 

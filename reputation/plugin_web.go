@@ -68,6 +68,8 @@ func (p *Plugin) InitWeb() {
 	web.CPMux.Handle(pat.New("/reputation"), subMux)
 	web.CPMux.Handle(pat.New("/reputation/*"), subMux)
 
+	subMux.Use(web.NotFound())
+
 	mainGetHandler := web.RenderHandler(HandleGetReputation, "cp_reputation_settings")
 
 	subMux.Handle(pat.Get(""), mainGetHandler)

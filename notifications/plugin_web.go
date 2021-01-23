@@ -10,6 +10,7 @@ import (
 	"github.com/jonas747/yagpdb/common/configstore"
 	"github.com/jonas747/yagpdb/common/cplogs"
 	"github.com/jonas747/yagpdb/web"
+	"goji.io"
 	"goji.io/pat"
 )
 
@@ -31,6 +32,9 @@ func (p *Plugin) InitWeb() {
 
 	web.CPMux.Handle(pat.Post("/notifications/general"), postHandler)
 	web.CPMux.Handle(pat.Post("/notifications/general/"), postHandler)
+
+	subMux := goji.SubMux()
+	subMux.Use(web.NotFound())
 }
 
 func HandleNotificationsGet(w http.ResponseWriter, r *http.Request) interface{} {

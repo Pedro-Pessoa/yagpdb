@@ -33,6 +33,7 @@ func (p *Plugin) InitWeb() {
 
 	subMux.Use(web.RequireBotMemberMW) // need the bot's role
 	subMux.Use(web.RequirePermMW(discordgo.PermissionManageRoles, discordgo.PermissionKickMembers, discordgo.PermissionBanMembers, discordgo.PermissionManageMessages, discordgo.PermissionEmbedLinks))
+	subMux.Use(web.NotFound())
 
 	getHandler := web.ControllerHandler(HandleModeration, "cp_moderation")
 	postHandler := web.ControllerPostHandler(HandlePostModeration, getHandler, Config{})

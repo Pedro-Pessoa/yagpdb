@@ -21,6 +21,7 @@ import (
 	"github.com/russross/blackfriday"
 	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
+	"goji.io"
 	"goji.io/pat"
 )
 
@@ -59,6 +60,9 @@ func (p *Plugin) InitWeb() {
 	postVerifyPageHandler := web.ControllerPostHandler(p.handlePostVerifyPage, getVerifyPageHandler, nil)
 	web.ServerPublicMux.Handle(pat.Get("/verify/:user_id/:token"), getVerifyPageHandler)
 	web.ServerPublicMux.Handle(pat.Post("/verify/:user_id/:token"), postVerifyPageHandler)
+
+	subMux := goji.SubMux()
+	subMux.Use(web.NotFound())
 }
 
 func (p *Plugin) handleGetSettings(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
