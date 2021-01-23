@@ -408,7 +408,9 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 			if isDM && !WL {
 				if typedMsg.Embed != nil {
-					typedMsg.Embed.Footer.Text = info
+					typedMsg.Embed.Footer = &discordgo.MessageEmbedFooter{
+						Text: info,
+					}
 				} else {
 					typedMsg.Content = info + "\n" + typedMsg.Content
 				}

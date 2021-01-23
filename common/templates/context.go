@@ -410,8 +410,11 @@ func (c *Context) SendResponse(content string) (*discordgo.Message, error) {
 
 	for _, v := range c.CurrentFrame.EmbedsToSend {
 		if isDM && !WL {
-			v.Footer.Text = info
+			v.Footer = &discordgo.MessageEmbedFooter{
+				Text: info,
+			}
 		}
+
 		_, _ = common.BotSession.ChannelMessageSendEmbed(channelID, v)
 	}
 
