@@ -231,6 +231,7 @@ func UserInfoMiddleware(inner http.Handler) http.Handler {
 		templateData := map[string]interface{}{
 			"User":       user,
 			"IsBotOwner": common.IsOwner(user.ID),
+			"IsPT":       user.Locale == "pt-BR",
 		}
 
 		// update the logger with the user and update the context with all the new info
