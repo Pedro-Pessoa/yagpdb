@@ -18,6 +18,7 @@ import (
 	"github.com/jonas747/yagpdb/web/discordblog"
 	"github.com/natefinch/lumberjack"
 	"goji.io"
+	"goji.io/middleware"
 	"goji.io/pat"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -35,6 +36,7 @@ var (
 	CPMux             *goji.Mux
 	ServerPublicMux   *goji.Mux
 	ServerPubliAPIMux *goji.Mux
+	Error404Mux       *goji.Mux
 
 	properAddresses bool
 
@@ -110,6 +112,7 @@ func loadTemplates() {
 		"templates/index.html", "templates/cp_main.html",
 		"templates/cp_nav.html", "templates/cp_selectserver.html", "templates/cp_logs.html",
 		"templates/status.html", "templates/cp_server_home.html", "templates/cp_core_settings.html",
+		"templates/error404.html",
 	}
 
 	for _, v := range coreTemplates {
@@ -263,6 +266,7 @@ func setupRoutes() *goji.Mux {
 	serverPublicMux.Use(RequireActiveServer)
 	serverPublicMux.Use(LoadCoreConfigMiddleware)
 	serverPublicMux.Use(SetGuildMemberMiddleware)
+	serverPublicMux.Use(NotFound())
 
 	RootMux.Handle(pat.New("/public/:server"), serverPublicMux)
 	RootMux.Handle(pat.New("/public/:server/*"), serverPublicMux)
@@ -274,6 +278,7 @@ func setupRoutes() *goji.Mux {
 	ServerPubliAPIMux.Use(RequireActiveServer)
 	ServerPubliAPIMux.Use(LoadCoreConfigMiddleware)
 	ServerPubliAPIMux.Use(SetGuildMemberMiddleware)
+	ServerPublicMux.Use(NotFound())
 
 	RootMux.Handle(pat.Get("/api/:server"), ServerPubliAPIMux)
 	RootMux.Handle(pat.Get("/api/:server/*"), ServerPubliAPIMux)
@@ -286,6 +291,8 @@ func setupRoutes() *goji.Mux {
 	RootMux.Handle(pat.Get("/status"), ControllerHandler(HandleStatusHTML, "cp_status"))
 	RootMux.Handle(pat.Get("/status/"), ControllerHandler(HandleStatusHTML, "cp_status"))
 	RootMux.Handle(pat.Get("/status.json"), APIHandler(HandleStatusJSON))
+	RootMux.Handle(pat.Get("/error404"), RenderHandler(HandleError404, "error404"))
+	RootMux.Handle(pat.Get("/error404/"), RenderHandler(HandleError404, "error404"))
 	RootMux.Handle(pat.Post("/shard/:shard/reconnect"), ControllerHandler(HandleReconnectShard, "cp_status"))
 	RootMux.Handle(pat.Post("/shard/:shard/reconnect/"), ControllerHandler(HandleReconnectShard, "cp_status"))
 
@@ -299,6 +306,7 @@ func setupRoutes() *goji.Mux {
 	CPMux.Use(LoadCoreConfigMiddleware)
 	CPMux.Use(SetGuildMemberMiddleware)
 	CPMux.Use(RequireServerAdminMiddleware)
+	CPMux.Use(NotFound())
 
 	RootMux.Handle(pat.New("/manage/:server"), CPMux)
 	RootMux.Handle(pat.New("/manage/:server/*"), CPMux)
@@ -352,6 +360,19 @@ func setupRoutes() *goji.Mux {
 	return RootMux
 }
 
+func NotFound() func(http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler := middleware.Handler(r.Context())
+			if handler == nil {
+				http.Redirect(w, r, "/error404", http.StatusMovedPermanently)
+				return
+			}
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
 var StaticFileserverDir = "."
 
 func setupRootMux() {
@@ -371,6 +392,8 @@ func setupRootMux() {
 	mux.Handle(pat.Get("/static/*"), http.FileServer(http.Dir(StaticFileserverDir)))
 	mux.Handle(pat.Get("/robots.txt"), http.HandlerFunc(handleRobotsTXT))
 	mux.Handle(pat.Get("/ads.txt"), http.HandlerFunc(handleAdsTXT))
+
+	mux.Use(NotFound())
 
 	// General middleware
 	mux.Use(SkipStaticMW(gziphandler.GzipHandler, ".css", ".js", ".map"))

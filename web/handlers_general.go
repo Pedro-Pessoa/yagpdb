@@ -135,6 +135,11 @@ func HandleSelectServer(w http.ResponseWriter, r *http.Request) interface{} {
 	return tmpl
 }
 
+func HandleError404(w http.ResponseWriter, r *http.Request) interface{} {
+	_, tmpl := GetCreateTemplateData(r.Context())
+	return tmpl
+}
+
 func HandleLandingPage(w http.ResponseWriter, r *http.Request) (TemplateData, error) {
 	_, tmpl := GetCreateTemplateData(r.Context())
 
