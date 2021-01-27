@@ -315,7 +315,13 @@ var cmds = []*commands.YAGCommand{
 				rankStr = strconv.FormatInt(int64(rank), 10)
 			}
 
-			return fmt.Sprintf("**%s**: **%d** %s (#**%s**)", parsed.GS.MemberCopy(true, target).Username, score, conf.PointsName, rankStr), nil
+			targetMember, err := bot.GetMember(parsed.GS.ID, target)
+			outStr := ""
+			if err == nil && targetMember != nil {
+				outStr = targetMember.Username
+			}
+
+			return fmt.Sprintf("**%s**: **%d** %s (#**%s**)", outStr, score, conf.PointsName, rankStr), nil
 		},
 	},
 	{
@@ -410,6 +416,6 @@ func CmdGiveRep(parsed *dcmd.Data) (interface{}, error) {
 		targetStr = "from"
 	}
 
-	msg := fmt.Sprintf("%s `%d` %s %s **%v** (current: `#%d` - `%d`)", actionStr, amount, pointsName, targetStr, parsed.GS.MemberCopy(true, target), newRank, newScore)
+	msg := fmt.Sprintf("%s `%d` %s %s **%s** (current: `#%d` - `%d`)", actionStr, amount, pointsName, targetStr, receiver.Username, newRank, newScore)
 	return msg, nil
 }

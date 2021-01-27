@@ -281,8 +281,12 @@ var cmdUsernames = &commands.YAGCommand{
 				return nil, paginatedmessages.ErrNoResults
 			}
 
-			ms := parsed.GS.MemberCopy(true, target)
-			out := fmt.Sprintf("Past username of **%s#%d** ```\n", ms.Username, ms.Discriminator)
+			ms, err := bot.GetMember(parsed.GS.ID, target)
+			outStr := ""
+			if err == nil && ms != nil {
+				outStr = ms.Username
+			}
+			out := fmt.Sprintf("Past username of **%s#%d** ```\n", outStr, ms.Discriminator)
 			for _, v := range usernames {
 				out += fmt.Sprintf("%20s: %s\n", v.CreatedAt.Time.UTC().Format(time.RFC822), v.Username.String)
 			}
@@ -341,8 +345,12 @@ var cmdNicknames = &commands.YAGCommand{
 				return nil, paginatedmessages.ErrNoResults
 			}
 
-			ms := parsed.GS.MemberCopy(true, target)
-			out := fmt.Sprintf("Past nicknames of **%s#%d** ```\n", ms.Username, ms.Discriminator)
+			ms, err := bot.GetMember(parsed.GS.ID, target)
+			outStr := ""
+			if err == nil && ms != nil {
+				outStr = ms.Username
+			}
+			out := fmt.Sprintf("Past nicknames of **%s#%d** ```\n", outStr, ms.Discriminator)
 			for _, v := range nicknames {
 				out += fmt.Sprintf("%20s: %s\n", v.CreatedAt.Time.UTC().Format(time.RFC822), v.Nickname.String)
 			}
