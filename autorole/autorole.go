@@ -1,9 +1,9 @@
 package autorole
 
 import (
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var _ = config.RegisterOption("yagpdb.autorole.non_premium_retroactive_assignment", "Wether to enable retroactive assignemnt on non premium guilds", true)

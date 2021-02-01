@@ -10,13 +10,14 @@ import (
 	"unicode/utf8"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/common"
-	prfx "github.com/jonas747/yagpdb/common/prefix"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	prfx "github.com/Pedro-Pessoa/tidbot/common/prefix"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 var (
@@ -136,9 +137,9 @@ func (p *Plugin) StopBot(wg *sync.WaitGroup) {
 
 var helpFormatter = &dcmd.StdHelpFormatter{}
 
-func YAGCommandMiddleware(inner dcmd.RunFunc) dcmd.RunFunc {
+func TIDCommandMiddleware(inner dcmd.RunFunc) dcmd.RunFunc {
 	return func(data *dcmd.Data) (interface{}, error) {
-		yc, ok := data.Cmd.Command.(*YAGCommand)
+		yc, ok := data.Cmd.Command.(*TIDCommand)
 		if !ok {
 			resp, err := inner(data)
 			// Filter the response
@@ -237,14 +238,14 @@ func FilterResp(in interface{}, guildID int64) interface{} {
 	return in
 }
 
-func AddRootCommands(p common.Plugin, cmds ...*YAGCommand) {
+func AddRootCommands(p common.Plugin, cmds ...*TIDCommand) {
 	for _, v := range cmds {
 		v.Plugin = p
 		CommandSystem.Root.AddCommand(v, v.GetTrigger())
 	}
 }
 
-func AddRootCommandsWithMiddlewares(p common.Plugin, middlewares []dcmd.MiddleWareFunc, cmds ...*YAGCommand) {
+func AddRootCommandsWithMiddlewares(p common.Plugin, middlewares []dcmd.MiddleWareFunc, cmds ...*TIDCommand) {
 	for _, v := range cmds {
 		v.Plugin = p
 		CommandSystem.Root.AddCommand(v, v.GetTrigger().SetMiddlewares(middlewares...))
@@ -329,7 +330,7 @@ func ensureEmbedLimits(embed *discordgo.MessageEmbed) {
 	embed.Description = firstField.Value
 }
 
-var cmdPrefix = &YAGCommand{
+var cmdPrefix = &TIDCommand{
 	Name:        "Prefix",
 	Description: "Shows command prefix of the current server, or the specified server",
 	CmdCategory: CategoryTool,

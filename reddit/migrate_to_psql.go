@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/mediocregopher/radix/v3"
 )
 

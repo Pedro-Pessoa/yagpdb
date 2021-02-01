@@ -9,11 +9,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/featureflags"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 var DiscordState *dstate.State

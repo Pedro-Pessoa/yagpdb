@@ -1,8 +1,8 @@
 package tibia
 
 import (
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
 )
 
 var logger = common.GetPluginLogger(&Plugin{})
@@ -13,7 +13,7 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 	return &common.PluginInfo{
 		Name:     "Tibia",
 		SysName:  "tibia",
-		Category: common.PluginCategoryTibia,
+		Category: common.PluginCategoryExtras,
 	}
 }
 

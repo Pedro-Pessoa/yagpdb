@@ -6,10 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/internalapi"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/internalapi"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var clientLogger = common.GetFixedPrefixLogger("botrest_client")

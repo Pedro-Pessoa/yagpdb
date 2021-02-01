@@ -4,12 +4,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
 	"github.com/tkuchiki/go-timezone"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:    commands.CategoryTool,
 	Name:           "CurrentTime",
 	Aliases:        []string{"ctime", "gettime"},
@@ -28,7 +29,8 @@ func cmdFuncCurrentTime(data *dcmd.Data) (interface{}, error) {
 	now := time.Now()
 	if data.Args[0].Value != nil {
 		tzName := data.Args[0].Str()
-		names, err := timezone.GetTimezones(strings.ToUpper(data.Args[0].Str()))
+		tz := timezone.New()
+		names, err := tz.GetTimezones(strings.ToUpper(data.Args[0].Str()))
 		if err == nil && len(names) > 0 {
 			tzName = names[0]
 		}

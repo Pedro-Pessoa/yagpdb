@@ -6,11 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/patreon/patreonapi"
 	"github.com/mediocregopher/radix/v3"
 	"golang.org/x/oauth2"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/patreon/patreonapi"
 )
 
 var logger = common.GetFixedPrefixLogger("patreon")

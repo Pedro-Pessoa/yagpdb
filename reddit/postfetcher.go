@@ -7,9 +7,10 @@ import (
 
 	"emperror.dev/errors"
 	greddit "github.com/jonas747/go-reddit"
-	"github.com/jonas747/yagpdb/common"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 var KeyLastScannedPostIDFast = "reddit_last_post_id"

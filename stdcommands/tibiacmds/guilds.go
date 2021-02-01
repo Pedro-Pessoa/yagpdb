@@ -7,14 +7,15 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/stdcommands/util"
-	"github.com/jonas747/yagpdb/tibia"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/tibia"
 )
 
-var SpecificGuildCommand = &commands.YAGCommand{
+var SpecificGuildCommand = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "Guild",
 	Description: "Retorna informações da guild especificada.",

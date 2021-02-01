@@ -14,17 +14,17 @@ import (
 	"sync"
 	"time"
 
+	"emperror.dev/errors"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/volatiletech/null"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 
-	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type ScheduledEvents struct {

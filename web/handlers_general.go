@@ -14,17 +14,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/models"
-	"github.com/jonas747/yagpdb/common/patreon"
-	"github.com/jonas747/yagpdb/web/discordblog"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/patrickmn/go-cache"
 	"github.com/volatiletech/null"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/models"
+	"github.com/Pedro-Pessoa/tidbot/common/patreon"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web/discordblog"
 )
 
 type serverHomeWidget struct {
@@ -465,6 +466,7 @@ func (p *ControlPanelPlugin) LoadServerHomeWidget(w http.ResponseWriter, r *http
 	_, templateData := GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Control Panel"
+	templateData["WidgetTitlePT"] = "Painel De Controle"
 	templateData["SettingsPath"] = "/core"
 
 	templateData["WidgetEnabled"] = true
@@ -477,7 +479,16 @@ func (p *ControlPanelPlugin) LoadServerHomeWidget(w http.ResponseWriter, r *http
 	<li>All members read-only: %s</li>
 	<li>Allow absolutely everyone read-only access: %s</li>
 </ul>`
+
+	const formatPT = `<ul>
+	<li>Cargos com permissão somente leitura: <code>%d</code></li>
+	<li>Cargos com permissão moderadora: <code>%d</code></li>
+	<li>Todos os membros tem permissão somente leitura: %s</li>
+	<li>Qualquer usuário tem permissão somente leitura: %s</li>
+</ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatus(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatus(config.AllowNonMembersReadOnly)))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatusPT(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatusPT(config.AllowNonMembersReadOnly)))
 
 	return templateData, nil
 }

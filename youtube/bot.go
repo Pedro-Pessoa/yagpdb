@@ -3,8 +3,9 @@ package youtube
 import (
 	"fmt"
 
-	"github.com/jonas747/yagpdb/common"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 func (p *Plugin) Status() (string, string) {

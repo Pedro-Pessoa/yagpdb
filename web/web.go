@@ -10,17 +10,18 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/patreon"
-	yagtmpl "github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/web/discordblog"
 	"github.com/natefinch/lumberjack"
 	"goji.io"
 	"goji.io/middleware"
 	"goji.io/pat"
 	"golang.org/x/crypto/acme/autocert"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/patreon"
+	yagtmpl "github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web/discordblog"
 )
 
 var (
@@ -105,6 +106,10 @@ func init() {
 	flag.BoolVar(&properAddresses, "pa", false, "Sets the listen addresses to 80 and 443")
 	flag.BoolVar(&https, "https", true, "Serve web on HTTPS. Only disable when using an HTTPS reverse proxy.")
 	flag.BoolVar(&exthttps, "exthttps", false, "Set if the website uses external https (through reverse proxy) but should only listen on http.")
+}
+
+func RegisterSetupFuncWeb(f map[string]interface{}) {
+	Templates = Templates.Funcs(f)
 }
 
 func loadTemplates() {
@@ -340,15 +345,17 @@ func setupRoutes() *goji.Mux {
 	}
 
 	AddSidebarItem(SidebarCategoryCore, &SidebarItem{
-		Name: "Core",
-		URL:  "core",
-		Icon: "fas fa-cog",
+		Name:   "Core",
+		NamePT: "Principal",
+		URL:    "core",
+		Icon:   "fas fa-cog",
 	})
 
 	AddSidebarItem(SidebarCategoryCore, &SidebarItem{
-		Name: "Control panel logs",
-		URL:  "cplogs",
-		Icon: "fas fa-database",
+		Name:   "Control Panel Logs",
+		NamePT: "Logs Painel De Controle",
+		URL:    "cplogs",
+		Icon:   "fas fa-database",
 	})
 
 	for _, plugin := range common.Plugins {
@@ -444,10 +451,12 @@ const (
 	SidebarCategoryTools    = "Tools"
 	SidebarCategoryFun      = "Fun"
 	SidebarCategoryCore     = "Core"
+	SidebarCategoryExtras   = "Extras"
 )
 
 type SidebarItem struct {
 	Name            string
+	NamePT          string
 	URL             string
 	Icon            string
 	CustomIconImage string

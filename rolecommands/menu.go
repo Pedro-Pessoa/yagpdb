@@ -9,19 +9,20 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/rolecommands/models"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
 )
 
 var recentMenusTracker = NewRecentMenusTracker(time.Minute * 10)

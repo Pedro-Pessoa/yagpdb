@@ -1,16 +1,16 @@
 package simpleembed
 
 import (
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:         commands.CategoryFun,
 	Name:                "SimpleEmbed",
 	Aliases:             []string{"se"},
@@ -98,7 +98,7 @@ var Command = &commands.YAGCommand{
 		messageSend := &discordgo.MessageSend{
 			Content:         content,
 			Embed:           embed,
-			AllowedMentions: discordgo.AllowedMentions{},
+			AllowedMentions: &discordgo.MessageAllowedMentions{},
 		}
 
 		_, err := common.BotSession.ChannelMessageSendComplex(cID, messageSend)

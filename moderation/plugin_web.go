@@ -5,12 +5,13 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var (
@@ -22,9 +23,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../moderation/assets/moderation.html", "templates/plugins/moderation.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Moderation",
-		URL:  "moderation",
-		Icon: "fas fa-gavel",
+		Name:   "Moderation",
+		NamePT: "Moderação",
+		URL:    "moderation",
+		Icon:   "fas fa-gavel",
 	})
 
 	subMux := goji.SubMux()
@@ -109,6 +111,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	activeGuild, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Moderation"
+	templateData["WidgetTitlePT"] = "Moderação"
 	templateData["SettingsPath"] = "/moderation"
 
 	config, err := GetConfig(activeGuild.ID)
@@ -116,7 +119,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Report command: %s</li>
 	<li>Clean command: %s</li>
 	<li>Giverole/Takerole commands: %s</li>
@@ -126,6 +129,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Warning commands: %s</li>
 	<li>Lockdown commands: %s</li>
 	<li>Slowmode command: %s</li>
+</ul>`
+
+	const formatPT = `<ul>
+	<li>Comando reportar: %s</li>
+	<li>Comando limpar: %s</li>
+	<li>Comando dar/tirar cargo: %s</li>
+	<li>Comando expulsar: %s</li>
+	<li>Comando banir: %s</li>
+	<li>Comando silenciar: %s</li>
+	<li>Comando avisar: %s</li>
+	<li>Comando lockdown: %s</li>
+	<li>Comando modo lento: %s</li>
 </ul>`
 
 	if config.ReportEnabled || config.CleanEnabled || config.GiveRoleCmdEnabled || config.ActionChannel != "" ||
@@ -140,6 +155,12 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		web.EnabledDisabledSpanStatus(config.KickEnabled), web.EnabledDisabledSpanStatus(config.BanEnabled),
 		web.EnabledDisabledSpanStatus(config.MuteEnabled), web.EnabledDisabledSpanStatus(config.WarnCommandsEnabled),
 		web.EnabledDisabledSpanStatus(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatus(config.SlowmodeCommandEnabled)))
+
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.ReportEnabled),
+		web.EnabledDisabledSpanStatusPT(config.CleanEnabled), web.EnabledDisabledSpanStatusPT(config.GiveRoleCmdEnabled),
+		web.EnabledDisabledSpanStatusPT(config.KickEnabled), web.EnabledDisabledSpanStatusPT(config.BanEnabled),
+		web.EnabledDisabledSpanStatusPT(config.MuteEnabled), web.EnabledDisabledSpanStatusPT(config.WarnCommandsEnabled),
+		web.EnabledDisabledSpanStatusPT(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatusPT(config.SlowmodeCommandEnabled)))
 
 	return templateData, nil
 }

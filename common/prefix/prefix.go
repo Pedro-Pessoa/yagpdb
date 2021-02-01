@@ -1,10 +1,11 @@
 package prefix
 
 import (
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/featureflags"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 func GetCommandPrefixRedis(guild int64) (string, error) {

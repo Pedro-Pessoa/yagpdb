@@ -3,12 +3,12 @@ package memberfetcher
 import (
 	"fmt"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory: commands.CategoryDebug,
 	Name:        "MemberFetcher",
 	Aliases:     []string{"memfetch"},

@@ -6,9 +6,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jonas747/yagpdb/bot/eventsystem"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
 )
 
 const EventLoggerPeriodDuration = time.Second * 10

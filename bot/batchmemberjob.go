@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var (

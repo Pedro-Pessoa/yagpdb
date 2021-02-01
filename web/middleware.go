@@ -14,17 +14,18 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/gorilla/schema"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/web/discorddata"
 	"github.com/miolini/datacounter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
+	"github.com/Pedro-Pessoa/tidbot/web/discorddata"
 )
 
 var (
@@ -374,7 +375,7 @@ func RequireBotMemberMW(inner http.Handler) http.Handler {
 		}
 
 		var highest *discordgo.Role
-		combinedPerms := 0
+		var combinedPerms int64
 		for _, role := range guildCast.Roles {
 			found := false
 			if role.ID == guildCast.ID {
@@ -703,16 +704,16 @@ func checkControllerError(ctx context.Context, data TemplateData, err error) {
 	CtxLogger(ctx).WithError(err).Error("Web handler reported an error")
 }
 
-func RequirePermMW(perms ...int) func(http.Handler) http.Handler {
+func RequirePermMW(perms ...int64) func(http.Handler) http.Handler {
 	return func(inner http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			permsInterface := ctx.Value(common.ContextKeyBotPermissions)
-			currentPerms := 0
+			var currentPerms int64
 			if permsInterface == nil {
 				logger.Warn("Requires perms but no permsinterface available")
 			} else {
-				currentPerms = permsInterface.(int)
+				currentPerms = permsInterface.(int64)
 			}
 
 			has := ""
@@ -774,7 +775,7 @@ func SetGuildMemberMiddleware(inner http.Handler) http.Handler {
 				CtxLogger(r.Context()).WithError(err).Warn("failed retrieving member info from discord api")
 			} else if m != nil {
 				// calculate permissions
-				perms := discordgo.MemberPermissions(guild, nil, m)
+				perms := discordgo.MemberPermissions(guild, nil, m.User.ID, m.Roles)
 
 				ctx = context.WithValue(r.Context(), common.ContextKeyUserMember, m)
 				ctx = context.WithValue(ctx, common.ContextKeyMemberPermissions, perms)

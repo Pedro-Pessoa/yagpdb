@@ -7,8 +7,9 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/yagpdb/common"
 	"github.com/vmihailenco/msgpack"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 type TibiaTracking struct {

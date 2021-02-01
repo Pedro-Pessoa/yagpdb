@@ -8,17 +8,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dshardorchestrator/v2/node"
-	"github.com/jonas747/dstate/v2"
-	dshardmanager "github.com/jonas747/jdshardmanager"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/pubsub"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dshardmanager"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator/node"
 )
 
 var (
@@ -89,11 +90,13 @@ func Run(nodeID string) {
 		NodeConn.Run()
 	} else {
 		_ = ShardManager.Init()
+
 		if usingFixedSharding {
 			go func() { _ = ShardManager.Session(fixedShardingID).Open() }()
 		} else {
 			go func() { _ = ShardManager.Start() }()
 		}
+
 		botReady()
 	}
 }
@@ -396,6 +399,7 @@ func setupShardManager() {
 		session.LogLevel = discordgo.LogInformational
 		session.SyncEvents = true
 		session.Intents = gatewayIntentsUsed
+		session.Identify.Intents = discordgo.IntentsAll
 
 		// Certain discordgo internals expect this to be present
 		// but in case of shard migration it's not, so manually assign it here

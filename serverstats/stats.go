@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/serverstats/messagestatscollector"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/serverstats/messagestatscollector"
 )
 
 type ChannelStats struct {

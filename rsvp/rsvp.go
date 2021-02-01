@@ -9,8 +9,9 @@ import (
 	"github.com/jonas747/when/rules"
 	wcommon "github.com/jonas747/when/rules/common"
 	"github.com/jonas747/when/rules/en"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/timezonecompanion/trules"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/timezonecompanion/trules"
 )
 
 var (

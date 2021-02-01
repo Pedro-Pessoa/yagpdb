@@ -11,18 +11,19 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	"github.com/jonas747/yagpdb/verification/models"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/verification/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type FormData struct {
@@ -43,9 +44,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../verification/assets/verification_verify_page.html", "templates/plugins/verification_verify_page.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Verification",
-		URL:  "verification",
-		Icon: "fas fa-address-card",
+		Name:   "Verification",
+		NamePT: "Verificação",
+		URL:    "verification",
+		Icon:   "fas fa-address-card",
 	})
 
 	getHandler := web.ControllerHandler(p.handleGetSettings, "cp_verification_settings")
@@ -292,6 +294,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ctx := r.Context()
 
 	templateData["WidgetTitle"] = "Google reCAPTCHA Verification"
+	templateData["WidgetTitlePT"] = "Verificação Google reCAPTCHA"
 	templateData["SettingsPath"] = "/verification"
 
 	settings, err := models.FindVerificationConfigG(ctx, ag.ID)
@@ -305,12 +308,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		}
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Status: %s</li>
 	<li>Role: <code>%s</code> %s</li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Status: %s</li>
+	<li>Cargo: <code>%s</code> %s</li>
+</ul>`
+
 	status := web.EnabledDisabledSpanStatus(settings.Enabled)
+	statusPT := web.EnabledDisabledSpanStatusPT(settings.Enabled)
 
 	if settings.Enabled {
 		templateData["WidgetEnabled"] = true
@@ -328,6 +337,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStr, indicatorRole))
 
 	return templateData, nil
 }

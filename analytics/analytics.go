@@ -3,9 +3,10 @@ package analytics
 import (
 	"sync"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
 )
 
 var logger = common.GetPluginLogger(&Plugin{})

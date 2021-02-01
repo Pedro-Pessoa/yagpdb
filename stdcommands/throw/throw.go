@@ -5,12 +5,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory: commands.CategoryFun,
 	Name:        "Throw",
 	Description: "Throwing things is cool.",

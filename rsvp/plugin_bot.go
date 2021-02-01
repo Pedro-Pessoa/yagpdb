@@ -10,19 +10,20 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	eventModels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/rsvp/models"
-	"github.com/jonas747/yagpdb/timezonecompanion"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	eventModels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/rsvp/models"
+	"github.com/Pedro-Pessoa/tidbot/timezonecompanion"
 )
 
 var _ bot.BotInitHandler = (*Plugin)(nil)
@@ -45,7 +46,7 @@ func (p *Plugin) AddCommands() {
 	container := commands.CommandSystem.Root.Sub("events", "event")
 	container.NotFound = commands.CommonContainerNotFoundHandler(container, "")
 
-	cmdCreateEvent := &commands.YAGCommand{
+	cmdCreateEvent := &commands.TIDCommand{
 		CmdCategory: catEvents,
 		Name:        "Create",
 		Aliases:     []string{"new", "make"},
@@ -93,7 +94,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdEdit := &commands.YAGCommand{
+	cmdEdit := &commands.TIDCommand{
 		CmdCategory:         catEvents,
 		Name:                "Edit",
 		Description:         "Edits an event",
@@ -170,7 +171,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdList := &commands.YAGCommand{
+	cmdList := &commands.TIDCommand{
 		CmdCategory:         catEvents,
 		Name:                "List",
 		Aliases:             []string{"ls"},
@@ -200,7 +201,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdDel := &commands.YAGCommand{
+	cmdDel := &commands.TIDCommand{
 		CmdCategory:         catEvents,
 		Name:                "Delete",
 		Aliases:             []string{"rm", "del"},
@@ -234,7 +235,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdStopSetup := &commands.YAGCommand{
+	cmdStopSetup := &commands.TIDCommand{
 		CmdCategory:         catEvents,
 		Name:                "StopSetup",
 		Aliases:             []string{"cancelsetup"},

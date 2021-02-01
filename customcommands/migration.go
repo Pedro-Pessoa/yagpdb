@@ -5,9 +5,10 @@ package customcommands
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/yagpdb/common"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 // contains stuff for migrating from redis to postgres based configs

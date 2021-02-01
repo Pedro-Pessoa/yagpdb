@@ -1,15 +1,15 @@
 package toggledbg
 
 import (
-	"github.com/jonas747/yagpdb/common"
 	"github.com/sirupsen/logrus"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryDebug,
 	HideFromCommandsPage: true,
 	Name:                 "toggledbg",

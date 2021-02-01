@@ -8,10 +8,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type DurationArg struct {
@@ -142,7 +142,7 @@ func CommonContainerNotFoundHandler(container *dcmd.Container, fixedMessage stri
 
 			// make sure that at least 1 command in the container is enabled
 			for _, v := range container.Commands {
-				cast := v.Command.(*YAGCommand)
+				cast := v.Command.(*TIDCommand)
 				settings, err := cast.GetSettingsWithLoadedOverrides(chain, data.GS.ID, channelOverrides)
 				if err != nil {
 					logger.WithError(err).WithField("guild", data.Msg.GuildID).Error("failed checking if command was enabled")

@@ -7,12 +7,12 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/automod/models"
-	"github.com/jonas747/yagpdb/automod_legacy"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/safebrowsing"
+	"github.com/Pedro-Pessoa/tidbot/automod/models"
+	"github.com/Pedro-Pessoa/tidbot/automod_legacy"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/safebrowsing"
 )
 
 var forwardSlashReplacer = strings.NewReplacer("\\", "")

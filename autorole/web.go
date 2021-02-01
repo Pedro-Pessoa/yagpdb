@@ -7,14 +7,15 @@ import (
 	"net/http"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/mediocregopher/radix/v3"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type Form struct {
@@ -47,9 +48,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../autorole/assets/autorole.html", "templates/plugins/autorole.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Autorole",
-		URL:  "autorole",
-		Icon: "fas fa-user-plus",
+		Name:   "Autorole",
+		NamePT: "Cargo Automático",
+		URL:    "autorole",
+		Icon:   "fas fa-user-plus",
 	})
 
 	muxer := goji.SubMux()
@@ -116,6 +118,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Autorole"
+	templateData["WidgetTitlePT"] = "Cargo Automático"
 	templateData["SettingsPath"] = "/autorole"
 
 	general, err := GetGeneralConfig(ag.ID)
@@ -124,23 +127,34 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	enabledDisabled := ""
+	enabledDisabledPT := ""
 	autoroleRole := "none"
+	autoroleRolePT := "nenhum"
 
 	if role := ag.Role(general.Role); role != nil {
 		templateData["WidgetEnabled"] = true
 		enabledDisabled = web.EnabledDisabledSpanStatus(true)
+		enabledDisabledPT = web.EnabledDisabledSpanStatusPT(true)
 		autoroleRole = html.EscapeString(role.Name)
+		autoroleRolePT = html.EscapeString(role.Name)
 	} else {
 		templateData["WidgetDisabled"] = true
 		enabledDisabled = web.EnabledDisabledSpanStatus(false)
+		enabledDisabledPT = web.EnabledDisabledSpanStatusPT(false)
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Autorole status: %s</li>
 	<li>Autorole role: <code>%s</code></li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Status do cargo automático: %s</li>
+	<li>Cargo: <code>%s</code></li>
+</ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, enabledDisabled, autoroleRole))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, enabledDisabledPT, autoroleRolePT))
 
 	return templateData, nil
 }

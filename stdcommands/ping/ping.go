@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:     commands.CategoryDebug,
 	Name:            "Ping",
 	Description:     "Shows the latency from the bot to the discord servers.",

@@ -13,13 +13,13 @@ import (
 	"sort"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/commands"
-
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var (
@@ -50,7 +50,7 @@ var (
 	}
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTool,
 	Name:        "CoronaStatistics",
 	Aliases:     []string{"coronastats", "cstats", "cst"},

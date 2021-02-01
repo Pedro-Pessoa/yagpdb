@@ -6,11 +6,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/configstore"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
 	"github.com/lib/pq"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/configstore"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
 )
 
 type Config struct {

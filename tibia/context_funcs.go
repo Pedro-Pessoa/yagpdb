@@ -5,8 +5,9 @@ import (
 	"sync"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common/templates"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
 )
 
 var ErrTooManyCalls = errors.New("Too many calls to this function")

@@ -6,20 +6,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/common/featureflags"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/automod/models"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/Pedro-Pessoa/tidbot/automod/models"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 func (p *Plugin) AddCommands() {
-	cmdToggleRuleset := &commands.YAGCommand{
+	cmdToggleRuleset := &commands.TIDCommand{
 		Name:         "Toggle",
 		Aliases:      []string{"t"},
 		CmdCategory:  commands.CategoryModeration,
@@ -55,7 +55,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdViewRulesets := &commands.YAGCommand{
+	cmdViewRulesets := &commands.TIDCommand{
 		Name:                "Rulesets",
 		Aliases:             []string{"r", "list", "l"},
 		CmdCategory:         commands.CategoryModeration,
@@ -87,7 +87,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdLogs := &commands.YAGCommand{
+	cmdLogs := &commands.TIDCommand{
 		Name:        "Logs",
 		Aliases:     []string{"log"},
 		CmdCategory: commands.CategoryModeration,
@@ -141,7 +141,7 @@ func (p *Plugin) AddCommands() {
 		}),
 	}
 
-	cmdListVLC := &commands.YAGCommand{
+	cmdListVLC := &commands.TIDCommand{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "ListViolationsCount",
@@ -212,7 +212,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdListV := &commands.YAGCommand{
+	cmdListV := &commands.TIDCommand{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "ListViolations",
@@ -267,7 +267,7 @@ func (p *Plugin) AddCommands() {
 		}),
 	}
 
-	cmdDelV := &commands.YAGCommand{
+	cmdDelV := &commands.TIDCommand{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "DeleteViolation",
@@ -293,7 +293,7 @@ func (p *Plugin) AddCommands() {
 		},
 	}
 
-	cmdClearV := &commands.YAGCommand{
+	cmdClearV := &commands.TIDCommand{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
 		Name:          "ClearViolations",

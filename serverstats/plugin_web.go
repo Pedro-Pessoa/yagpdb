@@ -10,18 +10,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/serverstats/models"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/karlseguin/rcache"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/serverstats/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var WebStatsCache = rcache.New(cacheChartFetcher, time.Minute)
@@ -38,9 +39,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../serverstats/assets/serverstats.html", "templates/plugins/serverstats.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTopLevel, &web.SidebarItem{
-		Name: "Stats",
-		URL:  "stats",
-		Icon: "fas fa-chart-bar",
+		Name:   "Stats",
+		NamePT: "Estatísticas",
+		URL:    "stats",
+		Icon:   "fas fa-chart-bar",
 	})
 
 	statsCPMux := goji.SubMux()
@@ -312,6 +314,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	activeGuild, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Server Stats"
+	templateData["WidgetTitlePT"] = "Estatísticas"
 	templateData["SettingsPath"] = "/stats"
 	templateData["WidgetEnabled"] = true
 
@@ -325,7 +328,13 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Blacklisted channnels: <code>%d</code></li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Estatísticas publicas: %s</li>
+	<li>Canais bloqueados: <code>%d</code></li>
+</ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.Public), len(config.ParsedChannels)))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.Public), len(config.ParsedChannels)))
 
 	return templateData, nil
 }

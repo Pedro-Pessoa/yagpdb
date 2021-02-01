@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	schEventsModels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/customcommands/models"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	schEventsModels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/customcommands/models"
 )
 
 // CalcNextRunTime calculates the next run time for a custom command using the last ran time

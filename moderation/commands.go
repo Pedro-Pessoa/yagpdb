@@ -9,15 +9,16 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 func MBaseCmd(cmdData *dcmd.Data, targetID int64) (config *Config, targetUser *discordgo.User, err error) {
@@ -51,7 +52,7 @@ func MBaseCmd(cmdData *dcmd.Data, targetID int64) (config *Config, targetUser *d
 
 }
 
-func MBaseCmdSecond(cmdData *dcmd.Data, reason string, reasonArgOptional bool, neededPerm int, additionalPermRoles []int64, enabled bool) (oreason string, err error) {
+func MBaseCmdSecond(cmdData *dcmd.Data, reason string, reasonArgOptional bool, neededPerm int64, additionalPermRoles []int64, enabled bool) (oreason string, err error) {
 	cmdName := cmdData.Cmd.Trigger.Names[0]
 	oreason = reason
 	if !enabled {
@@ -119,7 +120,7 @@ func GenericCmdResp(action ModlogAction, target *discordgo.User, duration time.D
 	return fmt.Sprintf("%s %s `%s`%s", action.Emoji, action.Prefix, userStr, durStr)
 }
 
-var ModerationCommands = []*commands.YAGCommand{
+var ModerationCommands = []*commands.TIDCommand{
 	{
 		CustomEnabled: true,
 		CmdCategory:   commands.CategoryModeration,
@@ -261,7 +262,7 @@ var ModerationCommands = []*commands.YAGCommand{
 				dur = d.(time.Duration)
 			}
 
-			out, err := LockUnlockRole(config, true, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), totalPerms, dur)
+			out, err := LockUnlockRole(config, true, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), int64(totalPerms), dur)
 			if err != nil {
 				return nil, err
 			}
@@ -316,7 +317,7 @@ var ModerationCommands = []*commands.YAGCommand{
 				}
 			}
 
-			out, err := LockUnlockRole(config, false, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), totalPerms, time.Duration(0))
+			out, err := LockUnlockRole(config, false, data.GS, data.CS, data.MS, data.Msg.Author, "Moderação", data.Args[0].Str(), data.Switches["force"].Value.(bool), int64(totalPerms), time.Duration(0))
 			if err != nil {
 				return nil, err
 			}
@@ -485,7 +486,7 @@ var ModerationCommands = []*commands.YAGCommand{
 
 			_, err = common.BotSession.ChannelMessageSendComplex(channelID, &discordgo.MessageSend{
 				Content: reportBody,
-				AllowedMentions: discordgo.AllowedMentions{
+				AllowedMentions: &discordgo.MessageAllowedMentions{
 					Users: []int64{parsed.Msg.Author.ID, target},
 				},
 			})

@@ -35,10 +35,11 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/templates"
 	"github.com/lib/pq"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type CustomValidator interface {

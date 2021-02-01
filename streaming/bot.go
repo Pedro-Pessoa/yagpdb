@@ -7,17 +7,17 @@ import (
 	"sync"
 
 	"emperror.dev/errors"
-
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/common/templates"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 func KeyCurrentlyStreaming(gID int64) string { return "currently_streaming:" + discordgo.StrID(gID) }
@@ -26,7 +26,7 @@ var _ bot.BotInitHandler = (*Plugin)(nil)
 
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, bot.ConcurrentEventHandler(HandleGuildCreate), eventsystem.EventGuildCreate)
-	eventsystem.AddHandlerAsyncLast(p, HandlePresenceUpdate, eventsystem.EventPresenceUpdate)
+	// eventsystem.AddHandlerAsyncLast(p, HandlePresenceUpdate, eventsystem.EventPresenceUpdate)
 	eventsystem.AddHandlerAsyncLast(p, HandleGuildMemberUpdate, eventsystem.EventGuildMemberUpdate)
 	pubsub.AddHandler("update_streaming", HandleUpdateStreaming, nil)
 }
@@ -204,7 +204,7 @@ func HandleGuildCreate(evt *eventsystem.EventData) {
 	}))
 }
 
-func HandlePresenceUpdate(evt *eventsystem.EventData) (retry bool, err error) {
+/* func HandlePresenceUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 	p := evt.PresenceUpdate()
 	gs := evt.GS
 
@@ -228,9 +228,9 @@ func HandlePresenceUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 	}
 
 	return false, nil
-}
+} */
 
-func CheckPresenceSparse(client radix.Client, config *Config, p *discordgo.Presence, gs *dstate.GuildState) error {
+/* func CheckPresenceSparse(client radix.Client, config *Config, p *discordgo.Presence, gs *dstate.GuildState) error {
 	if !config.Enabled {
 		// RemoveStreaming(client, config, gs.ID, p.User.ID, member)
 		return nil
@@ -274,9 +274,9 @@ func CheckPresenceSparse(client radix.Client, config *Config, p *discordgo.Prese
 	}
 
 	return nil
-}
+} */
 
-func retrieveMainActivity(p *discordgo.Presence) *discordgo.Game {
+/* func retrieveMainActivity(p *discordgo.Presence) *discordgo.Game {
 	for _, v := range p.Activities {
 		if v.Type == discordgo.GameTypeStreaming {
 			return v
@@ -288,7 +288,7 @@ func retrieveMainActivity(p *discordgo.Presence) *discordgo.Game {
 	}
 
 	return nil
-}
+} */
 
 func CheckPresence(client radix.Client, config *Config, ms *dstate.MemberState, gs *dstate.GuildState) error {
 	if !config.Enabled {
@@ -298,9 +298,9 @@ func CheckPresence(client radix.Client, config *Config, ms *dstate.MemberState, 
 
 	// Now the real fun starts
 	// Either add or remove the stream
-	if ms.PresenceStatus != dstate.StatusOffline && ms.PresenceGame != nil && ms.PresenceGame.URL != "" && ms.PresenceGame.Type == 1 {
+	if ms.PresenceStatus != dstate.StatusOffline && ms.PresenceActivity != nil && ms.PresenceActivity.URL != "" && ms.PresenceActivity.Type == 1 {
 		// Streaming
-		if !config.MeetsRequirements(ms.Roles, ms.PresenceGame.State, ms.PresenceGame.Details) {
+		if !config.MeetsRequirements(ms.Roles, ms.PresenceActivity.State, ms.PresenceActivity.Details) {
 			RemoveStreaming(client, config, gs.ID, ms.ID, ms.Roles)
 			return nil
 		}
@@ -418,11 +418,11 @@ func SendStreamingAnnouncement(config *Config, guild *dstate.GuildState, ms *dst
 	go analytics.RecordActiveUnit(guild.ID, &Plugin{}, "sent_streaming_announcement")
 
 	ctx := templates.NewContext(guild, nil, ms)
-	ctx.Data["URL"] = ms.PresenceGame.URL
-	ctx.Data["url"] = ms.PresenceGame.URL
-	ctx.Data["Game"] = ms.PresenceGame.State
-	ctx.Data["StreamTitle"] = ms.PresenceGame.Details
-	ctx.Data["StreamPlatform"] = ms.PresenceGame.Name
+	ctx.Data["URL"] = ms.PresenceActivity.URL
+	ctx.Data["url"] = ms.PresenceActivity.URL
+	ctx.Data["Game"] = ms.PresenceActivity.State
+	ctx.Data["StreamTitle"] = ms.PresenceActivity.Details
+	ctx.Data["StreamPlatform"] = ms.PresenceActivity.Name
 
 	out, err := ctx.Execute(config.AnnounceMessage)
 	if err != nil {

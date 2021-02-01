@@ -6,12 +6,13 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/templates"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 func init() {
@@ -205,7 +206,7 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 	data = data.WithContext(context.WithValue(data.Context(), paginatedmessages.CtxKeyNoPagination, true))
 	data = data.WithContext(context.WithValue(data.Context(), CtxKeyExecutedByCC, true))
 
-	cast := foundCmd.Command.(*YAGCommand)
+	cast := foundCmd.Command.(*TIDCommand)
 
 	err = dcmd.ParseCmdArgs(data)
 	if err != nil {

@@ -3,12 +3,12 @@ package guildunavailable
 import (
 	"fmt"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryDebug,
 	Name:         "IsGuildUnavailable",
 	Description:  "Returns wether the specified guild is unavilable or not",

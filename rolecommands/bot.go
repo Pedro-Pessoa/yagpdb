@@ -4,20 +4,21 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	schEvtsModels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/rolecommands/models"
+	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
 	"github.com/sirupsen/logrus"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	schEvtsModels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 func (p *Plugin) AddCommands() {
@@ -31,7 +32,7 @@ func (p *Plugin) AddCommands() {
 	}
 
 	commands.AddRootCommands(p,
-		&commands.YAGCommand{
+		&commands.TIDCommand{
 			CmdCategory: commands.CategoryTool,
 			Name:        "Role",
 			Aliases:     []string{"cargo"},
@@ -42,7 +43,7 @@ func (p *Plugin) AddCommands() {
 			RunFunc: CmdFuncRole,
 		})
 
-	cmdCreate := &commands.YAGCommand{
+	cmdCreate := &commands.TIDCommand{
 		Name:                "Create",
 		CmdCategory:         categoryRoleMenu,
 		Aliases:             []string{"c"},
@@ -62,7 +63,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: cmdFuncRoleMenuCreate,
 	}
 
-	cmdRemoveRoleMenu := &commands.YAGCommand{
+	cmdRemoveRoleMenu := &commands.TIDCommand{
 		Name:                "Remove",
 		CmdCategory:         categoryRoleMenu,
 		Description:         "Removes a rolemenu from a message.",
@@ -75,7 +76,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: cmdFuncRoleMenuRemove,
 	}
 
-	cmdUpdate := &commands.YAGCommand{
+	cmdUpdate := &commands.TIDCommand{
 		Name:                "Update",
 		CmdCategory:         categoryRoleMenu,
 		Aliases:             []string{"u"},
@@ -93,7 +94,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: cmdFuncRoleMenuUpdate,
 	}
 
-	cmdResetReactions := &commands.YAGCommand{
+	cmdResetReactions := &commands.TIDCommand{
 		Name:                "ResetReactions",
 		CmdCategory:         categoryRoleMenu,
 		Aliases:             []string{"reset"},
@@ -107,7 +108,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: cmdFuncRoleMenuResetReactions,
 	}
 
-	cmdEditOption := &commands.YAGCommand{
+	cmdEditOption := &commands.TIDCommand{
 		Name:                "EditOption",
 		CmdCategory:         categoryRoleMenu,
 		Aliases:             []string{"edit"},
@@ -121,7 +122,7 @@ func (p *Plugin) AddCommands() {
 		RunFunc: cmdFuncRoleMenuEditOption,
 	}
 
-	cmdFinishSetup := &commands.YAGCommand{
+	cmdFinishSetup := &commands.TIDCommand{
 		Name:                "Complete",
 		CmdCategory:         categoryRoleMenu,
 		Aliases:             []string{"finish"},

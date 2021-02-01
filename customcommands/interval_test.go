@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonas747/yagpdb/customcommands/models"
 	"github.com/volatiletech/null"
+
+	"github.com/Pedro-Pessoa/tidbot/customcommands/models"
 )
 
 func TestNextRunTimeBasic(t *testing.T) {

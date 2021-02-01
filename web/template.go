@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
 )
 
 func prettyTime(t time.Time) string {

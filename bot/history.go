@@ -3,8 +3,8 @@ package bot
 import (
 	"sort"
 
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 // GetMessages Gets messages from state if possible, if not then it retrieves from the discord api

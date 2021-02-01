@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 func TestMain(m *testing.M) {

@@ -1,5 +1,6 @@
 package logs
 
+/*
 import (
 	"context"
 	"database/sql"
@@ -7,18 +8,19 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/logs/models"
-	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/logs/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
-/*
+
 If you accidentally run the migrate command several times you can get rid of duplicates using the following query:
 
 DELETE FROM message_logs2 a USING (
@@ -29,9 +31,9 @@ DELETE FROM message_logs2 a USING (
       WHERE a.legacy_id = b.legacy_id
       AND a.ctid <> b.ctid
       AND a.legacy_id != 0;
-*/
 
-var cmdMigrate = &commands.YAGCommand{
+
+var cmdMigrate = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTool,
 	Name:                 "MigrateLogs",
 	Description:          "Migrates logs from the old format to the new format. This dosen't delete anything and also dosen't deal with duplicates, you should not run it several times.",
@@ -198,3 +200,4 @@ func migrateMessage(tx *sql.Tx, guildID int64, m *models.Message) error {
 
 	return nil
 }
+*/

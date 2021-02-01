@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var (
@@ -21,10 +21,10 @@ var (
 
 type QueuedMergedMessage struct {
 	Content         string
-	AllowedMentions discordgo.AllowedMentions
+	AllowedMentions *discordgo.MessageAllowedMentions
 }
 
-func QueueMergedMessage(channelID int64, message string, allowedMentions discordgo.AllowedMentions) {
+func QueueMergedMessage(channelID int64, message string, allowedMentions *discordgo.MessageAllowedMentions) {
 	mergedQueueLock.Lock()
 	defer mergedQueueLock.Unlock()
 
@@ -48,7 +48,7 @@ func mergedMessageSender() {
 
 func sendMergedBatch(channelID int64, messages []*QueuedMergedMessage) {
 	out := ""
-	mergedAllowedMentions := discordgo.AllowedMentions{}
+	mergedAllowedMentions := &discordgo.MessageAllowedMentions{}
 	for _, v := range messages {
 		out += v.Content + "\n"
 		mergedAllowedMentions = mergeAllowedMentions(mergedAllowedMentions, v.AllowedMentions)
@@ -63,7 +63,7 @@ func sendMergedBatch(channelID int64, messages []*QueuedMergedMessage) {
 }
 
 // mergeAllowedMentions merges 2 discordgo.AllowedMentions definitions into 1
-func mergeAllowedMentions(a, b discordgo.AllowedMentions) discordgo.AllowedMentions {
+func mergeAllowedMentions(a, b *discordgo.MessageAllowedMentions) *discordgo.MessageAllowedMentions {
 	// merge mention types
 OUTER:
 	for _, v := range b.Parse {

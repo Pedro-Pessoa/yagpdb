@@ -10,18 +10,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/discordgo"
 	"github.com/jonas747/go-reddit"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/feeds"
-	"github.com/jonas747/yagpdb/reddit/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/oauth2"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/feeds"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/reddit/models"
 )
 
 var (
@@ -71,7 +72,7 @@ func (p *Plugin) StopFeed(wg *sync.WaitGroup) {
 }
 
 func UserAgent() string {
-	return fmt.Sprintf("YAGPDB:%s:%s (by /u/jonas747)", confClientID.GetString(), common.VERSION)
+	return fmt.Sprintf("YAGPDB:%s:%s (by /u/Pedro-Pessoa)", confClientID.GetString(), common.VERSION)
 }
 
 func setupClient() *reddit.Client {

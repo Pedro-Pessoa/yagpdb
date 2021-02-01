@@ -9,18 +9,19 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands/models"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands/models"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/mediocregopher/radix/v3"
 )
 
 type ContextKey int
@@ -86,12 +87,12 @@ type RunningCommand struct {
 	ChannelID int64
 	AuthorID  int64
 
-	Command *YAGCommand
+	Command *TIDCommand
 }
 
 // Slight extension to the simplecommand, it will check if the command is enabled in the HandleCommand func
 // And invoke a custom handlerfunc with provided redis client
-type YAGCommand struct {
+type TIDCommand struct {
 	Name            string   // Name of command, what its called from
 	Aliases         []string // Aliases which it can also be called from
 	Description     string   // Description shown in non targetted help
@@ -130,20 +131,20 @@ type YAGCommand struct {
 }
 
 // CmdWithCategory puts the command in a category, mostly used for the help generation
-func (yc *YAGCommand) Category() *dcmd.Category {
-	return yc.CmdCategory
+func (tc *TIDCommand) Category() *dcmd.Category {
+	return tc.CmdCategory
 }
 
-func (yc *YAGCommand) Descriptions(data *dcmd.Data) (short, long string) {
-	return yc.Description, yc.Description + "\n" + yc.LongDescription
+func (tc *TIDCommand) Descriptions(data *dcmd.Data) (short, long string) {
+	return tc.Description, tc.Description + "\n" + tc.LongDescription
 }
 
-func (yc *YAGCommand) ArgDefs(data *dcmd.Data) (args []*dcmd.ArgDef, required int, combos [][]int) {
-	return yc.Arguments, yc.RequiredArgs, yc.ArgumentCombos
+func (tc *TIDCommand) ArgDefs(data *dcmd.Data) (args []*dcmd.ArgDef, required int, combos [][]int) {
+	return tc.Arguments, tc.RequiredArgs, tc.ArgumentCombos
 }
 
-func (yc *YAGCommand) Switches() []*dcmd.ArgDef {
-	return yc.ArgSwitches
+func (tc *TIDCommand) Switches() []*dcmd.ArgDef {
+	return tc.ArgSwitches
 }
 
 var metricsExcecutedCommands = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -163,14 +164,14 @@ func isMod(id int64) bool {
 	return false
 }
 
-func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
-	if !yc.RunInDM && data.Source == dcmd.DMSource {
+func (tc *TIDCommand) Run(data *dcmd.Data) (interface{}, error) {
+	if !tc.RunInDM && data.Source == dcmd.DMSource {
 		return nil, nil
 	}
 
 	// Send typing to indicate the bot's working
 	if confSetTyping.GetBool() {
-		if yc.IsModCmd {
+		if tc.IsModCmd {
 			if isMod(data.MS.ID) {
 				_ = common.BotSession.ChannelTyping(data.Msg.ChannelID)
 			}
@@ -179,17 +180,17 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 		}
 	}
 
-	logger := yc.Logger(data)
+	logger := tc.Logger(data)
 
 	// Track how long execution of a command took
 	started := time.Now()
 	defer func() {
-		yc.logExecutionTime(time.Since(started), data.Msg.Content, data.Msg.Author.Username)
+		tc.logExecutionTime(time.Since(started), data.Msg.Content, data.Msg.Author.Username)
 	}()
 
 	cState := data.CS
 
-	cmdFullName := yc.Name
+	cmdFullName := tc.Name
 	if len(data.ContainerChain) > 1 {
 		lastContainer := data.ContainerChain[len(data.ContainerChain)-1]
 		cmdFullName = lastContainer.Names[0] + " " + cmdFullName
@@ -217,7 +218,7 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 	defer cancelExec()
 
 	// Run the command
-	r, cmdErr := yc.RunFunc(data.WithContext(runCtx))
+	r, cmdErr := tc.RunFunc(data.WithContext(runCtx))
 	if cmdErr != nil {
 		if errors.Cause(cmdErr) == context.Canceled || errors.Cause(cmdErr) == context.DeadlineExceeded {
 			r = "Took longer than " + CommandExecTimeout.String() + " to handle command: `" + data.Msg.Content + "`, Cancelled the command."
@@ -225,20 +226,20 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 	}
 
 	if (r == nil || r == "") && cmdErr != nil {
-		r = yc.humanizeError(cmdErr)
+		r = tc.humanizeError(cmdErr)
 	}
 
 	logEntry.ResponseTime = int64(time.Since(started))
 
 	// set cooldowns
 	if cmdErr == nil {
-		err := yc.SetCooldowns(data.ContainerChain, data.Msg.Author.ID, data.Msg.GuildID)
+		err := tc.SetCooldowns(data.ContainerChain, data.Msg.Author.ID, data.Msg.GuildID)
 		if err != nil {
 			logger.WithError(err).Error("Failed setting cooldown")
 		}
 
-		if yc.Plugin != nil {
-			go analytics.RecordActiveUnit(data.Msg.GuildID, yc.Plugin, "cmd_executed_"+strings.ToLower(cmdFullName))
+		if tc.Plugin != nil {
+			go analytics.RecordActiveUnit(data.Msg.GuildID, tc.Plugin, "cmd_executed_"+strings.ToLower(cmdFullName))
 		}
 	}
 
@@ -258,7 +259,7 @@ func (yc *YAGCommand) Run(data *dcmd.Data) (interface{}, error) {
 	return r, cmdErr
 }
 
-func (yc *YAGCommand) humanizeError(err error) string {
+func (tc *TIDCommand) humanizeError(err error) string {
 	cause := errors.Cause(err)
 
 	switch t := cause.(type) {
@@ -280,9 +281,9 @@ func (yc *YAGCommand) humanizeError(err error) string {
 }
 
 // PostCommandExecuted sends the response and handles the trigger and response deletions
-func (yc *YAGCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dcmd.Data, resp interface{}, err error) {
+func (tc *TIDCommand) PostCommandExecuted(settings *CommandSettings, cmdData *dcmd.Data, resp interface{}, err error) {
 	if err != nil {
-		yc.Logger(cmdData).WithError(err).Error("Command returned error")
+		tc.Logger(cmdData).WithError(err).Error("Command returned error")
 	}
 
 	if cmdData.GS != nil {
@@ -369,7 +370,7 @@ const (
 )
 
 // checks if the specified user can execute the command, and if so returns the settings for said command
-func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.ChannelState) (canExecute bool, resp string, settings *CommandSettings, err error) {
+func (tc *TIDCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.ChannelState) (canExecute bool, resp string, settings *CommandSettings, err error) {
 	// Check guild specific settings if not triggered from a DM
 	var guild *dstate.GuildState
 
@@ -389,7 +390,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 
 		cop := cState.Copy(true)
 
-		settings, err = yc.GetSettings(data.ContainerChain, cState.ID, cop.ParentID, guild.ID)
+		settings, err = tc.GetSettings(data.ContainerChain, cState.ID, cop.ParentID, guild.ID)
 		if err != nil {
 			err = errors.WithMessage(err, "cs.GetSettings")
 			resp = ReasonError
@@ -426,8 +427,8 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 		}
 
 		// This command has permission sets required, if the user has one of them then allow this command to be used
-		if len(yc.RequireDiscordPerms) > 0 && !found {
-			var perms int
+		if len(tc.RequireDiscordPerms) > 0 && !found {
+			var perms int64
 			perms, err = cState.Guild.MemberPermissionsMS(true, cState.ID, member)
 			if err != nil {
 				resp = ReasonError
@@ -435,7 +436,7 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 			}
 
 			foundMatch := false
-			for _, permSet := range yc.RequireDiscordPerms {
+			for _, permSet := range tc.RequireDiscordPerms {
 				if permSet&int64(perms) == permSet {
 					foundMatch = true
 					break
@@ -454,10 +455,10 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 	}
 
 	// Check the command cooldown
-	cdLeft, err := yc.LongestCooldownLeft(data.ContainerChain, data.Msg.Author.ID, data.Msg.GuildID)
+	cdLeft, err := tc.LongestCooldownLeft(data.ContainerChain, data.Msg.Author.ID, data.Msg.GuildID)
 	if err != nil {
 		// Just pretend the cooldown is off...
-		yc.Logger(data).Error("Failed checking command cooldown")
+		tc.Logger(data).Error("Failed checking command cooldown")
 	}
 
 	if cdLeft > 0 {
@@ -470,9 +471,9 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 	return
 }
 
-/* func (yc *YAGCommand) humanizedRequiredPerms() string {
+/* func (tc *TIDCommand) humanizedRequiredPerms() string {
 	res := ""
-	for i, permSet := range yc.RequireDiscordPerms {
+	for i, permSet := range tc.RequireDiscordPerms {
 		if i != 0 {
 			res += " or "
 		}
@@ -482,11 +483,11 @@ func (yc *YAGCommand) checkCanExecuteCommand(data *dcmd.Data, cState *dstate.Cha
 	return res
 } */
 
-func (cs *YAGCommand) logExecutionTime(dur time.Duration, raw string, sender string) {
+func (cs *TIDCommand) logExecutionTime(dur time.Duration, raw string, sender string) {
 	logger.Infof("Handled Command [%4dms] %s: %s", int(dur.Seconds()*1000), sender, raw)
 }
 
-/* func (cs *YAGCommand) deleteResponse(msgs []*discordgo.Message) {
+/* func (cs *TIDCommand) deleteResponse(msgs []*discordgo.Message) {
 	ids := make([]int64, 0, len(msgs))
 	var cID int64
 	for _, msg := range msgs {
@@ -512,7 +513,7 @@ func (cs *YAGCommand) logExecutionTime(dur time.Duration, raw string, sender str
 } */
 
 // customEnabled returns wether the command is enabled by it's custom key or not
-func (cs *YAGCommand) customEnabled(guildID int64) (bool, error) {
+func (cs *TIDCommand) customEnabled(guildID int64) (bool, error) {
 	// No special key so it's automatically enabled
 	if cs.Key == "" || cs.CustomEnabled {
 		return true, nil
@@ -559,7 +560,7 @@ func GetOverridesForChannel(channelID, channelParentID, guildID int64) ([]*model
 }
 
 // GetSettings returns the settings from the command, generated from the servers channel and command overrides
-func (cs *YAGCommand) GetSettings(containerChain []*dcmd.Container, channelID, channelParentID, guildID int64) (settings *CommandSettings, err error) {
+func (cs *TIDCommand) GetSettings(containerChain []*dcmd.Container, channelID, channelParentID, guildID int64) (settings *CommandSettings, err error) {
 	// Fetch the overrides from the database, we treat the global settings as an override for simplicity
 	channelOverrides, err := GetOverridesForChannel(channelID, channelParentID, guildID)
 	if err != nil {
@@ -570,7 +571,7 @@ func (cs *YAGCommand) GetSettings(containerChain []*dcmd.Container, channelID, c
 	return cs.GetSettingsWithLoadedOverrides(containerChain, guildID, channelOverrides)
 }
 
-func (cs *YAGCommand) GetSettingsWithLoadedOverrides(containerChain []*dcmd.Container, guildID int64, channelOverrides []*models.CommandsChannelsOverride) (settings *CommandSettings, err error) {
+func (cs *TIDCommand) GetSettingsWithLoadedOverrides(containerChain []*dcmd.Container, guildID int64, channelOverrides []*models.CommandsChannelsOverride) (settings *CommandSettings, err error) {
 	settings = &CommandSettings{}
 
 	// Some commands have custom places to toggle their enabled status
@@ -626,7 +627,7 @@ func (cs *YAGCommand) GetSettingsWithLoadedOverrides(containerChain []*dcmd.Cont
 }
 
 // Fills the command settings from a channel override, and if a matching command override is found, the command override
-func (cs *YAGCommand) fillSettings(cmdFullName string, override *models.CommandsChannelsOverride, settings *CommandSettings) {
+func (cs *TIDCommand) fillSettings(cmdFullName string, override *models.CommandsChannelsOverride, settings *CommandSettings) {
 	settings.Enabled = override.CommandsEnabled
 
 	settings.IgnoreRoles = override.IgnoreRoles
@@ -658,7 +659,7 @@ OUTER:
 }
 
 // LongestCooldownLeft returns the longest cooldown for this command, either user scoped or guild scoped
-func (cs *YAGCommand) LongestCooldownLeft(cc []*dcmd.Container, userID int64, guildID int64) (int, error) {
+func (cs *TIDCommand) LongestCooldownLeft(cc []*dcmd.Container, userID int64, guildID int64) (int, error) {
 	cdUser, err := cs.UserScopeCooldownLeft(cc, userID)
 	if err != nil {
 		return 0, err
@@ -677,7 +678,7 @@ func (cs *YAGCommand) LongestCooldownLeft(cc []*dcmd.Container, userID int64, gu
 }
 
 // UserScopeCooldownLeft returns the number of seconds before a command can be used again by this user
-func (cs *YAGCommand) UserScopeCooldownLeft(cc []*dcmd.Container, userID int64) (int, error) {
+func (cs *TIDCommand) UserScopeCooldownLeft(cc []*dcmd.Container, userID int64) (int, error) {
 	if cs.Cooldown < 1 {
 		return 0, nil
 	}
@@ -692,7 +693,7 @@ func (cs *YAGCommand) UserScopeCooldownLeft(cc []*dcmd.Container, userID int64) 
 }
 
 // GuildScopeCooldownLeft returns the number of seconds before a command can be used again on this server
-func (cs *YAGCommand) GuildScopeCooldownLeft(cc []*dcmd.Container, guildID int64) (int, error) {
+func (cs *TIDCommand) GuildScopeCooldownLeft(cc []*dcmd.Container, guildID int64) (int, error) {
 	if cs.GuildScopeCooldown < 1 {
 		return 0, nil
 	}
@@ -707,7 +708,7 @@ func (cs *YAGCommand) GuildScopeCooldownLeft(cc []*dcmd.Container, guildID int64
 }
 
 // SetCooldowns is a helper that serts both User and Guild cooldown
-func (cs *YAGCommand) SetCooldowns(cc []*dcmd.Container, userID int64, guildID int64) error {
+func (cs *TIDCommand) SetCooldowns(cc []*dcmd.Container, userID int64, guildID int64) error {
 	err := cs.SetCooldownUser(cc, userID)
 	if err != nil {
 		return errors.WithStackIf(err)
@@ -722,7 +723,7 @@ func (cs *YAGCommand) SetCooldowns(cc []*dcmd.Container, userID int64, guildID i
 }
 
 // SetCooldownUser sets the user scoped cooldown of the command as it's defined in the struct
-func (cs *YAGCommand) SetCooldownUser(cc []*dcmd.Container, userID int64) error {
+func (cs *TIDCommand) SetCooldownUser(cc []*dcmd.Container, userID int64) error {
 	if cs.Cooldown < 1 {
 		return nil
 	}
@@ -734,7 +735,7 @@ func (cs *YAGCommand) SetCooldownUser(cc []*dcmd.Container, userID int64) error 
 }
 
 // SetCooldownGuild sets the guild scoped cooldown of the command as it's defined in the struct
-func (cs *YAGCommand) SetCooldownGuild(cc []*dcmd.Container, guildID int64) error {
+func (cs *TIDCommand) SetCooldownGuild(cc []*dcmd.Container, guildID int64) error {
 	if cs.GuildScopeCooldown < 1 {
 		return nil
 	}
@@ -744,10 +745,10 @@ func (cs *YAGCommand) SetCooldownGuild(cc []*dcmd.Container, guildID int64) erro
 	return errors.WithStackIf(err)
 }
 
-func (yc *YAGCommand) Logger(data *dcmd.Data) *logrus.Entry {
+func (tc *TIDCommand) Logger(data *dcmd.Data) *logrus.Entry {
 	var l *logrus.Entry
 	if data != nil {
-		l = logger.WithField("cmd", yc.FindNameFromContainerChain(data.ContainerChain))
+		l = logger.WithField("cmd", tc.FindNameFromContainerChain(data.ContainerChain))
 		if data.Msg != nil {
 			l = l.WithField("user_n", data.Msg.Author.Username)
 			l = l.WithField("user_id", data.Msg.Author.ID)
@@ -765,12 +766,12 @@ func (yc *YAGCommand) Logger(data *dcmd.Data) *logrus.Entry {
 	return l
 }
 
-func (yc *YAGCommand) GetTrigger() *dcmd.Trigger {
-	trigger := dcmd.NewTrigger(yc.Name, yc.Aliases...).SetDisableInDM(!yc.RunInDM)
-	trigger = trigger.SetHideFromHelp(yc.HideFromHelp)
+func (tc *TIDCommand) GetTrigger() *dcmd.Trigger {
+	trigger := dcmd.NewTrigger(tc.Name, tc.Aliases...).SetDisableInDM(!tc.RunInDM)
+	trigger = trigger.SetHideFromHelp(tc.HideFromHelp)
 
-	if len(yc.Middlewares) > 0 {
-		trigger = trigger.SetMiddlewares(yc.Middlewares...)
+	if len(tc.Middlewares) > 0 {
+		trigger = trigger.SetMiddlewares(tc.Middlewares...)
 	}
 
 	return trigger
@@ -791,7 +792,7 @@ func CensorError(err error) string {
 	return out
 }
 
-func BlockingAddRunningCommand(guildID int64, channelID int64, authorID int64, cmd *YAGCommand, timeout time.Duration) bool {
+func BlockingAddRunningCommand(guildID int64, channelID int64, authorID int64, cmd *TIDCommand, timeout time.Duration) bool {
 	started := time.Now()
 	for {
 		if tryAddRunningCommand(guildID, channelID, authorID, cmd) {
@@ -814,7 +815,7 @@ func BlockingAddRunningCommand(guildID int64, channelID int64, authorID int64, c
 	}
 }
 
-func tryAddRunningCommand(guildID int64, channelID int64, authorID int64, cmd *YAGCommand) bool {
+func tryAddRunningCommand(guildID int64, channelID int64, authorID int64, cmd *TIDCommand) bool {
 	runningcommandsLock.Lock()
 	for _, v := range runningCommands {
 		if v.GuildID == guildID && v.ChannelID == channelID && v.AuthorID == authorID && v.Command == cmd {
@@ -836,7 +837,7 @@ func tryAddRunningCommand(guildID int64, channelID int64, authorID int64, cmd *Y
 	return true
 }
 
-func removeRunningCommand(guildID, channelID, authorID int64, cmd *YAGCommand) {
+func removeRunningCommand(guildID, channelID, authorID int64, cmd *TIDCommand) {
 	runningcommandsLock.Lock()
 	for i, v := range runningCommands {
 		if v.GuildID == guildID && v.ChannelID == channelID && v.AuthorID == authorID && v.Command == cmd {
@@ -849,7 +850,7 @@ func removeRunningCommand(guildID, channelID, authorID int64, cmd *YAGCommand) {
 	runningcommandsLock.Unlock()
 }
 
-func (yc *YAGCommand) FindNameFromContainerChain(cc []*dcmd.Container) string {
+func (tc *TIDCommand) FindNameFromContainerChain(cc []*dcmd.Container) string {
 	name := ""
 	for _, v := range cc {
 		if len(v.Names) < 1 {
@@ -867,5 +868,5 @@ func (yc *YAGCommand) FindNameFromContainerChain(cc []*dcmd.Container) string {
 		name += " "
 	}
 
-	return name + yc.Name
+	return name + tc.Name
 }

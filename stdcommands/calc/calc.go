@@ -6,8 +6,9 @@ import (
 	"sync"
 
 	"github.com/alfredxing/calc/compute"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
 var (
@@ -17,7 +18,7 @@ var (
 
 var replacer = strings.NewReplacer("x", "*", "×", "*", "÷", "/")
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTool,
 	Name:         "Calc",
 	Aliases:      []string{"c", "calculate"},

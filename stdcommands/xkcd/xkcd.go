@@ -6,9 +6,9 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type Xkcd struct {
@@ -28,7 +28,7 @@ type Xkcd struct {
 var XkcdHost = "https://xkcd.com/"
 var XkcdJson = "info.0.json"
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory: commands.CategoryFun,
 	Name:        "Xkcd",
 	Description: "An xkcd comic, by default returns random comic strip",

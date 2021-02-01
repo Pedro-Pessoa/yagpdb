@@ -9,20 +9,21 @@ import (
 	"strconv"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands/models"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	prfx "github.com/jonas747/yagpdb/common/prefix"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
 	"github.com/volatiletech/sqlboiler/types"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/commands/models"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	prfx "github.com/Pedro-Pessoa/tidbot/common/prefix"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type ChannelOverrideForm struct {
@@ -64,9 +65,10 @@ var (
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../commands/assets/commands.html", "templates/plugins/commands.html")
 	web.AddSidebarItem(web.SidebarCategoryCore, &web.SidebarItem{
-		Name: "Command settings",
-		URL:  "commands/settings",
-		Icon: "fas fa-terminal",
+		Name:   "Command Settings",
+		NamePT: "Configurações De Comandos",
+		URL:    "commands/settings",
+		Icon:   "fas fa-terminal",
 	})
 
 	subMux := goji.SubMux()
@@ -114,7 +116,7 @@ func HandleCommands(w http.ResponseWriter, r *http.Request) (web.TemplateData, e
 
 	// Compile all the commands into a sorted list by category
 	commands := make([]*SortedCommands, 0, len(CommandSystem.Root.Commands))
-	addCommand := func(cmd *YAGCommand, name string) {
+	addCommand := func(cmd *TIDCommand, name string) {
 		for _, v := range commands {
 			if v.Category == cmd.CmdCategory.Name {
 				v.Commands = append(v.Commands, name)
@@ -130,14 +132,14 @@ func HandleCommands(w http.ResponseWriter, r *http.Request) (web.TemplateData, e
 
 	for _, cmd := range CommandSystem.Root.Commands {
 		switch t := cmd.Command.(type) {
-		case *YAGCommand:
+		case *TIDCommand:
 			if t.HideFromCommandsPage {
 				continue
 			}
 			addCommand(t, cmd.Trigger.Names[0])
 		case *dcmd.Container:
 			for _, containerCmd := range t.Commands {
-				cast := containerCmd.Command.(*YAGCommand)
+				cast := containerCmd.Command.(*TIDCommand)
 
 				if cast.HideFromCommandsPage {
 					continue
@@ -444,6 +446,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Commands"
+	templateData["WidgetTitlePT"] = "Comandos"
 	templateData["SettingsPath"] = "/commands/settings"
 	templateData["WidgetEnabled"] = true
 
@@ -462,7 +465,13 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Active channel overrides: <code>%d</code></li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Prefixo de comando: <code>%s</code></li>
+	<li>Sobreposições de canais ativas: <code>%d</code></li>
+</ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, html.EscapeString(prefix), count))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, html.EscapeString(prefix), count))
 
 	return templateData, nil
 }

@@ -3,8 +3,8 @@ package mqueue
 import (
 	"database/sql"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 // QueuedElement represents a queued message
@@ -31,7 +31,7 @@ type QueuedElement struct {
 	UseWebhook      bool
 	WebhookUsername string
 
-	AllowedMentions discordgo.AllowedMentions `json:"allowed_mentions"`
+	AllowedMentions *discordgo.MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 
 	// When the queue grows, the feeds with the highest priority gets sent first
 	Priority int

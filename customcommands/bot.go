@@ -12,30 +12,30 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/premium"
+	"emperror.dev/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-
-	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/keylock"
-	"github.com/jonas747/yagpdb/common/multiratelimit"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	schEventsModels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/customcommands/models"
-	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/sirupsen/logrus"
 	"github.com/vmihailenco/msgpack"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/keylock"
+	"github.com/Pedro-Pessoa/tidbot/common/multiratelimit"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	schEventsModels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/customcommands/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
 var (
@@ -89,7 +89,7 @@ type DelayedRunCCData struct {
 	UserKey interface{} `json:"user_key"`
 }
 
-var cmdListCommands = &commands.YAGCommand{
+var cmdListCommands = &commands.TIDCommand{
 	CmdCategory:    commands.CategoryTool,
 	Name:           "CustomCommands",
 	Aliases:        []string{"cc"},
@@ -432,7 +432,7 @@ func HandleMessageCreate(evt *eventsystem.EventData) {
 	ms := evt.GS.MemberCopy(true, mc.Member.User.ID)
 	if ms != nil {
 		member.PresenceStatus = ms.PresenceStatus
-		member.PresenceGame = ms.PresenceGame
+		member.PresenceActivity = ms.PresenceActivity
 	}
 
 	var matchedCustomCommands []*TriggeredCC
@@ -828,7 +828,7 @@ func BotCachedGetCommandsWithMessageTriggers(gs *dstate.GuildState, ctx context.
 	return v.([]*models.CustomCommand), nil
 }
 
-var cmdFixCommands = &commands.YAGCommand{
+var cmdFixCommands = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTool,
 	Name:                 "fixscheduledccs",
 	Description:          "???",

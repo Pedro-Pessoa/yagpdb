@@ -5,13 +5,14 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/configstore"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/configstore"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var panelLogKey = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "notifications_settings", FormatString: "Updated server notification settings"})
@@ -19,9 +20,10 @@ var panelLogKey = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "notific
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../notifications/assets/notifications_general.html", "templates/plugins/notifications_general.html")
 	web.AddSidebarItem(web.SidebarCategoryFeeds, &web.SidebarItem{
-		Name: "General",
-		URL:  "notifications/general",
-		Icon: "fas fa-bell",
+		Name:   "General",
+		NamePT: "Geral",
+		URL:    "notifications/general",
+		Icon:   "fas fa-bell",
 	})
 
 	getHandler := web.RenderHandler(HandleNotificationsGet, "cp_notifications_general")
@@ -81,6 +83,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "General notifications"
+	templateData["WidgetTitlePT"] = "Notificações gerais"
 	templateData["SettingsPath"] = "/notifications/general"
 
 	config, err := GetConfig(ag.ID)
@@ -88,11 +91,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Join Server message: %s</li>
 	<li>Join DM message: %s</li>
 	<li>Leave message: %s</li>
 	<li>Topic change message: %s</li>
+</ul>`
+
+	const formatPT = `<ul>
+	<li>Mensagem de entrada: %s</li>
+	<li>Mensagem de entrada (DM): %s</li>
+	<li>Mensagem de saída: %s</li>
+	<li>Mensagem de troca de tópico: %s</li>
 </ul>`
 
 	if config.JoinServerEnabled || config.JoinDMEnabled || config.LeaveEnabled || config.TopicEnabled {
@@ -104,6 +114,9 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format,
 		web.EnabledDisabledSpanStatus(config.JoinServerEnabled), web.EnabledDisabledSpanStatus(config.JoinDMEnabled),
 		web.EnabledDisabledSpanStatus(config.LeaveEnabled), web.EnabledDisabledSpanStatus(config.TopicEnabled)))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT,
+		web.EnabledDisabledSpanStatusPT(config.JoinServerEnabled), web.EnabledDisabledSpanStatusPT(config.JoinDMEnabled),
+		web.EnabledDisabledSpanStatusPT(config.LeaveEnabled), web.EnabledDisabledSpanStatusPT(config.TopicEnabled)))
 
 	return templateData, nil
 }

@@ -6,15 +6,16 @@ package commands
 import (
 	"context"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands/models"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	prfx "github.com/jonas747/yagpdb/common/prefix"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands/models"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	prfx "github.com/Pedro-Pessoa/tidbot/common/prefix"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var logger = common.GetPluginLogger(&Plugin{})
@@ -77,7 +78,7 @@ func InitCommands() {
 	}
 
 	// We have our own middleware before the argument parsing, this is to check for things such as whether or not the command is enabled at all
-	CommandSystem.Root.AddMidlewares(YAGCommandMiddleware)
+	CommandSystem.Root.AddMidlewares(TIDCommandMiddleware)
 	CommandSystem.Root.AddCommand(cmdHelp, cmdHelp.GetTrigger())
 	CommandSystem.Root.AddCommand(cmdPrefix, cmdPrefix.GetTrigger())
 

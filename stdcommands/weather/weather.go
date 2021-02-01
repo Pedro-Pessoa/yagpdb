@@ -8,14 +8,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
 	"github.com/lunixbochs/vtclean"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
 var TempRangeRegex = regexp.MustCompile("(-?[0-9]{1,3})( ?- ?(-?[0-9]{1,3}))? ?°C")
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryFun,
 	Name:         "Weather",
 	Aliases:      []string{"w"},

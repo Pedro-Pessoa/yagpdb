@@ -9,16 +9,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/reddit/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/reddit/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -54,9 +55,10 @@ var (
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../reddit/assets/reddit.html", "templates/plugins/reddit.html")
 	web.AddSidebarItem(web.SidebarCategoryFeeds, &web.SidebarItem{
-		Name: "Reddit",
-		URL:  "reddit",
-		Icon: "fab fa-reddit",
+		Name:   "Reddit",
+		NamePT: "Reddit",
+		URL:    "reddit",
+		Icon:   "fab fa-reddit",
 	})
 
 	redditMux := goji.SubMux()
@@ -271,6 +273,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Reddit feeds"
+	templateData["WidgetTitlept"] = "Feeds do Reddit"
 	templateData["SettingsPath"] = "/reddit"
 
 	rows, err := models.RedditFeeds(qm.Where("guild_id = ?", ag.ID), qm.GroupBy("slow"), qm.OrderBy("slow asc"), qm.Select("count(*)")).QueryContext(r.Context(), common.PQ)
@@ -303,12 +306,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Fast feeds: <code>%d</code></li>
 	<li>Slow feeds: <code>%d</code></li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Feeds rápidos: <code>%d</code></li>
+	<li>Feeds lentos: <code>%d</code></li>
+</ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, fast, slow))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, fast, slow))
 
 	return templateData, nil
 }

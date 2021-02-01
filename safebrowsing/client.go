@@ -8,7 +8,8 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/google/safebrowsing"
-	"github.com/jonas747/yagpdb/common/backgroundworkers"
+
+	"github.com/Pedro-Pessoa/tidbot/common/backgroundworkers"
 )
 
 // CheckString checks a string against google safebrowsing for threats

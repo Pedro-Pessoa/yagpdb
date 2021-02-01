@@ -54,8 +54,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Allowed roles to give/remove points (empty for all)</label><br>
-                                <select name="RequiredGiveRoles" class="multiselect form-control" multiple="multiple"
-                                    id="require-roles-give" data-plugin-multiselect>
+                                <select name="RequiredGiveRoles" class="multiselect form-control" multiple="multiple" id="require-roles-give" data-plugin-multiselect>
                                     {{roleOptionsMulti .ActiveGuild.Roles nil .RepSettings.RequiredGiveRoles}}
                                 </select>
                             </div>

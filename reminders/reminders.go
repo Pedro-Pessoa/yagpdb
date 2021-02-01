@@ -5,11 +5,12 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type Plugin struct{}
@@ -68,7 +69,7 @@ func (r *Reminder) Trigger() error {
 		Channel: r.ChannelIDInt(),
 
 		MessageStr: "**Reminder** <@" + r.UserID + ">: " + r.Message,
-		AllowedMentions: discordgo.AllowedMentions{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
 			Users: []int64{r.UserIDInt()},
 		},
 

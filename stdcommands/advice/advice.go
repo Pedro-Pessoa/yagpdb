@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	Cooldown:    5,
 	CmdCategory: commands.CategoryFun,
 	Name:        "Advice",

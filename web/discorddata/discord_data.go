@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/common"
 	"github.com/karlseguin/ccache"
 	"golang.org/x/oauth2"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
 )
 
 type Plugin struct{}

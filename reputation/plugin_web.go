@@ -7,16 +7,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/reputation/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/reputation/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type PostConfigForm struct {
@@ -58,9 +59,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../reputation/assets/reputation_settings.html", "templates/plugins/reputation_settings.html")
 	web.LoadHTMLTemplate("../../reputation/assets/reputation_leaderboard.html", "templates/plugins/reputation_leaderboard.html")
 	web.AddSidebarItem(web.SidebarCategoryFun, &web.SidebarItem{
-		Name: "Reputation",
-		URL:  "reputation",
-		Icon: "fas fa-angry",
+		Name:   "Reputation",
+		NamePT: "Reputação",
+		URL:    "reputation",
+		Icon:   "fas fa-angry",
 	})
 
 	subMux := goji.SubMux()
@@ -231,6 +233,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Reputation"
+	templateData["WidgetTitlePT"] = "Reputação"
 	templateData["SettingsPath"] = "/reputation"
 
 	settings, err := GetConfig(r.Context(), ag.ID)
@@ -243,6 +246,11 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Reputation name: <code>%s</code></li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Reputação está: %s</li>
+	<li>Nome da reputação: <code>%s</code></li>
+</ul>`
+
 	name := html.EscapeString(settings.PointsName)
 	if settings.Enabled {
 		templateData["WidgetEnabled"] = true
@@ -251,6 +259,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(settings.Enabled), name))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(settings.Enabled), name))
 
 	return templateData, nil
 }

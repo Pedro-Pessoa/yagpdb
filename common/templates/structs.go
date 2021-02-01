@@ -1,8 +1,8 @@
 package templates
 
 import (
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 // CtxChannel is almost a 1:1 copy of dstate.ChannelState, its needed because we cant axpose all those state methods
@@ -87,14 +87,14 @@ type CtxMember struct {
 	*discordgo.Member
 	//extra fields from Member State
 	Status   dstate.PresenceStatus `json:"status"`
-	Activity *dstate.LightGame     `json:"activity"`
+	Activity *dstate.LightActivity `json:"activity"`
 }
 
 func CtxMemberFromMS(ms *dstate.MemberState) *CtxMember {
 	ctxMember := &CtxMember{
 		Member:   ms.DGoCopy(),
 		Status:   ms.PresenceStatus,
-		Activity: ms.PresenceGame,
+		Activity: ms.PresenceActivity,
 	}
 
 	return ctxMember

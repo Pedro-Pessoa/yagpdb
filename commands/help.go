@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
-var cmdHelp = &YAGCommand{
+var cmdHelp = &TIDCommand{
 	Name:        "Help",
 	Aliases:     []string{"commands", "h", "how", "command"},
 	Description: "Shows help about all or one specific command",

@@ -8,26 +8,26 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/common/config"
-
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/logs/models"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/logs/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 var _ bot.BotInitHandler = (*Plugin)(nil)
 var _ commands.CommandProvider = (*Plugin)(nil)
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, cmdLogs, cmdWhois, cmdNicknames, cmdUsernames, cmdMigrate, cmdClearNames)
+	commands.AddRootCommands(p, cmdLogs, cmdWhois, cmdNicknames, cmdUsernames, cmdClearNames)
 }
 
 func (p *Plugin) BotInit() {
@@ -41,7 +41,7 @@ func (p *Plugin) BotInit() {
 	go EvtProcesserGCs()
 }
 
-var cmdLogs = &commands.YAGCommand{
+var cmdLogs = &commands.TIDCommand{
 	Cooldown:        5,
 	CmdCategory:     commands.CategoryTool,
 	Name:            "Logs",
@@ -67,7 +67,7 @@ var cmdLogs = &commands.YAGCommand{
 	},
 }
 
-var cmdWhois = &commands.YAGCommand{
+var cmdWhois = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTool,
 	Name:        "Whois",
 	Description: "Shows information about a user",
@@ -120,14 +120,15 @@ var cmdWhois = &commands.YAGCommand{
 		}
 
 		var memberStatus string
-		state := [4]string{"Playing", "Streaming", "Listening", "Watching"}
-		if !member.PresenceSet || member.PresenceGame == nil {
+		state := [6]string{"Playing", "Streaming", "Listening", "Watching", "Custom Status", "Competing"}
+		if !member.PresenceSet || member.PresenceActivity == nil {
 			memberStatus = "Has no activity status, is invisible/offline or is not in the bot's cache."
 		} else {
-			if member.PresenceGame.Type == 4 {
-				memberStatus = fmt.Sprintf("%s: %s", member.PresenceGame.Name, member.PresenceGame.State)
+			if member.PresenceActivity.Type == 4 {
+				logger.Infof("ALL DATA -> %#v", member.PresenceActivity)
+				memberStatus = fmt.Sprintf("%s: %s", member.PresenceActivity.Name, member.PresenceActivity.State)
 			} else {
-				memberStatus = fmt.Sprintf("%s: %s", state[member.PresenceGame.Type], member.PresenceGame.Name)
+				memberStatus = fmt.Sprintf("%s: %s", state[member.PresenceActivity.Type], member.PresenceActivity.Name)
 			}
 		}
 
@@ -241,7 +242,7 @@ var cmdWhois = &commands.YAGCommand{
 	},
 }
 
-var cmdUsernames = &commands.YAGCommand{
+var cmdUsernames = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTool,
 	Name:        "Usernames",
 	Description: "Shows past usernames of a user.",
@@ -309,7 +310,7 @@ var cmdUsernames = &commands.YAGCommand{
 	},
 }
 
-var cmdNicknames = &commands.YAGCommand{
+var cmdNicknames = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTool,
 	Name:        "Nicknames",
 	Description: "Shows past nicknames of a user.",
@@ -373,7 +374,7 @@ var cmdNicknames = &commands.YAGCommand{
 	},
 }
 
-var cmdClearNames = &commands.YAGCommand{
+var cmdClearNames = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTool,
 	Name:        "ResetPastNames",
 	Description: "Reset your past usernames/nicknames.",
@@ -438,11 +439,6 @@ func HandlePresenceUpdate(evt *eventsystem.EventData) {
 	}
 
 	if pu.User.Username != "" && pu.User.Username != ms.Username {
-		queueEvt(pu)
-		return
-	}
-
-	if pu.Nick != ms.Nick {
 		queueEvt(pu)
 		return
 	}

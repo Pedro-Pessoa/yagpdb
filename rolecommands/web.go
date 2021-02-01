@@ -9,18 +9,19 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	schEvtsModels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/rolecommands/models"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	schEvtsModels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var (
@@ -63,9 +64,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../rolecommands/assets/rolecommands.html", "templates/plugins/rolecommands.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Role Commands",
-		URL:  "rolecommands/",
-		Icon: "fas fa-tags",
+		Name:   "Role Commands",
+		NamePT: "Comandos de Cargos",
+		URL:    "rolecommands/",
+		Icon:   "fas fa-tags",
 	})
 
 	// Setup SubMuxer
@@ -487,6 +489,7 @@ var _ web.PluginWithServerHomeWidget = (*Plugin)(nil)
 func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, templateData := web.GetBaseCPContextData(r.Context())
 	templateData["WidgetTitle"] = "Role commands"
+	templateData["WidgetTitlePT"] = "Comandos de cargos"
 	templateData["SettingsPath"] = "/rolecommands/"
 
 	numCommands, err := models.RoleCommands(qm.Where("guild_id = ?", g.ID)).CountG(r.Context())
@@ -503,10 +506,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(`<ul>
-		<li>Active role commands: <code>%d</code></li>
-		<li>Active role groups: <code>%d</code></li>
-		</ul>`, numCommands, numGroups))
+	const format = `<ul>
+	<li>Active role commands: <code>%d</code></li>
+	<li>Active role groups: <code>%d</code></li>
+</ul>`
+
+	const formatPT = `<ul>
+<li>Comandos de cargo ativos: <code>%d</code></li>
+<li>Grupos de cargo ativos: <code>%d</code></li>
+</ul>`
+
+	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCommands, numGroups))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCommands, numGroups))
 
 	return templateData, err
 }

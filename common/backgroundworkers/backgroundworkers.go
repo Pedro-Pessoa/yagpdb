@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
 	"goji.io"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
 )
 
 var (

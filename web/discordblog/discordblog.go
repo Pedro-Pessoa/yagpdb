@@ -6,9 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/discordgo"
 	"github.com/shurcooL/github_flavored_markdown"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type Post struct {

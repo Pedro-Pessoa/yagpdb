@@ -7,9 +7,10 @@ import (
 	"net/http"
 
 	"github.com/google/safebrowsing"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
 )
 
 var SafeBrowser *safebrowsing.SafeBrowser

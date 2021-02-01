@@ -3,14 +3,14 @@ package globalrl
 import (
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	Cooldown:             2,
 	CmdCategory:          commands.CategoryDebug,
 	Name:                 "globalrl",

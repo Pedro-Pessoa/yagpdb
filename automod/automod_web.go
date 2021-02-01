@@ -13,17 +13,18 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/gorilla/schema"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/automod/models"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/automod/models"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -51,9 +52,10 @@ var (
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../automod/assets/automod.html", "templates/plugins/automod.html")
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Automoderator v2",
-		URL:  "automod",
-		Icon: "fas fa-robot",
+		Name:   "Automoderator V2",
+		NamePT: "Moderador Automático V2",
+		URL:    "automod",
+		Icon:   "fas fa-robot",
 	})
 
 	muxer := goji.SubMux()
@@ -790,7 +792,8 @@ var _ web.PluginWithServerHomeWidget = (*Plugin)(nil)
 
 func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	g, templateData := web.GetBaseCPContextData(r.Context())
-	templateData["WidgetTitle"] = "Automod v2"
+	templateData["WidgetTitle"] = "Automod V2"
+	templateData["WidgetTitlePT"] = "Moderador Automático V2"
 	templateData["SettingsPath"] = "/automod"
 
 	rulesets, err := models.AutomodRulesets(qm.Where("guild_id = ?", g.ID), qm.Where("enabled = true")).CountG(r.Context())
@@ -803,10 +806,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(`<ul>
+	const format = `<ul>
     <li>Active and enabled Rulesets: <code>%d</code></li>
     <li>Total rules: <code>%d</code></li>
-</ul>`, rulesets, rules))
+</ul>`
+
+	const formatPT = `<ul>
+<li>Regras ativadas: <code>%d</code></li>
+<li>Quantidade de regas total: <code>%d</code></li>
+</ul>`
+
+	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, rulesets, rules))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, rulesets, rules))
 
 	if rulesets > 0 {
 		templateData["WidgetEnabled"] = true

@@ -5,16 +5,17 @@ var (
 )
 
 type PluginCategory struct {
-	Name  string
-	Order int
+	Name   string
+	NamePT string
+	Order  int
 }
 
 var (
-	PluginCategoryCore       = &PluginCategory{Name: "Core", Order: 0}
-	PluginCategoryModeration = &PluginCategory{Name: "Moderation", Order: 10}
-	PluginCategoryMisc       = &PluginCategory{Name: "Misc", Order: 20}
-	PluginCategoryFeeds      = &PluginCategory{Name: "Feeds", Order: 30}
-	PluginCategoryTibia      = &PluginCategory{Name: "Tibia", Order: 40}
+	PluginCategoryCore       = &PluginCategory{Name: "Core", Order: 0, NamePT: "Principal"}
+	PluginCategoryModeration = &PluginCategory{Name: "Moderation", Order: 10, NamePT: "Moderação"}
+	PluginCategoryMisc       = &PluginCategory{Name: "Misc", Order: 20, NamePT: "Diversos"}
+	PluginCategoryFeeds      = &PluginCategory{Name: "Feeds", Order: 30, NamePT: "Feeds"}
+	PluginCategoryExtras     = &PluginCategory{Name: "Extras", Order: 40, NamePT: "Extras"}
 )
 
 // PluginInfo represents basic plugin information

@@ -4,10 +4,10 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-
 	"github.com/shirou/gopsutil/mem"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
 )
 
 const MemFreeThreshold = 90

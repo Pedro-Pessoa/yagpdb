@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 )
 
 var (
@@ -38,7 +38,7 @@ func RegisterPlugin() {
 var _ commands.CommandProvider = (*Plugin)(nil)
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, &commands.YAGCommand{
+	commands.AddRootCommands(p, &commands.TIDCommand{
 		CmdCategory: commands.CategoryFun,
 		Cooldown:    5,
 		Name:        "Sentiment",
@@ -88,7 +88,7 @@ func (p *Plugin) AddCommands() {
 			return out, nil
 		},
 	},
-		&commands.YAGCommand{
+		&commands.TIDCommand{
 			Cooldown:    2,
 			CmdCategory: commands.CategoryFun,
 			Name:        "8Ball",

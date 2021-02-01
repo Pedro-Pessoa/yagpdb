@@ -9,11 +9,12 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type NewsTable struct {
@@ -233,7 +234,7 @@ func newsSender(g int64, news *discordgo.MessageEmbed) {
 			SourceID:        "",
 			MessageEmbed:    news,
 			Priority:        2,
-			AllowedMentions: discordgo.AllowedMentions{},
+			AllowedMentions: &discordgo.MessageAllowedMentions{},
 		})
 
 		err = common.GORM.Save(&table).Error

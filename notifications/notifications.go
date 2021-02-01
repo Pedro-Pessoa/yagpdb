@@ -5,9 +5,10 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/configstore"
 	"golang.org/x/net/context"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/configstore"
 )
 
 const (

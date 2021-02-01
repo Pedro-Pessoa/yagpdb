@@ -5,18 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/yagpdb/bot/models"
-	"github.com/jonas747/yagpdb/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/bot/models"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dshardorchestrator/v2"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	dshardorchestrator "github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator"
 )
 
 const (

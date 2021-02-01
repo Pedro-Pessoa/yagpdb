@@ -5,13 +5,14 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -30,9 +31,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../automod_legacy/assets/automod_legacy.html", "templates/plugins/automod_legacy.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Basic Automoderator",
-		URL:  "automod_legacy",
-		Icon: "fas fa-robot",
+		Name:   "Basic Automoderator",
+		NamePT: "Moderador Automático",
+		URL:    "automod_legacy",
+		Icon:   "fas fa-robot",
 	})
 
 	autmodMux := goji.SubMux()
@@ -85,6 +87,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	g, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Basic Automod"
+	templateData["WidgetTitlePT"] = "Moderador Automático"
 	templateData["SettingsPath"] = "/automod_legacy"
 
 	config, err := GetConfig(g.ID)
@@ -107,6 +110,15 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Banned websites: %s</li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Modo lento: %s</li>
+	<li>Spam de menção: %s</li>
+	<li>Convites de servidores: %s</li>
+	<li>Quaisquer links: %s</li>
+	<li>Palavras banidas: %s</li>
+	<li>Sites banidos: %s</li>
+</ul>`
+
 	slowmode := web.EnabledDisabledSpanStatus(config.Spam.Enabled)
 	massMention := web.EnabledDisabledSpanStatus(config.Mention.Enabled)
 	invites := web.EnabledDisabledSpanStatus(config.Invite.Enabled)
@@ -114,8 +126,17 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	words := web.EnabledDisabledSpanStatus(config.Words.Enabled)
 	sites := web.EnabledDisabledSpanStatus(config.Sites.Enabled)
 
+	slowmodePT := web.EnabledDisabledSpanStatusPT(config.Spam.Enabled)
+	massMentionPT := web.EnabledDisabledSpanStatusPT(config.Mention.Enabled)
+	invitesPT := web.EnabledDisabledSpanStatusPT(config.Invite.Enabled)
+	linksPT := web.EnabledDisabledSpanStatusPT(config.Links.Enabled)
+	wordsPT := web.EnabledDisabledSpanStatusPT(config.Words.Enabled)
+	sitesPT := web.EnabledDisabledSpanStatusPT(config.Sites.Enabled)
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, slowmode,
 		massMention, invites, links, words, sites))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, slowmodePT,
+		massMentionPT, invitesPT, linksPT, wordsPT, sitesPT))
 
 	return templateData, nil
 }

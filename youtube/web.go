@@ -14,13 +14,14 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/mediocregopher/radix/v3"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -46,9 +47,10 @@ type Form struct {
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../youtube/assets/youtube.html", "templates/plugins/youtube.html")
 	web.AddSidebarItem(web.SidebarCategoryFeeds, &web.SidebarItem{
-		Name: "Youtube",
-		URL:  "youtube",
-		Icon: "fab fa-youtube",
+		Name:   "Youtube",
+		NamePT: "Youtube",
+		URL:    "youtube",
+		Icon:   "fab fa-youtube",
 	})
 
 	ytMux := goji.SubMux()
@@ -293,6 +295,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Youtube feeds"
+	templateData["WidgetTitlePT"] = "Feeds do Youtube"
 	templateData["SettingsPath"] = "/youtube"
 
 	var numFeeds int64
@@ -304,7 +307,10 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	const format = `<p>Active Youtube feeds: <code>%d</code></p>`
+	const formatPT = `<p>Feeds do Youtube ativos: <code>%d</code></p>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numFeeds))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numFeeds))
 
 	return templateData, result.Error
 }

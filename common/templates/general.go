@@ -12,9 +12,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/common"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
 )
 
 // dictionary creates a map[string]interface{} from the given parameters by
@@ -209,7 +210,7 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 	}
 
 	msg := &discordgo.MessageSend{
-		AllowedMentions: discordgo.AllowedMentions{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
 		},
 	}
@@ -242,14 +243,14 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			}
 		case "allowed_mentions":
 			if val == nil {
-				msg.AllowedMentions = discordgo.AllowedMentions{}
+				msg.AllowedMentions = &discordgo.MessageAllowedMentions{}
 				continue
 			}
 			parsed, err := parseAllowedMentions(val)
 			if err != nil {
 				return nil, err
 			}
-			msg.AllowedMentions = *parsed
+			msg.AllowedMentions = parsed
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to send message builder`)
 		}
@@ -290,7 +291,7 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 			msg.Embed = embed
 		case "allowed_mentions":
 			if val == nil {
-				msg.AllowedMentions = &discordgo.AllowedMentions{}
+				msg.AllowedMentions = &discordgo.MessageAllowedMentions{}
 				continue
 			}
 			parsed, err := parseAllowedMentions(val)
@@ -306,8 +307,8 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 	return msg, nil
 }
 
-func parseAllowedMentions(Data interface{}) (*discordgo.AllowedMentions, error) {
-	if m, ok := Data.(discordgo.AllowedMentions); ok {
+func parseAllowedMentions(Data interface{}) (*discordgo.MessageAllowedMentions, error) {
+	if m, ok := Data.(discordgo.MessageAllowedMentions); ok {
 		return &m, nil
 	}
 
@@ -316,7 +317,7 @@ func parseAllowedMentions(Data interface{}) (*discordgo.AllowedMentions, error) 
 		return nil, err
 	}
 
-	allowedMentions := &discordgo.AllowedMentions{}
+	allowedMentions := &discordgo.MessageAllowedMentions{}
 	for k, v := range converted {
 		switch strings.ToLower(k) {
 		case "parse":

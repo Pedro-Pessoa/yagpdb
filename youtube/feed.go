@@ -7,16 +7,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/feeds"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/api/youtube/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/feeds"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 const (
@@ -184,7 +185,7 @@ func (p *Plugin) sendNewVidMessage(guild, discordChannel, channelTitle, channelI
 		SourceID:   "",
 		MessageStr: out,
 		Priority:   2,
-		AllowedMentions: discordgo.AllowedMentions{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
 			Parse: parseMentions,
 		},
 	})
@@ -210,7 +211,7 @@ func (p *Plugin) AddFeed(guildID, discordChannelID int64, youtubeChannelID, yout
 		YoutubeMsg: msg,
 	}
 
-	call := p.YTService.Channels.List("snippet")
+	call := p.YTService.Channels.List([]string{"snippet"})
 	if youtubeChannelID != "" {
 		call = call.Id(youtubeChannelID)
 	} else {
@@ -335,7 +336,7 @@ func (p *Plugin) CheckVideo(videoID string, channelID string) error {
 		return nil
 	}
 
-	resp, err := p.YTService.Videos.List("snippet").Id(videoID).Do()
+	resp, err := p.YTService.Videos.List([]string{"snippet"}).Id(videoID).Do()
 	if err != nil || len(resp.Items) < 1 {
 		return err
 	}

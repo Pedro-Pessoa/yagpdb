@@ -3,8 +3,8 @@ package pubsub
 import (
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 // PublishRatelimit publishes a new global ratelimit hit on discord

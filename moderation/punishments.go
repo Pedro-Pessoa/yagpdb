@@ -9,17 +9,18 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
-	"github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/logs"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	seventsmodels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/logs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
 )
 
 type Punishment int
@@ -294,7 +295,7 @@ func BanUser(config *Config, guildID int64, channel *dstate.ChannelState, messag
 	return BanUserWithDuration(config, guildID, channel, message, author, reason, user, 0, 1)
 }
 
-func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *dstate.ChannelState, authorMember *dstate.MemberState, modlogAuthor *discordgo.User, reason, roleS string, force bool, totalPerms int, dur time.Duration) (interface{}, error) {
+func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *dstate.ChannelState, authorMember *dstate.MemberState, modlogAuthor *discordgo.User, reason, roleS string, force bool, totalPerms int64, dur time.Duration) (interface{}, error) {
 	config, err := getConfigIfNotSet(gs.ID, config)
 	if err != nil {
 		return nil, common.ErrWithCaller(err)
@@ -346,7 +347,7 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 		return nil, common.ErrWithCaller(err)
 	}
 
-	var newPerms int
+	var newPerms int64
 	action := MAUnlock
 	outDur := ""
 	outPerms := ""
@@ -386,14 +387,14 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 		reason = reason + "\nPermissões atualmente bloqueadas - `" + strings.Join(common.HumanizePermissions(int64(totalPerms)), ", ") + "`" + "\nForce unlock flag - `" + fmt.Sprint(force) + "`"
 	} else {
 		if totalPerms == 0 { //This happens during scheduled Unlock events
-			totalPerms = int(currentLockdown.PermsToggle)
+			totalPerms = currentLockdown.PermsToggle
 			force = currentLockdown.Overwrite
 		}
 
 		if force {
 			newPerms = role.Permissions | totalPerms
 		} else {
-			newPerms = role.Permissions | (int(currentLockdown.PermsOriginal) & totalPerms)
+			newPerms = role.Permissions | (currentLockdown.PermsOriginal & totalPerms)
 		}
 	}
 
@@ -634,8 +635,9 @@ func MuteUnmuteUser(config *Config, mute bool, guildID int64, channel *dstate.Ch
 
 func AddMemberMuteRole(config *Config, id int64, currentRoles []int64) (removedRoles []int64, err error) {
 	removedRoles = make([]int64, 0, len(config.MuteRemoveRoles))
-	newMemberRoles := make([]string, 0, len(currentRoles))
-	newMemberRoles = append(newMemberRoles, config.MuteRole)
+	newMemberRoles := make([]int64, 0, len(currentRoles))
+	muteRole, _ := strconv.ParseInt(config.MuteRole, 10, 64)
+	newMemberRoles = append(newMemberRoles, muteRole)
 
 	hadMuteRole := false
 	for _, r := range currentRoles {
@@ -647,7 +649,7 @@ func AddMemberMuteRole(config *Config, id int64, currentRoles []int64) (removedR
 		if common.ContainsInt64Slice(config.MuteRemoveRoles, r) {
 			removedRoles = append(removedRoles, r)
 		} else {
-			newMemberRoles = append(newMemberRoles, strconv.FormatInt(r, 10))
+			newMemberRoles = append(newMemberRoles, r)
 		}
 	}
 
@@ -666,8 +668,8 @@ func RemoveMemberMuteRole(config *Config, id int64, currentRoles []int64, mute M
 	return
 }
 
-func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []string {
-	newMemberRoles := make([]string, 0)
+func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []int64 {
+	newMemberRoles := make([]int64, 0)
 
 	gs := bot.State.Guild(true, config.GuildID)
 	botState, err := bot.GetMember(gs.ID, common.BotUser.ID)
@@ -683,13 +685,13 @@ func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []s
 	if err != nil || botState == nil { // We couldn't find the bot on state, so keep old behaviour
 		for _, r := range currentRoles {
 			if r != config.IntMuteRole() {
-				newMemberRoles = append(newMemberRoles, strconv.FormatInt(r, 10))
+				newMemberRoles = append(newMemberRoles, r)
 			}
 		}
 
 		for _, r := range mute.RemovedRoles {
 			if !common.ContainsInt64Slice(currentRoles, r) && common.ContainsInt64Slice(guildRoles, r) {
-				newMemberRoles = append(newMemberRoles, strconv.FormatInt(r, 10))
+				newMemberRoles = append(newMemberRoles, r)
 			}
 		}
 
@@ -700,13 +702,13 @@ func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []s
 
 	for _, v := range currentRoles {
 		if v != config.IntMuteRole() && dutil.IsRoleAbove(yagHighest, gs.Role(false, v)) {
-			newMemberRoles = append(newMemberRoles, strconv.FormatInt(v, 10))
+			newMemberRoles = append(newMemberRoles, v)
 		}
 	}
 
 	for _, v := range mute.RemovedRoles {
 		if !common.ContainsInt64Slice(currentRoles, v) && common.ContainsInt64Slice(guildRoles, v) && dutil.IsRoleAbove(yagHighest, gs.Role(false, v)) {
-			newMemberRoles = append(newMemberRoles, strconv.FormatInt(v, 10))
+			newMemberRoles = append(newMemberRoles, v)
 		}
 	}
 

@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-
 	"github.com/bwmarrin/snowflake"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/dutil"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/pubsub"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/patrickmn/go-cache"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dutil"
 )
 
 var (
@@ -69,7 +69,7 @@ var (
 )
 
 // AdminOrPerm is the same as AdminOrPermMS but only required a member ID
-func AdminOrPerm(guildID int64, channelID int64, userID int64, needed int) (bool, error) {
+func AdminOrPerm(guildID int64, channelID int64, userID int64, needed int64) (bool, error) {
 	// Ensure the member is in state
 	ms, err := GetMember(guildID, userID)
 	if err != nil {
@@ -80,7 +80,7 @@ func AdminOrPerm(guildID int64, channelID int64, userID int64, needed int) (bool
 }
 
 // AdminOrPermMS checks if the provided member has all of the needed permissions or is a admin
-func AdminOrPermMS(channelID int64, ms *dstate.MemberState, needed int) (bool, error) {
+func AdminOrPermMS(channelID int64, ms *dstate.MemberState, needed int64) (bool, error) {
 	perms, err := ms.Guild.MemberPermissionsMS(true, channelID, ms)
 	if err != nil {
 		return false, err
@@ -142,7 +142,7 @@ func updateAllShardStatuses() {
 
 // BotProbablyHasPermission returns true if its possible that the bot has the following permission,
 // it also returns true if the bot member could not be found or if the guild is not in state (hence, probably)
-func BotProbablyHasPermission(guildID int64, channelID int64, permission int) bool {
+func BotProbablyHasPermission(guildID int64, channelID int64, permission int64) bool {
 	gs := State.Guild(true, guildID)
 	if gs == nil {
 		return true
@@ -152,7 +152,7 @@ func BotProbablyHasPermission(guildID int64, channelID int64, permission int) bo
 }
 
 // BotProbablyHasPermissionGS is the same as BotProbablyHasPermission but with a guildstate instead of guildid
-func BotProbablyHasPermissionGS(gs *dstate.GuildState, channelID int64, permission int) bool {
+func BotProbablyHasPermissionGS(gs *dstate.GuildState, channelID int64, permission int64) bool {
 	ms, err := GetMember(gs.ID, common.BotUser.ID)
 	if err != nil {
 		logger.WithError(err).WithField("guild", gs.ID).Error("bot isnt a member of a guild?")
@@ -254,12 +254,13 @@ func RefreshStatus(session *discordgo.Session) {
 		logger.WithError(err2).Error("failed retrieving bot status")
 	}
 
-	if streamingURL != "" {
-		_ = session.UpdateStreamingStatus(0, status, streamingURL)
-	} else {
-		_ = session.UpdateStatus(0, status)
+	if status != "" {
+		if streamingURL != "" {
+			_ = session.UpdateStreamingStatus(0, status, streamingURL)
+		} else {
+			_ = session.UpdateGameStatus(0, status)
+		}
 	}
-
 }
 
 // IsMemberAbove returns weather ms1 is above ms2 in terms of roles (e.g the highest role of ms1 is higher than the highest role of ms2)

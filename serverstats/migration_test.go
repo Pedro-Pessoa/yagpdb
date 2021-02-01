@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonas747/yagpdb/common/testutils"
+	"github.com/Pedro-Pessoa/tidbot/common/testutils"
 )
 
 func TestMigrationToV2FormatMsgs(t *testing.T) {

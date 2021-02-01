@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jonas747/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type StringTestStruct struct {

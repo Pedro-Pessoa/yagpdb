@@ -2,15 +2,16 @@ package poll
 
 import (
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var (
 	pollReactions = [...]string{"1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟"}
-	Command       = &commands.YAGCommand{
+	Command       = &commands.TIDCommand{
 		CmdCategory:  commands.CategoryTool,
 		Name:         "Poll",
 		Description:  "Create very simple reaction poll. Example: `poll \"favorite color?\" blue red pink`",

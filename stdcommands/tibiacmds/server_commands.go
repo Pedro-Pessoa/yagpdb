@@ -4,15 +4,16 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/stdcommands/util"
-	"github.com/jonas747/yagpdb/tibia"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/tibia"
 )
 
-var TibiaSetWorld = &commands.YAGCommand{
+var TibiaSetWorld = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "TibiaSetWorld",
 	Aliases:      []string{"tsw", "mundo", "world"},
@@ -39,7 +40,7 @@ var TibiaSetWorld = &commands.YAGCommand{
 	},
 }
 
-var TibiaSetGuild = &commands.YAGCommand{
+var TibiaSetGuild = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "TibiaSetGuild",
 	Aliases:      []string{"tsg", "guild"},
@@ -66,7 +67,7 @@ var TibiaSetGuild = &commands.YAGCommand{
 	},
 }
 
-var TibiaSetDeathChannel = &commands.YAGCommand{
+var TibiaSetDeathChannel = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaSetDeathChannel",
 	Aliases:     []string{"tsdc", "deathchannel", "dc"},
@@ -89,7 +90,7 @@ var TibiaSetDeathChannel = &commands.YAGCommand{
 	},
 }
 
-var TibiaSetUpdatesChannel = &commands.YAGCommand{
+var TibiaSetUpdatesChannel = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaSetUpdatesChannel",
 	Aliases:     []string{"tsuc", "updateshannel", "updatehannel", "uc"},
@@ -112,7 +113,7 @@ var TibiaSetUpdatesChannel = &commands.YAGCommand{
 	},
 }
 
-var TibiaToggleDeaths = &commands.YAGCommand{
+var TibiaToggleDeaths = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaToggleDeaths",
 	Aliases:     []string{"ttd", "senddeaths", "sd"},
@@ -131,7 +132,7 @@ var TibiaToggleDeaths = &commands.YAGCommand{
 	},
 }
 
-var TibiaToggleUpdates = &commands.YAGCommand{
+var TibiaToggleUpdates = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaToggleUpdates",
 	Aliases:     []string{"ttu", "sendupdates", "su"},
@@ -150,7 +151,7 @@ var TibiaToggleUpdates = &commands.YAGCommand{
 	},
 }
 
-var TibiaGetWorld = &commands.YAGCommand{
+var TibiaGetWorld = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaGetWorld",
 	Aliases:     []string{"tgw"},
@@ -165,7 +166,7 @@ var TibiaGetWorld = &commands.YAGCommand{
 	},
 }
 
-var TibiaGetGuild = &commands.YAGCommand{
+var TibiaGetGuild = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "TibiaGetGuild",
 	Aliases:     []string{"tgg"},
@@ -180,7 +181,7 @@ var TibiaGetGuild = &commands.YAGCommand{
 	},
 }
 
-var TibiaCreateNewsFeed = &commands.YAGCommand{
+var TibiaCreateNewsFeed = &commands.TIDCommand{
 	CmdCategory:         commands.CategoryTibia,
 	Name:                "CreateNewsFeed",
 	Aliases:             []string{"cnf"},
@@ -204,7 +205,7 @@ var TibiaCreateNewsFeed = &commands.YAGCommand{
 	},
 }
 
-var TibiaEnableNewsFeed = &commands.YAGCommand{
+var TibiaEnableNewsFeed = &commands.TIDCommand{
 	CmdCategory:         commands.CategoryTibia,
 	Name:                "EnableNewsFeed",
 	Aliases:             []string{"enf"},
@@ -220,7 +221,7 @@ var TibiaEnableNewsFeed = &commands.YAGCommand{
 	},
 }
 
-var TibiaDisableNewsFeed = &commands.YAGCommand{
+var TibiaDisableNewsFeed = &commands.TIDCommand{
 	CmdCategory:         commands.CategoryTibia,
 	Name:                "DisableNewsFeed",
 	Aliases:             []string{"dnf"},
@@ -236,7 +237,7 @@ var TibiaDisableNewsFeed = &commands.YAGCommand{
 	},
 }
 
-var TibiaChangeNewsFeedChannel = &commands.YAGCommand{
+var TibiaChangeNewsFeedChannel = &commands.TIDCommand{
 	CmdCategory:         commands.CategoryTibia,
 	Name:                "ChangeNewsFeedChannel",
 	Aliases:             []string{"cnfc"},

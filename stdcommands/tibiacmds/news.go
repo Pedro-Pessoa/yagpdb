@@ -5,14 +5,15 @@ import (
 	"math/rand"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/stdcommands/util"
-	"github.com/jonas747/yagpdb/tibia"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/tibia"
 )
 
-var NewsCommand = &commands.YAGCommand{
+var NewsCommand = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "News",
 	Aliases:     []string{"noticia"},
@@ -55,7 +56,7 @@ var NewsCommand = &commands.YAGCommand{
 	},
 }
 
-var NewsTickerCommand = &commands.YAGCommand{
+var NewsTickerCommand = &commands.TIDCommand{
 	CmdCategory: commands.CategoryTibia,
 	Name:        "NewsTicker",
 	Description: "Último newsticker do tibia.",

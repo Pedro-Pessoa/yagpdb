@@ -4,16 +4,17 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/moderation"
-	"github.com/jonas747/yagpdb/stdcommands/util"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/moderation"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:     commands.CategoryTool,
 	Name:            "EditRole",
 	Aliases:         []string{"ERole"},
@@ -87,7 +88,7 @@ func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
 
 	perms := role.Permissions
 	if p := data.Switch("perms"); p != nil {
-		perms = p.Int()
+		perms = p.Int64()
 		change = true
 	}
 
@@ -100,7 +101,7 @@ func cmdFuncEditRole(data *dcmd.Data) (interface{}, error) {
 
 	_, err := common.BotSession.ChannelMessageSendComplex(cID, &discordgo.MessageSend{
 		Content:         fmt.Sprintf("__**Edited Role (%d) properties to :**__\n\n**Name **: `%s`\n**Color **: `%d`\n**Mentionable **: `%t`\n**Hoisted **: `%t`\n**Permissions **: `%d`", role.ID, name, color, mentionable, hoisted, perms),
-		AllowedMentions: discordgo.AllowedMentions{},
+		AllowedMentions: &discordgo.MessageAllowedMentions{},
 	})
 
 	if err != nil {

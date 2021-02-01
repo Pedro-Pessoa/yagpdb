@@ -5,12 +5,13 @@ import (
 	"strconv"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/internalapi"
 	"github.com/mediocregopher/radix/v3"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/internalapi"
 )
 
 var _ internalapi.InternalAPIPlugin = (*Plugin)(nil)

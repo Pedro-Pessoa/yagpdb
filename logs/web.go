@@ -9,17 +9,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/logs/models"
-	"github.com/jonas747/yagpdb/web"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/logs/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var AuthorColors = []string{
@@ -56,9 +57,10 @@ func (lp *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../logs/assets/logs_view.html", "templates/plugins/logs_view.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Logging",
-		URL:  "logging/",
-		Icon: "fas fa-database",
+		Name:   "Logging",
+		NamePT: "Logging",
+		URL:    "logging/",
+		Icon:   "fas fa-database",
 	})
 
 	web.ServerPublicMux.Handle(pat.Get("/logs/:id"), web.RenderHandler(LogFetchMW(HandleLogsHTML, true), "public_server_logs"))
@@ -132,7 +134,8 @@ func HandleLogsCP(w http.ResponseWriter, r *http.Request) (web.TemplateData, err
 	tmpl["Config"] = general
 
 	// dealing with legacy code is a pain, gah
-	// so way back i didn't know about arrays in postgres, so i made the blacklisted channels field a single TEXT field, with a comma seperator
+	// so way back i didnt know about arrays in postgres,
+	// so i made the blacklisted channels field a single TEXT field, with a comma seperator
 	blacklistedChannels := make([]int64, 0, 10)
 	split := strings.Split(general.BlacklistedChannels.String, ",")
 	for _, v := range split {
@@ -384,6 +387,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	activeGuild, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Logging"
+	templateData["WidgetTitlePT"] = "Logging"
 	templateData["SettingsPath"] = "/logging/"
 
 	config, err := GetConfig(common.PQ, r.Context(), activeGuild.ID)
@@ -398,16 +402,24 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		nBlacklistedChannels = len(split)
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Username logging: %s</li>
 	<li>Nickname logging: %s</li>
 	<li>Blacklisted channels from creating message logs: <code>%d</code></li>
+</ul>`
+
+	const formatPT = `<ul>
+	<li>Logging de nomes: %s</li>
+	<li>Logging de nicks: %s</li>
+	<li>Canais proíbidos de criar logs: <code>%d</code></li>
 </ul>`
 
 	templateData["WidgetEnabled"] = true
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.UsernameLoggingEnabled.Bool),
 		web.EnabledDisabledSpanStatus(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.UsernameLoggingEnabled.Bool),
+		web.EnabledDisabledSpanStatusPT(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
 
 	return templateData, nil
 }

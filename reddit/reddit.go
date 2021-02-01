@@ -9,11 +9,12 @@ import (
 	"sync"
 
 	"github.com/jonas747/go-reddit"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/reddit/models"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/reddit/models"
 )
 
 const (

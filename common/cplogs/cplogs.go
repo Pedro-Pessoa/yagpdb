@@ -3,8 +3,9 @@ package cplogs
 import (
 	"time"
 
-	"github.com/jonas747/yagpdb/common"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 type ActionFormat struct {

@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/backgroundworkers"
-	"github.com/jonas747/yagpdb/common/scheduledevents2/models"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/backgroundworkers"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
 )
 
 const flushTresholdMinutes = 5

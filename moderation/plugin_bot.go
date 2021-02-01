@@ -10,19 +10,20 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dshardorchestrator/v2"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
-	seventsmodels "github.com/jonas747/yagpdb/common/scheduledevents2/models"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	seventsmodels "github.com/Pedro-Pessoa/tidbot/common/scheduledevents2/models"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	dshardorchestrator "github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator"
 )
 
 var (
@@ -33,7 +34,7 @@ type ContextKey int
 
 const (
 	ContextKeyConfig       ContextKey = iota
-	MuteDeniedChannelPerms            = discordgo.PermissionSendMessages | discordgo.PermissionVoiceSpeak
+	MuteDeniedChannelPerms            = int64(discordgo.PermissionSendMessages | discordgo.PermissionVoiceSpeak)
 )
 
 var (
@@ -195,7 +196,7 @@ func RefreshMuteOverrideForChannel(config *Config, channel *discordgo.Channel) {
 
 	// Check for existing override
 	for _, v := range channel.PermissionOverwrites {
-		if v.Type == "role" && v.ID == config.IntMuteRole() {
+		if v.Type == discordgo.PermissionOverwriteTypeRole && v.ID == config.IntMuteRole() {
 			override = v
 			break
 		}
@@ -206,7 +207,7 @@ func RefreshMuteOverrideForChannel(config *Config, channel *discordgo.Channel) {
 		MuteDeniedChannelPermsFinal = MuteDeniedChannelPermsFinal | discordgo.PermissionAddReactions
 	}
 
-	allows := 0
+	var allows int64
 	denies := MuteDeniedChannelPermsFinal
 	changed := true
 
@@ -229,7 +230,7 @@ func RefreshMuteOverrideForChannel(config *Config, channel *discordgo.Channel) {
 	}
 
 	if changed {
-		_ = common.BotSession.ChannelPermissionSet(channel.ID, config.IntMuteRole(), "role", allows, denies)
+		_ = common.BotSession.ChannelPermissionSet(channel.ID, config.IntMuteRole(), discordgo.PermissionOverwriteTypeRole, allows, denies)
 	}
 }
 
@@ -362,11 +363,11 @@ func checkAuditLogMemberRemoved(config *Config, data *discordgo.GuildMemberRemov
 
 // Since updating roles is a complex operation,
 // to avoid weird bugs from happening, we lock it so it can only be updated one place
-func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int) (retry bool, err error)) eventsystem.HandlerFunc {
+func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int64) (retry bool, err error)) eventsystem.HandlerFunc {
 	return func(evt *eventsystem.EventData) (retry bool, err error) {
 		var roleID int64
 		roleUpdate := false
-		rolePerms := 0
+		var rolePerms int64
 
 		switch {
 		case evt.Type == eventsystem.EventGuildRoleDelete:
@@ -400,15 +401,15 @@ func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int) (re
 		}
 
 		// If it's a role update update event and locked perms remain locked, dont do anything
-		if roleUpdate && int(currentLockdown.PermsToggle)&rolePerms == 0 {
+		if roleUpdate && int64(currentLockdown.PermsToggle)&rolePerms == 0 {
 			return false, nil
 		}
 
-		return next(evt, int(currentLockdown.PermsToggle))
+		return next(evt, int64(currentLockdown.PermsToggle))
 	}
 }
 
-func HandleGuildRoleDelete(evt *eventsystem.EventData, togglePerms int) (retry bool, err error) {
+func HandleGuildRoleDelete(evt *eventsystem.EventData, togglePerms int64) (retry bool, err error) {
 	data := evt.GuildRoleDelete()
 	// remove all existing unlock events for this role irrespective of lock or unlock event
 	_, err = seventsmodels.ScheduledEvents(
@@ -428,7 +429,7 @@ func HandleGuildRoleDelete(evt *eventsystem.EventData, togglePerms int) (retry b
 	return false, nil
 }
 
-func HandleGuildRoleUpdate(evt *eventsystem.EventData, togglePerms int) (retry bool, err error) {
+func HandleGuildRoleUpdate(evt *eventsystem.EventData, togglePerms int64) (retry bool, err error) {
 	role := evt.GuildRoleUpdate().Role
 	newPerms := role.Permissions &^ togglePerms
 

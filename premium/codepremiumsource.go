@@ -11,16 +11,17 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/premium/models"
-	"github.com/jonas747/yagpdb/stdcommands/util"
 	"github.com/lib/pq"
 	"github.com/volatiletech/null"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/premium/models"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
 var (
@@ -162,7 +163,7 @@ func encodeKey(rawKey []byte) string {
 	return output
 }
 
-var cmdGenerateCode = &commands.YAGCommand{
+var cmdGenerateCode = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryDebug,
 	HideFromCommandsPage: true,
 	Name:                 "generatepremiumcode",
@@ -211,7 +212,7 @@ var cmdGenerateCode = &commands.YAGCommand{
 	}),
 }
 
-var cmdDeleteCode = &commands.YAGCommand{
+var cmdDeleteCode = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryDebug,
 	HideFromCommandsPage: true,
 	Name:                 "deletepremiumcode",

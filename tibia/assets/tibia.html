@@ -1,0 +1,89 @@
+{{define "tibia"}}
+
+{{template "cp_head" .}}
+<header class="page-header">
+    <h2>Tibia</h2>
+</header>
+
+
+{{template "cp_alerts" .}}
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" action="/manage/{{.ActiveGuild.ID}}/tibia" data-async-form>
+            <div class="card card-featured card-featured-info">
+                <header class="card-header">
+                    {{if .IsPT}}
+                        <h2 class="card-title">Funções do Tibia</h2>
+                    {{else}}
+                        <h2 class="card-title">Tibia Features</h2>
+                    {{end}}
+                </header>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <label>
+                                Test <code>bla bla bla</code> more <b>(testing)</b>
+                                <br>
+                            </label>
+                            <hr />
+                            <label for="TibiaWorld">
+                                {{with .Tibia.World}}
+                                    O mundo deste servidor é: <code>{{.}}</code>
+                                {{else}}
+                                    O mundo deste servidor ainda não foi definido.
+                                    <select class="form-control" name="MuteRole">
+                                        {{tibiaWorldDropDown}}
+                                    </select>
+                                    <p class="help-block">
+                                        O mundo não pode ser trocado depois de definido. Escolha com atenção!!<br>
+                                        Em caso de dúvidas, entre no servidor de suporte.
+                                    </p>
+                                {{end}}
+                            </label>
+                            <hr >
+                            <p class="help-block">
+                                Did <code>you know</code> this is a test?
+                            </p>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                Test <code>bla bla bla</code> more <b>(testing)</b>
+                                <br>
+                            </label>
+                            <hr />
+                            <label for="TibiaWorld">
+                                {{with .Tibia.World}}
+                                    O mundo deste servidor é: <code>{{.}}</code>
+                                {{else}}
+                                    O mundo deste servidor ainda não foi definido.
+                                    <select class="form-control" name="MuteRole">
+                                        {{tibiaWorldDropDown}}
+                                    </select>
+                                    <p class="help-block">
+                                        O mundo não pode ser trocado depois de definido. Escolha com atenção!!<br>
+                                        Em caso de dúvidas, entre no servidor de suporte.
+                                    </p>
+                                {{end}}
+                            </label>
+                            <hr >
+                            <p class="help-block">
+                                Did <code>you know</code> this is a test?
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr />
+                </div>
+            </div>
+            <!-- /.panel -->
+        </form>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+
+{{template "cp_footer" .}}
+
+{{end}}

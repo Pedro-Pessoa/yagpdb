@@ -4,9 +4,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jonas747/yagpdb/common"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 type Plugin interface {

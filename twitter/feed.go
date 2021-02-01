@@ -7,16 +7,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jonas747/discordgo"
 	"github.com/jonas747/go-twitter/twitter"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/feeds"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/twitter/models"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/feeds"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/twitter/models"
 )
 
 var _ feeds.Plugin = (*Plugin)(nil)

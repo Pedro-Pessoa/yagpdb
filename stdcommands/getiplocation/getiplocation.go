@@ -9,9 +9,9 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type ipAPIJSON struct {
@@ -42,7 +42,7 @@ type ipAPIJSON struct {
 	Query         string
 }
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTool,
 	Name:         "GetIPLocation",
 	Aliases:      []string{"geoloc", "getiploc", "iploc"},

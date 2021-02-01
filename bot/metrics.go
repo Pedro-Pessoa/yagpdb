@@ -3,10 +3,11 @@ package bot
 import (
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 var metricsShardStatuses = promauto.NewGaugeVec(prometheus.GaugeOpts{

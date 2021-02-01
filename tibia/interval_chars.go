@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/mqueue"
-	"github.com/jonas747/yagpdb/premium"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/mqueue"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/premium"
 )
 
 type ScanTable struct {
@@ -429,7 +430,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 			SourceID:        "",
 			MessageEmbed:    embed,
 			Priority:        2,
-			AllowedMentions: discordgo.AllowedMentions{},
+			AllowedMentions: &discordgo.MessageAllowedMentions{},
 		})
 	}
 
@@ -453,7 +454,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 			SourceID:        "",
 			MessageEmbed:    embed,
 			Priority:        2,
-			AllowedMentions: discordgo.AllowedMentions{},
+			AllowedMentions: &discordgo.MessageAllowedMentions{},
 		})
 	}
 }

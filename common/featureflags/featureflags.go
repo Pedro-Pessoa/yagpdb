@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/pubsub"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
 )
 
 // PluginWithFeatureFlags is a interface for plugins that provide their own feature-flags
@@ -69,7 +70,7 @@ func (c *flagCache) getGuildFlags(guildID int64) ([]string, error) {
 	return result, nil
 }
 
-func (c *flagCache) initCahceBatch(guilds []int64) error {
+func (c *flagCache) initCacheBatch(guilds []int64) error {
 	c.l.Lock()
 	defer c.l.Unlock()
 
@@ -137,7 +138,7 @@ func BatchInitCache(guilds []int64) error {
 		go func(cacheID int, guildsToFetch []int64) {
 			defer wg.Done()
 
-			err := caches[cacheID].initCahceBatch(toFetchHere)
+			err := caches[cacheID].initCacheBatch(toFetchHere)
 			if err != nil {
 				logger.WithError(err).Error("failed preloading flag cache")
 			}

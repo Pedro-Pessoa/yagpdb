@@ -6,13 +6,14 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/tickets/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/tickets/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type FormData struct {
@@ -35,9 +36,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../tickets/assets/tickets_control_panel.html", "templates/plugins/tickets_control_panel.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name: "Ticket System",
-		URL:  "tickets/settings",
-		Icon: "fas fa-ticket-alt",
+		Name:   "Ticket System",
+		NamePT: "Sistema de Ticket",
+		URL:    "tickets/settings",
+		Icon:   "fas fa-ticket-alt",
 	})
 
 	getHandler := web.ControllerHandler(p.handleGetSettings, "cp_tickets_settings")
@@ -116,6 +118,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	templateData["WidgetTitle"] = "Tickets"
+	templateData["WidgetTitlePT"] = "Tickets"
 	templateData["SettingsPath"] = "/tickets/settings"
 	if enabled {
 		templateData["WidgetEnabled"] = true
@@ -127,7 +130,12 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	<li>Tickets enabled: %s</li>
  </ul>`
 
+	const formatPT = `<ul>
+	<li>Tickets ativado: %s</li>
+ </ul>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(enabled)))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(enabled)))
 
 	return templateData, nil
 }

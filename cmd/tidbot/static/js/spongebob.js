@@ -1,9 +1,8 @@
 lastLoc = window.location.pathname;
 lastHash = window.location.hash;
+
 $(function () {
-
 	$("#loading-overlay").addClass("hidden");
-
 
 	if (visibleURL) {
 		console.log("Should navigate to", visibleURL);
@@ -17,6 +16,7 @@ $(function () {
 		var shouldNav;
 		console.log(window.location.pathname);
 		console.log(lastLoc);
+
 		if (window.location.pathname !== lastLoc) {
 			shouldNav = true;
 		} else {
@@ -27,6 +27,7 @@ $(function () {
 		if (shouldNav) {
 			navigate(window.location.pathname, "GET", null, false)
 		}
+
 		// Handle the back (or forward) buttons here
 		// Will NOT handle refresh, use onbeforeunload for this.
 	};
@@ -40,9 +41,10 @@ $(function () {
 
 	// Update all dropdowns
 	// $(".btn-group .dropdown-menu").dropdownUpdate();
-})
+});
 
 var currentlyLoading = false;
+
 function navigate(url, method, data, updateHistory, maintainScroll, alertsOnly, cb) {
 	if (currentlyLoading) { return; }
 	closeSidebar();
@@ -62,8 +64,10 @@ function navigate(url, method, data, updateHistory, maintainScroll, alertsOnly, 
 
 	console.log("Navigating to " + url);
 	var shownURL = url;
+
 	// Add the partial param
 	var index = url.indexOf("?")
+
 	if (index !== -1) {
 		url += "&partial=1"
 	} else {
@@ -91,6 +95,7 @@ function navigate(url, method, data, updateHistory, maintainScroll, alertsOnly, 
 		if (updateHistory) {
 			window.history.pushState("", "", shownURL);
 		}
+
 		lastLoc = shownURL;
 		lastHash = window.location.hash;
 
@@ -99,7 +104,7 @@ function navigate(url, method, data, updateHistory, maintainScroll, alertsOnly, 
 			$("#loading-overlay").addClass("hidden");
 			if (cb)
 				cb();
-			return
+			return;
 		}
 
 		$("#main-content").html(this.responseText);
@@ -145,8 +150,8 @@ function showAlerts(alertsJson) {
 
 	for (var i = 0; i < alerts.length; i++) {
 		var alert = alerts[i];
-
 		var notice;
+
 		if (alert.Style === "success") {
 			notice = new PNotify({
 				title: alert.Message,
@@ -183,7 +188,7 @@ function showAlerts(alertsJson) {
 			noticeCop.get().click(function () {
 				noticeCop.remove();
 			});
-		})()
+		})();
 	}
 }
 
@@ -200,6 +205,7 @@ function closeSidebar() {
 function updateSelectedMenuItem(pathname) {
 	// Collapse all nav parents first
 	var navParents = document.querySelectorAll("#menu .nav-parent");
+
 	for (var i = 0; i < navParents.length; i++) {
 		navParents[i].classList.remove("nav-expanded", "nav-active");
 	}
@@ -209,8 +215,10 @@ function updateSelectedMenuItem(pathname) {
 
 	var bestMatch = -1;
 	var bestMatchLength = 0;
+
 	for (var i = 0; i < navLinks.length; i++) {
 		var href = navLinks[i].attributes.getNamedItem("href").value;
+
 		if (pathname.indexOf(href) !== -1) {
 			if (href.length > bestMatchLength) {
 				bestMatch = i;
@@ -223,6 +231,7 @@ function updateSelectedMenuItem(pathname) {
 
 	if (bestMatch !== -1) {
 		var collapseParent = navLinks[bestMatch].parentElement.parentElement.parentElement;
+
 		if (collapseParent.classList.contains("nav-parent")) {
 			collapseParent.classList.add("nav-expanded", "nav-active");
 		}
@@ -268,16 +277,15 @@ function addListeners() {
 			if (evt.currentTarget == elem) {
 				return;
 			}
+
 			$(elem).popover('hide');
-		})
+		});
 	});
 
 	$(document).on("click", 'a[href^="#"]', function (e) {
 		//e.preventDefault();
-
 		navigateToAnchor($.attr(this, "href"));
-	})
-
+	});
 
 	$(document).on('click', '.btn-add', function (e) {
 		e.preventDefault();
@@ -305,17 +313,18 @@ function addListeners() {
 	$(window).on("sidebar-left-toggle", function (evt, data) {
 		window.localStorage.setItem("sidebar_collapsed", !data.removed);
 		document.cookie = "sidebar_collapsed=" + data.added + "; max-age=3153600000; path=/"
-	})
+	});
 }
 
 // Initializes plugins such as multiselect, we have to do this on the new elements each time we load a partial page
 function initPlugins(partial) {
 	var selectorPrefix = "";
+
 	if (partial) {
 		selectorPrefix = "#main-content ";
 	}
 
-	$(selectorPrefix + '[data-toggle="popover"]').popover()
+	$(selectorPrefix + '[data-toggle="popover"]').popover();
 	$(selectorPrefix + '[data-toggle="tooltip"]').tooltip();
 
 	$('.entry:not(:last-of-type) .btn-add')
@@ -352,7 +361,9 @@ var discordPermissions = {
 		perm: 0x4000
 	},
 }
+
 var cachedChannelPerms = {};
+
 function channelRequirepermsDropdown(prefix) {
 	var dropdowns = $(prefix + "select[data-requireperms-send]");
 	dropdowns.each(function (i, rawElem) {
@@ -371,7 +382,7 @@ function trackChannelDropdown(dropdown, perms) {
 
 	dropdown.on("change", function () {
 		check();
-	})
+	});
 
 	function check() {
 		currentElem.text("Checking channel permissions for bot...");
@@ -383,6 +394,7 @@ function trackChannelDropdown(dropdown, perms) {
 			validateChannelDropdown(dropdown, currentElem, currentSelected, perms);
 		}
 	}
+
 	check();
 }
 
@@ -393,7 +405,7 @@ function validateChannelDropdown(dropdown, currentElem, channel, perms) {
 		if (obj.fetching) {
 			window.setTimeout(function () {
 				validateChannelDropdown(dropdown, currentElem, channel, perms);
-			}, 1000)
+			}, 1000);
 		} else {
 			check(cachedChannelPerms[channel].perms);
 		}
@@ -402,12 +414,14 @@ function validateChannelDropdown(dropdown, currentElem, channel, perms) {
 		createRequest("GET", "/api/" + CURRENT_GUILDID + "/channelperms/" + channel, null, function () {
 			console.log(this);
 			cachedChannelPerms[channel].fetching = false;
+
 			if (this.status != 200) {
 				currentElem.addClass("text-danger");
 				currentElem.removeClass("text-success");
 
 				if (this.responseText) {
 					var decoded = JSON.parse(this.responseText);
+
 					if (decoded.message) {
 						currentElem.text(decoded.message);
 					} else {
@@ -417,6 +431,7 @@ function validateChannelDropdown(dropdown, currentElem, channel, perms) {
 					currentElem.text("Couldn't check permissions :(");
 				}
 				cachedChannelPerms[channel] = null;
+
 				return;
 			}
 
@@ -430,6 +445,7 @@ function validateChannelDropdown(dropdown, currentElem, channel, perms) {
 
 	function check(channelPerms) {
 		var missing = [];
+
 		for (var i in perms) {
 			var p = perms[i];
 			if ((channelPerms & p.perm) != p.perm) {
@@ -446,7 +462,6 @@ function validateChannelDropdown(dropdown, currentElem, channel, perms) {
 		} else {
 			currentElem.addClass("text-danger");
 			currentElem.removeClass("text-success");
-
 			currentElem.text("Missing " + missing.join(", "));
 		}
 	}
@@ -459,14 +474,15 @@ function initializeMultiselect(selectorPrefix) {
 function formSubmissionEvents() {
 	// forms.each(function(i, elem){
 	// 	elem.onsubmit = submitform;
-	// })
+	// });
 
 	function dangerButtonClick(evt) {
 		var target = $(evt.target);
+
 		if (target.prop("tagName") !== "BUTTON") {
 			target = target.parents("button");
 			if (!target) {
-				return
+				return;
 			}
 		}
 
@@ -475,7 +491,7 @@ function formSubmissionEvents() {
 		}
 
 		if (target.attr("noconfirm")) {
-			return
+			return;
 		}
 
 		if (target.attr("formaction")) {
@@ -505,6 +521,7 @@ function formSubmissionEvents() {
 		event.preventDefault();
 
 		var action = $(event.target).attr("action");
+
 		if (!action) {
 			action = window.location.pathname;
 		}
@@ -521,6 +538,7 @@ function formSubmissionEvents() {
 		}
 
 		var alertsOnly = false;
+
 		if (target.attr("data-async-form-alertsonly") !== undefined) {
 			alertsOnly = true;
 		}
@@ -546,6 +564,7 @@ function formSubmissionEvents() {
 
 		// Find the parent form using the parents or the form attribute
 		var parentForm = target.parents("form");
+
 		if (parentForm.length == 0) {
 			if (target.attr("form")) {
 				parentForm = $("#" + target.attr("form"));
@@ -553,7 +572,7 @@ function formSubmissionEvents() {
 					return;
 				}
 			} else {
-				return
+				return;
 			}
 		}
 
@@ -578,6 +597,7 @@ function submitForm(form, url, alertsOnly) {
 	// Keep the current tab selected
 	var currentTab = null
 	var tabElements = $(".tabs");
+
 	if (tabElements.length > 0) {
 		currentTab = $(".tabs a.active").attr("href")
 	}
@@ -598,9 +618,9 @@ function serializeForm(form) {
 		var name = $(v).attr("data-content-editable-form")
 		var value = encodeURIComponent($(v).text())
 		serialized += "&" + name + "=" + value;
-	})
+	});
 
-	return serialized
+	return serialized;
 }
 
 function yagInitUnsavedForms(selectorPrefix) {
@@ -612,13 +632,12 @@ function yagInitUnsavedForms(selectorPrefix) {
 
 function trackForm(form) {
 	let savedVersion = serializeForm($(form));
-
-	let hasUnsavedChanges = false
+	let hasUnsavedChanges = false;
 
 	$(form).change(function () {
 		console.log("Form changed!");
 		checkForUnsavedChanges();
-	})
+	});
 
 	var observer = new MutationObserver(function (mutationList, observer) {
 		if (!document.body.contains(form)) {
@@ -676,7 +695,7 @@ function hideUnsavedChangesPopup(form) {
 
 	let index = unsavedChangesStack.indexOf(form);
 	unsavedChangesStack.splice(index, 1);
-	updateUnsavedChangesPopup(form)
+	updateUnsavedChangesPopup(form);
 }
 
 function updateUnsavedChangesPopup() {
@@ -695,15 +714,15 @@ function updateUnsavedChangesPopup() {
 
 		}
 
-		$("#unsaved-changes-popup").attr("hidden", false)
+		$("#unsaved-changes-popup").attr("hidden", false);
 	}
 }
 
 function saveUnsavedChanges() {
-
 	if (unsavedChangesStack.length == 1) {
 		let form = unsavedChangesStack[0];
 		var action = $(form).attr("action");
+
 		if (!action) {
 			action = window.location.pathname;
 		}
@@ -726,12 +745,12 @@ function saveUnsavedChanges() {
 			action = window.location.pathname;
 		}
 
-		let jf = $(form)
+		let jf = $(form);
 		let serialized = serializeForm(jf);
 
 		// let alertsOnly = jf.attr("data-async-form-alertsonly") !== undefined;
 		// if (!alertsOnly) {
-		// 	alertsOnly = 
+		// 	alertsOnly =
 		// }
 
 		// Keep the current tab selected
@@ -768,17 +787,19 @@ function navigateToAnchor(name) {
 	}, 500);
 
 	var offset = elem.offset().top;
-	console.log(offset)
+	console.log(offset);
 
-	window.location.hash = "#" + name
+	window.location.hash = "#" + name;
 }
 
 function createRequest(method, path, data, cb) {
 	var oReq = new XMLHttpRequest();
+
 	oReq.addEventListener("load", cb);
 	oReq.addEventListener("error", function () {
 		window.location.href = '/';
 	});
+
 	oReq.open(method, path);
 
 	if (data) {
@@ -791,14 +812,15 @@ function createRequest(method, path, data, cb) {
 
 function toggleTheme() {
 	var elem = document.documentElement;
+
 	if (elem.classList.contains("dark")) {
 		elem.classList.remove("dark");
-		elem.classList.add("sidebar-light")
-		document.cookie = "light_theme=true; max-age=3153600000; path=/"
+		elem.classList.add("sidebar-light");
+		document.cookie = "light_theme=true; max-age=3153600000; path=/";
 	} else {
 		elem.classList.add("dark");
-		elem.classList.remove("sidebar-light")
-		document.cookie = "light_theme=false; max-age=3153600000; path=/"
+		elem.classList.remove("sidebar-light");
+		document.cookie = "light_theme=false; max-age=3153600000; path=/";
 	}
 }
 

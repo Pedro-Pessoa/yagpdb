@@ -3,14 +3,14 @@ package tibiacmds
 import (
 	"fmt"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/stdcommands/util"
-	"github.com/jonas747/yagpdb/tibia"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/tibia"
 )
 
-var TibiaDelWorld = &commands.YAGCommand{
+var TibiaDelWorld = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "TibiaDelWorld",
 	Aliases:              []string{"tdw"},
@@ -36,7 +36,7 @@ var TibiaDelWorld = &commands.YAGCommand{
 	}),
 }
 
-var TibiaDelGuild = &commands.YAGCommand{
+var TibiaDelGuild = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "TibiaDelGuild",
 	Aliases:              []string{"tdg"},
@@ -62,7 +62,7 @@ var TibiaDelGuild = &commands.YAGCommand{
 	}),
 }
 
-var TibiaAdmSetWorld = &commands.YAGCommand{
+var TibiaAdmSetWorld = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "TibiaAdminSetWorld",
 	Aliases:              []string{"tasw"},
@@ -90,7 +90,7 @@ var TibiaAdmSetWorld = &commands.YAGCommand{
 	}),
 }
 
-var TibiaAdmSetGuild = &commands.YAGCommand{
+var TibiaAdmSetGuild = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "TibiaAdminSetGuild",
 	Aliases:              []string{"tasg"},
@@ -118,7 +118,7 @@ var TibiaAdmSetGuild = &commands.YAGCommand{
 	}),
 }
 
-var AdminTrackCommand = &commands.YAGCommand{
+var AdminTrackCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "Admintrack",
 	Aliases:              []string{"at"},
@@ -147,7 +147,7 @@ var AdminTrackCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminTrackHuntedCommand = &commands.YAGCommand{
+var AdminTrackHuntedCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "Admintrackhunted",
 	Aliases:              []string{"ath"},
@@ -176,7 +176,7 @@ var AdminTrackHuntedCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminUntrackCommand = &commands.YAGCommand{
+var AdminUntrackCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminUntrack",
 	Aliases:              []string{"au"},
@@ -204,7 +204,7 @@ var AdminUntrackCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminUntrackHuntedCommand = &commands.YAGCommand{
+var AdminUntrackHuntedCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminUntrackHunted",
 	Aliases:              []string{"auh"},
@@ -232,7 +232,7 @@ var AdminUntrackHuntedCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminUntrackGuildCommand = &commands.YAGCommand{
+var AdminUntrackGuildCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminUntrackGuild",
 	Aliases:              []string{"aug"},
@@ -260,7 +260,7 @@ var AdminUntrackGuildCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminDelAllCommand = &commands.YAGCommand{
+var AdminDelAllCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminDelAll",
 	Aliases:              []string{"ada"},
@@ -278,7 +278,7 @@ var AdminDelAllCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminStartTrackingCommand = &commands.YAGCommand{
+var AdminStartTrackingCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminStartTracking",
 	Aliases:              []string{"ast", "tracking", "starttrack"},
@@ -296,7 +296,7 @@ var AdminStartTrackingCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminStopTrackingCommand = &commands.YAGCommand{
+var AdminStopTrackingCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminStopTracking",
 	Aliases:              []string{"astopt", "stoptrack"},
@@ -314,7 +314,7 @@ var AdminStopTrackingCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminDeleteTracksCommand = &commands.YAGCommand{
+var AdminDeleteTracksCommand = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminDeleteTracks",
 	Aliases:              []string{"adt"},
@@ -367,7 +367,7 @@ var AdminDeleteTracksCommand = &commands.YAGCommand{
 	}),
 }
 
-var AdminStartNewsLoop = &commands.YAGCommand{
+var AdminStartNewsLoop = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "StartNewsLoop",
 	Aliases:              []string{"snl"},
@@ -385,7 +385,7 @@ var AdminStartNewsLoop = &commands.YAGCommand{
 	}),
 }
 
-var AdminStopNewsLoop = &commands.YAGCommand{
+var AdminStopNewsLoop = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "StopNewsLoop",
 	Aliases:              []string{"stnl"},
@@ -403,7 +403,7 @@ var AdminStopNewsLoop = &commands.YAGCommand{
 	}),
 }
 
-var AdminDisableNewsFeed = &commands.YAGCommand{
+var AdminDisableNewsFeed = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminDisableNewsFeed",
 	Aliases:              []string{"adnf"},
@@ -429,7 +429,7 @@ var AdminDisableNewsFeed = &commands.YAGCommand{
 	}),
 }
 
-var AdminEnableNewsFeed = &commands.YAGCommand{
+var AdminEnableNewsFeed = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminEnableNewsFeed",
 	Aliases:              []string{"aenf"},
@@ -455,7 +455,7 @@ var AdminEnableNewsFeed = &commands.YAGCommand{
 	}),
 }
 
-var AdminDebugNewsFeed = &commands.YAGCommand{
+var AdminDebugNewsFeed = &commands.TIDCommand{
 	CmdCategory:          commands.CategoryTibia,
 	Name:                 "AdminDebugNewsFeed",
 	Aliases:              []string{"adnf", "adf"},

@@ -4,14 +4,15 @@ import (
 	"fmt"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/stdcommands/util"
-	"github.com/jonas747/yagpdb/tibia"
+
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
+	"github.com/Pedro-Pessoa/tidbot/tibia"
 )
 
-var TrackCommand = &commands.YAGCommand{
+var TrackCommand = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "Track",
 	Description:  "Faz com que o char especificado seja acompanhado.",
@@ -35,7 +36,7 @@ var TrackCommand = &commands.YAGCommand{
 	},
 }
 
-var TrackHuntedCommand = &commands.YAGCommand{
+var TrackHuntedCommand = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "TrackHunted",
 	Description:  "Faz com que o char especificado seja acompanhado.",
@@ -59,7 +60,7 @@ var TrackHuntedCommand = &commands.YAGCommand{
 	},
 }
 
-var UnTrackCommand = &commands.YAGCommand{
+var UnTrackCommand = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "Untrack",
 	Description:  "Faz com que o char especificado deixe de ser acompanhado.",
@@ -77,7 +78,7 @@ var UnTrackCommand = &commands.YAGCommand{
 	},
 }
 
-var UnTrackHuntedCommand = &commands.YAGCommand{
+var UnTrackHuntedCommand = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "Untrackhunted",
 	Description:  "Faz com que o char especificado deixe de ser acompanhado.",
@@ -96,7 +97,7 @@ var UnTrackHuntedCommand = &commands.YAGCommand{
 	},
 }
 
-var UnTrackGuildCommand = &commands.YAGCommand{
+var UnTrackGuildCommand = &commands.TIDCommand{
 	CmdCategory:  commands.CategoryTibia,
 	Name:         "Untrackguild",
 	Description:  "Faz com que o char especificado deixe de ser acompanhado.",

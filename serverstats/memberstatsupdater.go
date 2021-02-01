@@ -5,9 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/common"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 type serverMemberStatsUpdater struct {

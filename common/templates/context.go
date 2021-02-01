@@ -12,14 +12,15 @@ import (
 	"unicode/utf8"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/template"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/prefix"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/prefix"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/template"
 )
 
 var (
@@ -83,14 +84,15 @@ var (
 		"humanizeTimeSinceDays":   tmplHumanizeTimeSinceDays,
 
 		// misc
-		"kindOf":    KindOf,
-		"in":        in,
-		"inFold":    inFold,
-		"roleAbove": roleIsAbove,
-		"adjective": common.RandomAdjective,
-		"noun":      common.RandomNoun,
-		"shuffle":   shuffle,
-		"seq":       sequence,
+		"kindOf":      KindOf,
+		"in":          in,
+		"inFold":      inFold,
+		"roleAbove":   roleIsAbove,
+		"adjective":   common.RandomAdjective,
+		"adjectivePT": common.RandomAdjectivePT,
+		"noun":        common.RandomNoun,
+		"shuffle":     shuffle,
+		"seq":         sequence,
 	}
 
 	contextSetupFuncs = []ContextSetupFunc{}
@@ -368,7 +370,7 @@ func (c *Context) MessageSend(content string) *discordgo.MessageSend {
 
 	return &discordgo.MessageSend{
 		Content: content,
-		AllowedMentions: discordgo.AllowedMentions{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
 			Parse: parse,
 			Roles: c.CurrentFrame.MentionRoles,
 		},

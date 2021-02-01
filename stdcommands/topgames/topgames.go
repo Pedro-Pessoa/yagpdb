@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	Cooldown:     5,
 	CmdCategory:  commands.CategoryDebug,
 	Name:         "topgames",
@@ -80,7 +80,7 @@ func checkGuild(dst map[string]int, gs *dstate.GuildState) {
 	defer gs.RUnlock()
 
 	for _, ms := range gs.Members {
-		if !ms.PresenceSet || ms.PresenceGame == nil || ms.PresenceGame.Name == "" {
+		if !ms.PresenceSet || ms.PresenceActivity == nil || ms.PresenceActivity.Name == "" {
 			continue
 		}
 
@@ -88,7 +88,7 @@ func checkGuild(dst map[string]int, gs *dstate.GuildState) {
 			continue
 		}
 
-		name := ms.PresenceGame.Name
+		name := ms.PresenceActivity.Name
 		dst[name]++
 	}
 }

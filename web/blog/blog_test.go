@@ -10,7 +10,7 @@ func TestParsePost(t *testing.T) {
 		"Date": "5 Aug. 2017"
 }
 Post body herer
- 
+
  - yaboi
  - hohoho`
 

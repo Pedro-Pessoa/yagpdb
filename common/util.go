@@ -12,11 +12,12 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
 	"github.com/lib/pq"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/sirupsen/logrus"
+
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 func KeyGuild(guildID int64) string         { return "guild:" + discordgo.StrID(guildID) }
@@ -75,7 +76,13 @@ func SendTempMessage(session *discordgo.Session, duration time.Duration, cID int
 }
 
 func RandomAdjective() string {
-	return Adjectives[rand.Intn(len(Adjectives))]
+	adj := Adjectives["EN"]
+	return adj[rand.Intn(len(Adjectives))]
+}
+
+func RandomAdjectivePT() string {
+	adj := Adjectives["PT"]
+	return adj[rand.Intn(len(Adjectives))]
 }
 
 func RandomNoun() string {
@@ -286,7 +293,7 @@ func RemoveRoleDS(ms *dstate.MemberState, role int64) error {
 	return nil
 }
 
-var StringPerms = map[int]string{
+var StringPerms = map[int64]string{
 	// discordgo.PermissionReadMessages:       "Ler Mensagens", // deprecated
 	discordgo.PermissionViewChannel:        "Ver o canal",
 	discordgo.PermissionSendMessages:       "Enviar Mensagens",
@@ -575,7 +582,7 @@ func IsOwner(userID int64) bool {
 	return false
 }
 
-var AllowedMentionsParseUsers = discordgo.AllowedMentions{
+var AllowedMentionsParseUsers = &discordgo.MessageAllowedMentions{
 	Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
 }
 

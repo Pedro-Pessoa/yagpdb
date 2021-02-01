@@ -8,15 +8,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/dshardorchestrator/v2"
-	"github.com/jonas747/dshardorchestrator/v2/orchestrator"
-	"github.com/jonas747/dshardorchestrator/v2/orchestrator/rest"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
 	"github.com/mediocregopher/radix/v3"
 	"github.com/sirupsen/logrus"
 
-	_ "github.com/jonas747/yagpdb/bot" // register the custom orchestrator events
+	_ "github.com/Pedro-Pessoa/tidbot/bot" // register the custom orchestrator events
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	dshardorchestrator "github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator/orchestrator"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator/orchestrator/rest"
 )
 
 var (

@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jonas747/discordgo"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type CPLogEntryLegacy struct {

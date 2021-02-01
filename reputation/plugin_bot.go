@@ -6,19 +6,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/reputation/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/reputation/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 var (
@@ -92,7 +92,7 @@ func handleMessageCreate(evt *eventsystem.EventData) {
 	_, _ = common.BotSession.ChannelMessageSend(msg.ChannelID, content)
 }
 
-var cmds = []*commands.YAGCommand{
+var cmds = []*commands.TIDCommand{
 	{
 		CmdCategory:  commands.CategoryFun,
 		Name:         "TakeRep",

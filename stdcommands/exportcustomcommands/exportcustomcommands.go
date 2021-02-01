@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 type ExportCC struct {
@@ -22,7 +22,7 @@ type ExportCC struct {
 	Responses   string `json:"Responses"`
 }
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	Cooldown:             2,
 	CmdCategory:          commands.CategoryDebug,
 	HideFromCommandsPage: true,
@@ -53,7 +53,7 @@ var Command = &commands.YAGCommand{
 				Content: "Custom Commands Export",
 				File: &discordgo.File{
 					ContentType: "application/json",
-					Name:        fmt.Sprintf("custom_commands_%d.json", data.Msg.GuildID),
+					Name:        fmt.Sprintf("custom_commands_%d.json", guildIDToMatch),
 					Reader:      bytes.NewReader(buf),
 				},
 			}

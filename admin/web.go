@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dshardorchestrator/v2/orchestrator/rest"
-	"github.com/jonas747/yagpdb/bot/botrest"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
-	"github.com/jonas747/yagpdb/common/internalapi"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common/internalapi"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/shardorchestrator/orchestrator/rest"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 // InitWeb implements web.Plugin

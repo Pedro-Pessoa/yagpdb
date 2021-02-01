@@ -1,20 +1,21 @@
-package yagstatus
+package tidstatus
 
 import (
 	"fmt"
 	"runtime"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
-var Command = &commands.YAGCommand{
+var Command = &commands.TIDCommand{
 	Cooldown:    5,
 	CmdCategory: commands.CategoryDebug,
 	Name:        "Tidstatus",
@@ -63,6 +64,7 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 		Fields: []*discordgo.MessageEmbedField{
 			{Name: "Servers", Value: fmt.Sprint(servers), Inline: true},
 			{Name: "Go Version", Value: runtime.Version(), Inline: true},
+			{Name: "API Version", Value: discordgo.APIVersion, Inline: true},
 			{Name: "Uptime", Value: common.HumanizeDuration(common.DurationPrecisionSeconds, uptime), Inline: true},
 			{Name: "Goroutines", Value: fmt.Sprint(numGoroutines), Inline: true},
 			{Name: "GC Pause Fraction", Value: fmt.Sprintf("%.3f%%", memStats.GCCPUFraction*100), Inline: true},

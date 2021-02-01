@@ -3,8 +3,8 @@ package automod
 import (
 	"time"
 
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 type Condition interface {

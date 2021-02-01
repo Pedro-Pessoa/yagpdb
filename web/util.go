@@ -10,12 +10,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
 	"github.com/sirupsen/logrus"
 	"goji.io/pattern"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 )
 
 var ErrTokenExpired = errors.New("OAUTH2 Token expired")
@@ -262,7 +263,7 @@ func StaticRoleProvider(roles []int64) func(guildID, userID int64) []int64 {
 	}
 }
 
-func HasPermissionCTX(ctx context.Context, aperms int) bool {
+func HasPermissionCTX(ctx context.Context, aperms int64) bool {
 	perms := ContextMemberPerms(ctx)
 	// Require manageserver, ownership of guild or ownership of bot
 	if perms&discordgo.PermissionAdministrator == discordgo.PermissionAdministrator ||
@@ -318,13 +319,13 @@ func ContextMember(ctx context.Context) *discordgo.Member {
 	return i.(*discordgo.Member)
 }
 
-func ContextMemberPerms(ctx context.Context) int {
+func ContextMemberPerms(ctx context.Context) int64 {
 	i := ctx.Value(common.ContextKeyMemberPermissions)
 	if i == nil {
 		return 0
 	}
 
-	return i.(int)
+	return i.(int64)
 }
 
 func ParamOrEmpty(r *http.Request, key string) string {
@@ -354,6 +355,19 @@ func EnabledDisabledSpanStatus(enabled bool) (str string) {
 	enabledClass := "danger"
 	if enabled {
 		enabledStr = "enabled"
+		enabledClass = "success"
+	}
+
+	return fmt.Sprintf("<span class=\"text-%s\">%s</span>%s", enabledClass, enabledStr, indicator)
+}
+
+func EnabledDisabledSpanStatusPT(enabled bool) (str string) {
+	indicator := Indicator(enabled)
+
+	enabledStr := "desativado"
+	enabledClass := "danger"
+	if enabled {
+		enabledStr = "ativado"
 		enabledClass = "success"
 	}
 

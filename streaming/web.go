@@ -7,14 +7,15 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type ContextKey int
@@ -28,9 +29,10 @@ var panelLogKey = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "streami
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../streaming/assets/streaming.html", "templates/plugins/streaming.html")
 	web.AddSidebarItem(web.SidebarCategoryFeeds, &web.SidebarItem{
-		Name: "Streaming",
-		URL:  "streaming",
-		Icon: "fas fa-video",
+		Name:   "Streaming",
+		NamePT: "Streaming",
+		URL:    "streaming",
+		Icon:   "fas fa-video",
 	})
 
 	streamingMux := goji.SubMux()
@@ -107,6 +109,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Streaming"
+	templateData["WidgetTitlePT"] = "Streaming"
 	templateData["SettingsPath"] = "/streaming"
 
 	config, err := GetConfig(ag.ID)
@@ -114,13 +117,20 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	format := `<ul>
+	const format = `<ul>
 	<li>Streaming status: %s</li>
 	<li>Streaming role: <code>%s</code>%s</li>
 	<li>Streaming message: <code>#%s</code>%s</li>
 </ul>`
 
+	const formatPT = `<ul>
+	<li>Status de streaming: %s</li>
+	<li>Cargo de streaming: <code>%s</code>%s</li>
+	<li>Mensagem de streaming: <code>#%s</code>%s</li>
+</ul>`
+
 	status := web.EnabledDisabledSpanStatus(config.Enabled)
+	statusPT := web.EnabledDisabledSpanStatusPT(config.Enabled)
 
 	if config.Enabled {
 		templateData["WidgetEnabled"] = true
@@ -139,15 +149,18 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 
 	indicatorMessage := ""
 	channelStr := "none / unknown"
+	channelStrPT := "nenhum / desconhecido"
 
 	if channel := ag.Channel(config.AnnounceChannel); channel != nil {
 		indicatorMessage = web.Indicator(true)
 		channelStr = html.EscapeString(channel.Name)
+		channelStrPT = html.EscapeString(channel.Name)
 	} else {
 		indicatorMessage = web.Indicator(false)
 	}
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole, channelStr, indicatorMessage))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStr, indicatorRole, channelStrPT, indicatorMessage))
 
 	return templateData, nil
 }

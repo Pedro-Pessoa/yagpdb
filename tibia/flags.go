@@ -6,9 +6,10 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/premium"
 	"github.com/mediocregopher/radix/v3"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/premium"
 )
 
 type TibiaFlags struct {
@@ -137,6 +138,7 @@ func GetServerWorld(server int64, nameOnly bool) (string, error) {
 		if !nameOnly {
 			return fmt.Sprintf("O mundo deste servidor é **%s**!", flags.World), nil
 		}
+
 		return flags.World, nil
 	}
 

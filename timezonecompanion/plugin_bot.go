@@ -9,15 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/bot/eventsystem"
-	"github.com/jonas747/yagpdb/bot/paginatedmessages"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/timezonecompanion/models"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
+	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/timezonecompanion/models"
 )
 
 var (
@@ -30,7 +31,7 @@ func (p *Plugin) BotInit() {
 }
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, &commands.YAGCommand{
+	commands.AddRootCommands(p, &commands.TIDCommand{
 		CmdCategory: commands.CategoryTool,
 		Name:        "settimezone",
 		Aliases:     []string{"setz", "tzset"},
@@ -143,7 +144,7 @@ func (p *Plugin) AddCommands() {
 			return fmt.Sprintf("Set your timezone to `%s`: %s\n", zone, name), nil
 
 		},
-	}, &commands.YAGCommand{
+	}, &commands.TIDCommand{
 		CmdCategory:         commands.CategoryTool,
 		Name:                "ToggleTimeConversion",
 		Aliases:             []string{"toggletconv", "ttc"},

@@ -3,8 +3,8 @@ package verification
 //go:generate sqlboiler --no-hooks psql
 
 import (
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/config"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/config"
 )
 
 var confGoogleReCAPTCHASiteKey = config.RegisterOption("yagpdb.google.recaptcha_site_key", "Google reCAPTCHA site key", "")

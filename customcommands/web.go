@@ -9,20 +9,20 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/volatiletech/null"
-
 	"emperror.dev/errors"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/common/featureflags"
-	"github.com/jonas747/yagpdb/common/pubsub"
-	yagtemplate "github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/customcommands/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/null"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/common/featureflags"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
+	yagtemplate "github.com/Pedro-Pessoa/tidbot/common/templates"
+	"github.com/Pedro-Pessoa/tidbot/customcommands/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 // GroupForm is the form bindings used when creating or updating groups
@@ -51,9 +51,10 @@ func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../customcommands/assets/customcommands.html", "templates/plugins/customcommands.html")
 	web.LoadHTMLTemplate("../../customcommands/assets/customcommands-editcmd.html", "templates/plugins/customcommands-editcmd.html")
 	web.AddSidebarItem(web.SidebarCategoryCore, &web.SidebarItem{
-		Name: "Custom commands",
-		URL:  "customcommands",
-		Icon: "fas fa-closed-captioning",
+		Name:   "Custom Commands",
+		NamePT: "Custom Commands",
+		URL:    "customcommands",
+		Icon:   "fas fa-closed-captioning",
 	})
 
 	getHandler := web.ControllerHandler(handleCommands, "cp_custom_commands")
@@ -505,13 +506,16 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Custom Commands"
+	templateData["WidgetTitlePT"] = "Custom Commands"
 	templateData["SettingsPath"] = "/customcommands"
 
 	numCustomCommands, err := models.CustomCommands(qm.Where("guild_id = ?", ag.ID)).CountG(r.Context())
 
-	format := `<p>Number of custom commands: <code>%d</code></p>`
+	const format = `<p>Number of custom commands: <code>%d</code></p>`
+	const formatPT = `<p>Número custom commands: <code>%d</code></p>`
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCustomCommands))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCustomCommands))
 
 	if numCustomCommands > 0 {
 		templateData["WidgetEnabled"] = true

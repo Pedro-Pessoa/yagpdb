@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/reddit/models"
-	"github.com/jonas747/yagpdb/stdcommands/util"
+
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/commands"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/reddit/models"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
 
 var _ bot.RemoveGuildHandler = (*Plugin)(nil)
@@ -27,7 +28,7 @@ func (p *Plugin) RemoveGuild(g int64) error {
 }
 
 func (p *Plugin) AddCommands() {
-	commands.AddRootCommands(p, &commands.YAGCommand{
+	commands.AddRootCommands(p, &commands.TIDCommand{
 		CmdCategory:          commands.CategoryDebug,
 		HideFromCommandsPage: true,
 		Name:                 "testreddit",

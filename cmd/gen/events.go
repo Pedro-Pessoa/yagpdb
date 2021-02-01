@@ -25,7 +25,7 @@ package bot
 import (
 	"context"
 	"github.com/sirupsen/logrus"
-	"github.com/jonas747/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"runtime/debug"
 )
 
@@ -102,7 +102,7 @@ func CheckErr(errMsg string, err error) {
 
 func main() {
 	fs := token.NewFileSet()
-	parsedFile, err := parser.ParseFile(fs, filepath.Join(os.Getenv("GOPATH"), "src/github.com/jonas747/discordgo/events.go"), nil, 0)
+	parsedFile, err := parser.ParseFile(fs, filepath.Join(os.Getenv("GOPATH"), "src/github.com/Pedro-Pessoa/tidbot/pkgs/discordgo/events.go"), nil, 0)
 	if err != nil {
 		log.Fatalf("warning: internal error: could not parse events.go: %s", err)
 		return

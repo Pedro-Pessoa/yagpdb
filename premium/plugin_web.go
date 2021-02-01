@@ -11,10 +11,11 @@ import (
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/web"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -163,6 +164,7 @@ var _ web.ServerHomeWidgetWithOrder = (*Plugin)(nil)
 func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (web.TemplateData, error) {
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 	templateData["WidgetTitle"] = "Premium Status"
+	templateData["WidgetTitlePT"] = "Status de Premium"
 	footer := "<p><a href=\"/premium\">Manage your premium slots</a></p>"
 
 	if ContextPremium(r.Context()) {
@@ -181,12 +183,14 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		}
 
 		templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium active and provided by <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Premium ativada e provida por <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
 		templateData["WidgetEnabled"] = true
 
 		return templateData, err
 	} else {
 		templateData["WidgetDisabled"] = true
 		templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium not active on this server :(</p>\n\n%s", footer))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Este servidor não é premium :(</p>\n\n%s", footer))
 	}
 
 	return templateData, nil

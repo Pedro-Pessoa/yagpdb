@@ -3,9 +3,10 @@ package run
 import (
 	"log/syslog"
 
-	"github.com/jonas747/yagpdb/common"
 	"github.com/sirupsen/logrus"
 	lsyslog "github.com/sirupsen/logrus/hooks/syslog"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 func AddSyslogHooks() {

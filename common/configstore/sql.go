@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jonas747/yagpdb/common"
 	"golang.org/x/net/context"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
 )
 
 const MaxRetries = 1000

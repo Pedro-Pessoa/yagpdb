@@ -8,15 +8,16 @@ import (
 	"strconv"
 
 	"github.com/jonas747/go-twitter/twitter"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/cplogs"
-	"github.com/jonas747/yagpdb/premium"
-	"github.com/jonas747/yagpdb/twitter/models"
-	"github.com/jonas747/yagpdb/web"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
+
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
+	"github.com/Pedro-Pessoa/tidbot/premium"
+	"github.com/Pedro-Pessoa/tidbot/twitter/models"
+	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
@@ -46,9 +47,10 @@ var (
 func (p *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../twitter/assets/twitter.html", "templates/plugins/twitter.html")
 	web.AddSidebarItem(web.SidebarCategoryFeeds, &web.SidebarItem{
-		Name: "Twitter Feeds",
-		URL:  "twitter",
-		Icon: "fab fa-twitter",
+		Name:   "Twitter Feeds",
+		NamePT: "Twitter Feeds",
+		URL:    "twitter",
+		Icon:   "fab fa-twitter",
 	})
 
 	mux := goji.SubMux()
@@ -221,6 +223,7 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 
 	templateData["WidgetTitle"] = "Twitter feeds"
+	templateData["WidgetTitlePT"] = "Feeds do Twitter"
 	templateData["SettingsPath"] = "/twitter"
 
 	numFeeds, err := models.TwitterFeeds(models.TwitterFeedWhere.GuildID.EQ(ag.ID)).CountG(r.Context())
@@ -235,7 +238,10 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	}
 
 	const format = `<p>Active Twitter feeds: <code>%d</code></p>`
+	const formatPT = `<p>Feeds do Twitter ativos: <code>%d</code></p>`
+
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numFeeds))
+	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numFeeds))
 
 	return templateData, nil
 }

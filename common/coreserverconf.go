@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/jonas747/yagpdb/common/models"
 	"github.com/karlseguin/rcache"
-	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/v4/boil"
+
+	"github.com/Pedro-Pessoa/tidbot/common/models"
 )
 
 const CoreServerConfDBSchema = `

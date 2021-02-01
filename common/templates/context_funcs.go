@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/bot"
+	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
 
 var (
@@ -29,7 +29,7 @@ var (
 func (c *Context) buildDM(gName string, s ...interface{}) *discordgo.MessageSend {
 	info := fmt.Sprintf("DM enviada pelo servidor **%s**", gName)
 	msgSend := &discordgo.MessageSend{
-		AllowedMentions: discordgo.AllowedMentions{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
 			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
 		},
 	}
@@ -385,7 +385,7 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		var m *discordgo.Message
 		msgSend := &discordgo.MessageSend{
-			AllowedMentions: discordgo.AllowedMentions{
+			AllowedMentions: &discordgo.MessageAllowedMentions{
 				Parse: parseMentions,
 			},
 		}
@@ -403,7 +403,7 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			msgSend = typedMsg
 
 			if !filterSpecialMentions {
-				msgSend.AllowedMentions = discordgo.AllowedMentions{Parse: parseMentions}
+				msgSend.AllowedMentions = &discordgo.MessageAllowedMentions{Parse: parseMentions}
 			}
 
 			if isDM && !WL {
@@ -468,7 +468,7 @@ func (c *Context) tmplEditMessage(filterSpecialMentions bool) func(channel inter
 		}
 
 		if !filterSpecialMentions {
-			msgEdit.AllowedMentions = &discordgo.AllowedMentions{
+			msgEdit.AllowedMentions = &discordgo.MessageAllowedMentions{
 				Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeEveryone},
 			}
 		}
@@ -1942,13 +1942,18 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 		return "", errors.New("Length of slice passed was > 250 (Discord role limit)")
 	}
 
-	roles := make([]string, 0, rSlice.Len())
+	roles := make([]int64, 0, rSlice.Len())
 	for i := 0; i < rSlice.Len(); i++ {
 		switch v := rSlice.Index(i).Interface().(type) {
 		case string:
+			role, err := c.tmplGetRole(v)
+			if err == nil && role != nil {
+				roles = append(roles, role.ID)
+			}
+		case int:
+			roles = append(roles, int64(v))
+		case int64:
 			roles = append(roles, v)
-		case int, int64:
-			roles = append(roles, discordgo.StrID(reflect.ValueOf(v).Int()))
 		default:
 			return "", errors.New("Could not convert slice to string slice")
 		}
