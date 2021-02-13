@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+<<<<<<< HEAD
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
@@ -23,6 +24,19 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 	"github.com/Pedro-Pessoa/tidbot/tickets/models"
+=======
+	"github.com/jonas747/dcmd"
+	"github.com/jonas747/discordgo"
+	"github.com/jonas747/dstate/v2"
+	"github.com/jonas747/yagpdb/analytics"
+	"github.com/jonas747/yagpdb/bot"
+	"github.com/jonas747/yagpdb/commands"
+	"github.com/jonas747/yagpdb/common"
+	"github.com/jonas747/yagpdb/common/templates"
+	"github.com/jonas747/yagpdb/tickets/models"
+	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
+>>>>>>> master
 )
 
 const InTicketPerms = discordgo.PermissionReadMessageHistory | discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | discordgo.PermissionEmbedLinks | discordgo.PermissionAttachFiles
@@ -56,7 +70,16 @@ func (p *Plugin) AddCommands() {
 				return "No category for ticket channels set", nil
 			}
 
+<<<<<<< HEAD
 			inCurrentTickets, _ := models.Tickets(
+=======
+			if !bot.BotProbablyHasPermissionGS(parsed.GS, parsed.CS.ID, InTicketPerms) {
+				return fmt.Sprintf("The bot is missing one of the following permissions: %s", common.HumanizePermissions(InTicketPerms)), nil
+				// return "", nil
+			}
+
+			inCurrentTickets, err := models.Tickets(
+>>>>>>> master
 				qm.Where("closed_at IS NULL"),
 				qm.Where("guild_id = ?", parsed.GS.ID),
 				qm.Where("author_id = ?", parsed.Msg.Author.ID)).AllG(parsed.Context())
@@ -706,7 +729,9 @@ OUTER2:
 	}
 
 	// inherit settings from category
-	overwrites = applyChannelParentSettings(gs, conf.TicketsChannelCategory, overwrites)
+	// TODO: disabled because of a issue with discord recently pushed change that disallows bots from creating channels with permissions they don't have
+	// TODO: automatically filter those out
+	// overwrites = applyChannelParentSettings(gs, conf.TicketsChannelCategory, overwrites)
 
 	// generate the ID for this ticket
 	id, err := common.GenLocalIncrID(gs.ID, "ticket")
