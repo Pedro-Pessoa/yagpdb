@@ -2,6 +2,7 @@ package templates
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -361,20 +362,20 @@ func (c *Context) checkSafeDictNoRecursion(d Dict, n int) bool {
 	return true
 }
 
-func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) func(channel interface{}, msg interface{}) interface{} {
+func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) func(channel interface{}, msg interface{}, replyData ...interface{}) (interface{}, error) {
 	parseMentions := []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers}
 	if !filterSpecialMentions {
 		parseMentions = append(parseMentions, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeEveryone)
 	}
 
-	return func(channel interface{}, msg interface{}) interface{} {
+	return func(channel interface{}, msg interface{}, replyData ...interface{}) (interface{}, error) {
 		if c.IncreaseCheckGenericAPICall() {
-			return ""
+			return "", ErrTooManyAPICalls
 		}
 
 		cid := c.ChannelArg(channel)
 		if cid == 0 {
-			return ""
+			return "", errors.New("Invalid channel provided for SendMessage")
 		}
 
 		isDM := cid != c.ChannelArgNoDM(channel)
@@ -423,13 +424,65 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			}
 		}
 
-		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
+		var dict SDict
+		switch len(replyData) {
+		case 0:
+			m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
+			if err != nil {
+				return "", err
+			}
 
-		if err == nil && returnID {
-			return m.ID
+			if returnID {
+				return m.ID, nil
+			}
+
+			return "", nil
+		case 1:
+			val := reflect.ValueOf(replyData[0])
+			switch val.Kind() {
+			case reflect.Map:
+				dict, err = StringKeyDictionary(replyData[0])
+				if err != nil {
+					return "", err
+				}
+			default:
+				return "", fmt.Errorf("Invalid argument for ReplyData of type %s. Must be a map", val.Type().Name())
+			}
+		default:
+			dict, err = StringKeyDictionary(replyData...)
+			if err != nil {
+				return "", err
+			}
 		}
 
-		return ""
+		replyChannelID := c.ChannelArg(dict.Get("channel_id"))
+		replyMessageID := ToInt64(dict.Get("message_id"))
+
+		if replyChannelID == 0 || replyMessageID == 0 {
+			return "", errors.New("Invalid channel or message ID provided for ReplyData")
+		}
+
+		reference := &discordgo.MessageReference{
+			ChannelID: replyChannelID,
+			MessageID: replyMessageID,
+		}
+
+		if !isDM {
+			reference.GuildID = c.GS.ID
+		}
+
+		msgSend.Reference = reference
+
+		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
+		if err != nil {
+			return "", err
+		}
+
+		if returnID {
+			return m.ID, nil
+		}
+
+		return "", nil
 	}
 }
 
@@ -481,6 +534,44 @@ func (c *Context) tmplEditMessage(filterSpecialMentions bool) func(channel inter
 
 		return "", nil
 	}
+}
+
+func (c *Context) tmplPinMessage(channel, message interface{}) (interface{}, error) {
+	if c.IncreaseCheckGenericAPICall() {
+		return "", ErrTooManyAPICalls
+	}
+
+	mID := ToInt64(message)
+	if mID == 0 {
+		return "", errors.New("Invalid message provided")
+	}
+
+	channelID := c.ChannelArgNoDM(channel)
+	if channelID == 0 {
+		return "", errors.New("Invalid channel provided")
+	}
+
+	err := common.BotSession.ChannelMessagePin(channelID, mID)
+	return "", err
+}
+
+func (c *Context) tmplUnpinMessage(channel, message interface{}) (interface{}, error) {
+	if c.IncreaseCheckGenericAPICall() {
+		return "", ErrTooManyAPICalls
+	}
+
+	mID := ToInt64(message)
+	if mID == 0 {
+		return "", errors.New("Invalid message provided")
+	}
+
+	channelID := c.ChannelArgNoDM(channel)
+	if channelID == 0 {
+		return "", errors.New("Invalid channel provided")
+	}
+
+	err := common.BotSession.ChannelMessageUnpin(channelID, mID)
+	return "", err
 }
 
 func (c *Context) tmplMentionEveryone() string {
@@ -1086,6 +1177,56 @@ func (c *Context) tmplGetMessage(channel, msgID interface{}) (*discordgo.Message
 	return message, nil
 }
 
+func (c *Context) tmplGetMessageReactors(channel, msg interface{}, emoji string, limit int, before, after interface{}) ([]*discordgo.User, error) {
+	if c.IncreaseCheckCallCounterPremium("msg_reactors", 2, 5) {
+		return nil, ErrTooManyCalls
+	}
+
+	if c.IncreaseCheckGenericAPICall() {
+		return nil, ErrTooManyAPICalls
+	}
+
+	channelID := c.ChannelArgNoDM(channel)
+	if channelID == 0 {
+		return nil, errors.New("Channel not found")
+	}
+
+	msgID := ToInt64(msg)
+	if msgID == 0 {
+		return nil, errors.New("Msg ID is invalid")
+	}
+
+	emojiID := emojiArg(emoji)
+	if emojiID == "" {
+		return nil, errors.New("Invalid emoji name provided")
+	}
+
+	switch {
+	case limit > 100:
+		return nil, errors.New("Limit can not be bigger than 100")
+	case limit < 0:
+		return nil, errors.New("Limit can not be negative")
+	}
+
+	beforeID := ToInt64(before)
+	afterID := ToInt64(after)
+
+	reactors, err := common.BotSession.MessageReactions(channelID, msgID, emojiID, limit, beforeID, afterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return reactors, nil
+}
+
+func emojiArg(emoji string) string {
+	emoji = strings.TrimPrefix(emoji, "<")
+	emoji = strings.TrimSuffix(emoji, ">")
+	emoji = strings.TrimPrefix(emoji, ":")
+
+	return emoji
+}
+
 func (c *Context) tmplGetMember(target interface{}) (*CtxMember, error) {
 	if c.IncreaseCheckGenericAPICall() {
 		return nil, ErrTooManyAPICalls
@@ -1149,6 +1290,234 @@ func (c *Context) tmplGetChannel(channel interface{}) (*CtxChannel, error) {
 
 	return CtxChannelFromCS(cstate), nil
 
+}
+
+func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel, error) {
+	if c.IncreaseCheckCallCounterPremium("msg_reactors", 1, 2) {
+		return nil, ErrTooManyCalls
+	}
+
+	if c.IncreaseCheckGenericAPICall() {
+		return nil, ErrTooManyAPICalls
+	}
+
+	if len(channelDataArgs) < 1 {
+		return nil, errors.New("Invalid channel data provided")
+	}
+
+	var m map[string]interface{}
+	switch t := channelDataArgs[0].(type) {
+	case SDict:
+		m = t
+	case map[string]interface{}:
+		m = t
+	default:
+		dict, err := StringKeyDictionary(channelDataArgs...)
+		if err != nil {
+			return nil, err
+		}
+		m = dict
+	}
+
+	for k, v := range m {
+		switch k {
+		case "parent_id":
+			value, valid := channelValueValidation(v)
+			if !valid {
+				return nil, fmt.Errorf("parent_id %v is not valid", v)
+			}
+
+			m["parent_id"] = value
+		case "permission_overwrites":
+			val := reflect.ValueOf(v)
+			switch val.Kind() {
+			case reflect.Slice, reflect.Array:
+				for i := 0; i < val.Len(); i++ {
+					innerVal := reflect.ValueOf(val.Index(i).Interface())
+					switch innerVal.Kind() {
+					case reflect.Map:
+						innerMap, err := StringKeyDictionary(val.Index(i).Interface())
+						if err != nil {
+							return nil, fmt.Errorf("Could not convert value to a map. Invalid permission_overwrites field value provided of type %s", innerVal.Type())
+						}
+
+						for key, value := range innerMap {
+							switch key {
+							case "id", "allow", "deny":
+								newValue, valid := channelValueValidation(value)
+								if !valid {
+									return nil, fmt.Errorf("Invalid id or perm provided for permission_overwrites: %s", value)
+								}
+
+								_, err = innerMap.Set(key, newValue)
+								if err != nil {
+									return nil, err
+								}
+							case "type":
+								switch mapT := value.(type) {
+								case string:
+									switch mapT {
+									case "role", "0":
+										_, err = innerMap.Set("type", 0)
+										if err != nil {
+											return nil, err
+										}
+									case "member", "1":
+										_, err = innerMap.Set("type", 1)
+										if err != nil {
+											return nil, err
+										}
+									default:
+										return nil, fmt.Errorf("Unknown overwrite type %s", mapT)
+									}
+								case int, int64, float64:
+									number := tmplToInt(mapT)
+									if number != 0 && number != 1 {
+										return nil, fmt.Errorf("Invalid type value: %v", mapT)
+									}
+
+									_, err = innerMap.Set("type", number)
+									if err != nil {
+										return nil, err
+									}
+								default:
+									return nil, fmt.Errorf("Type %v is not valid.", mapT)
+								}
+							default:
+								return nil, fmt.Errorf("Key %s is not a valid key for permission_overwrites", key)
+							}
+						}
+					default:
+						return nil, fmt.Errorf("Invalid permission_overwrites field value provided of type %s", innerVal.Type())
+					}
+				}
+			default:
+				return nil, fmt.Errorf("Invalid permission_overwrites value provided of type %s", val.Type())
+			}
+		}
+	}
+
+	encoded, err := json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	var channelData *discordgo.GuildChannelCreateData
+	err = json.Unmarshal(encoded, &channelData)
+	if err != nil {
+		return nil, err
+	}
+
+	if channelData == nil {
+		return nil, errors.New("Nil channel data")
+	}
+
+	switch channelData.Type {
+	case 1, 3, 5, 6:
+		return nil, fmt.Errorf("Can not create a channel of type %d", channelData.Type)
+	}
+
+	dChannel, err := common.BotSession.GuildChannelCreateComplex(c.GS.ID, *channelData)
+	if err != nil {
+		return nil, err
+	}
+
+	return CtxChannelFromDGoChannel(dChannel), nil
+}
+
+func channelValueValidation(input interface{}) (out string, valid bool) {
+	switch t := input.(type) {
+	case string:
+		_, err := strconv.ParseInt(t, 10, 64)
+		if err != nil {
+			return "", false
+		}
+
+		return t, true
+	default:
+		newValue := ToString(t)
+		if newValue == "" {
+			return "", false
+		}
+
+		_, err := strconv.ParseInt(newValue, 10, 64)
+		if err != nil {
+			return "", false
+		}
+
+		return newValue, true
+	}
+}
+
+var permMap = map[string]int64{
+	"view_channel":           discordgo.PermissionViewChannel,
+	"read_messages":          discordgo.PermissionViewChannel, // deprecated, let here for convinience
+	"send_messages":          discordgo.PermissionSendMessages,
+	"manage_messages":        discordgo.PermissionManageMessages,
+	"send_tts_messages":      discordgo.PermissionSendTTSMessages,
+	"embed_links":            discordgo.PermissionEmbedLinks,
+	"attach_files":           discordgo.PermissionAttachFiles,
+	"read_message_history":   discordgo.PermissionReadMessageHistory,
+	"mention_everyone":       discordgo.PermissionMentionEveryone,
+	"use_external_emojis":    discordgo.PermissionUseExternalEmojis,
+	"voice_connect":          discordgo.PermissionVoiceConnect,
+	"voice_speak":            discordgo.PermissionVoiceSpeak,
+	"voice_mute_members":     discordgo.PermissionVoiceMuteMembers,
+	"voice_deafen_members":   discordgo.PermissionVoiceDeafenMembers,
+	"voice_move_members":     discordgo.PermissionVoiceMoveMembers,
+	"voice_use_vad":          discordgo.PermissionVoiceUseVAD,
+	"voice_priority_speaker": discordgo.PermissionVoicePrioritySpeaker,
+	"add_reactions":          discordgo.PermissionAddReactions,
+	"create_invite":          discordgo.PermissionCreateInstantInvite,
+	"manage_channel":         discordgo.PermissionManageChannels,
+	"manage_webhooks":        discordgo.PermissionManageWebhooks,
+}
+
+func (c *Context) tmplGeneratePerms(perms ...interface{}) (string, error) {
+	l := len(perms)
+	var permSlice []interface{}
+	var err error
+
+	switch {
+	case l < 1:
+		return "", errors.New("Not enough arguments provided")
+	case l == 1:
+		switch t := perms[0].(type) {
+		case int, int64, float64:
+			return ToString(t), nil
+		case []interface{}:
+			permSlice = t
+		case Slice:
+			permSlice = t
+		case string:
+			var strOut int64
+			if permMap[t] != 0 {
+				strOut |= permMap[t]
+				return ToString(strOut), nil
+			}
+
+			return "", errors.New("Invalid perm provided.")
+		}
+	default:
+		permSlice, err = CreateSlice(perms...)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	var perm int64
+	for _, v := range permSlice {
+		vStr, ok := v.(string)
+		if !ok {
+			return "", errors.New("Non string value found on slice")
+		}
+
+		if permMap[vStr] != 0 {
+			perm |= permMap[vStr]
+		}
+	}
+
+	return ToString(perm), nil
 }
 
 func (c *Context) tmplAddReactions(values ...reflect.Value) (reflect.Value, error) {
@@ -1248,7 +1617,7 @@ func (c *Context) tmplCurrentUserCreated() time.Time {
 	return t
 }
 
-func (c *Context) tmplUserAgeHuman(id int64) *string {
+func (c *Context) tmplUserAgeHuman(id interface{}) *string {
 	ms := c.getMember(id)
 	if ms == nil {
 		return nil
@@ -1264,7 +1633,7 @@ func (c *Context) tmplUserAgeHuman(id int64) *string {
 	return &humanized
 }
 
-func (c *Context) tmplUserAgeMinutes(id int64) *int {
+func (c *Context) tmplUserAgeMinutes(id interface{}) *int {
 	ms := c.getMember(id)
 	if ms == nil {
 		return nil
@@ -1277,7 +1646,7 @@ func (c *Context) tmplUserAgeMinutes(id int64) *int {
 	return &out
 }
 
-func (c *Context) tmplUserCreated(id int64) *time.Time {
+func (c *Context) tmplUserCreated(id interface{}) *time.Time {
 	ms := c.getMember(id)
 	if ms == nil {
 		return nil
@@ -1287,7 +1656,7 @@ func (c *Context) tmplUserCreated(id int64) *time.Time {
 	return &t
 }
 
-func (c *Context) getMember(id int64) *dstate.MemberState {
+func (c *Context) getMember(id interface{}) *dstate.MemberState {
 	targetID := targetUserID(id)
 	if targetID == 0 {
 		return nil
@@ -1508,25 +1877,28 @@ func (c *Context) tmplSort(slice []interface{}, sortargs ...interface{}) (interf
 	}
 
 	var dict SDict
+	var err error
 	switch len(sortargs) {
 	case 0:
 		input := make(map[string]interface{}, 3)
-		input["Reverse"] = false
-		input["Subslices"] = false
-		input["Emptyslices"] = false
-		sdict, err := StringKeyDictionary(input)
+		input["reverse"] = false
+		input["subslices"] = false
+		input["emptyslices"] = false
+
+		dict, err = StringKeyDictionary(input)
 		if err != nil {
 			return "", err
 		}
-		dict = sdict
 	case 1:
-		sdict, err := StringKeyDictionary(sortargs[0])
+		dict, err = StringKeyDictionary(sortargs[0])
 		if err != nil {
 			return "", err
 		}
-		dict = sdict
 	default:
-		return "", errors.New("Too many args.")
+		dict, err = StringKeyDictionary(sortargs...)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	var numberSlice, stringSlice, timeSlice, csliceSlice, mapSlice, defaultSlice, outputSlice []interface{}
@@ -1554,22 +1926,22 @@ func (c *Context) tmplSort(slice []interface{}, sortargs ...interface{}) (interf
 		}
 	}
 
-	if dict.Get("Reverse") == true {
+	if dict.Get("reverse") == true {
 		sort.Slice(numberSlice, func(i, j int) bool { return ToFloat64(numberSlice[i]) > ToFloat64(numberSlice[j]) })
-		sort.Slice(stringSlice, func(i, j int) bool { return getString(stringSlice[i]) > getString(stringSlice[j]) })
+		sort.Slice(stringSlice, func(i, j int) bool { return ToString(stringSlice[i]) > ToString(stringSlice[j]) })
 		sort.Slice(timeSlice, func(i, j int) bool { return timeSlice[i].(time.Time).Before(timeSlice[j].(time.Time)) })
 		sort.Slice(csliceSlice, func(i, j int) bool { return getLen(csliceSlice[i]) > getLen(csliceSlice[j]) })
 		sort.Slice(mapSlice, func(i, j int) bool { return getLen(mapSlice[i]) > getLen(mapSlice[j]) })
 	} else {
 		sort.Slice(numberSlice, func(i, j int) bool { return ToFloat64(numberSlice[i]) < ToFloat64(numberSlice[j]) })
-		sort.Slice(stringSlice, func(i, j int) bool { return getString(stringSlice[i]) < getString(stringSlice[j]) })
+		sort.Slice(stringSlice, func(i, j int) bool { return ToString(stringSlice[i]) < ToString(stringSlice[j]) })
 		sort.Slice(timeSlice, func(i, j int) bool { return timeSlice[j].(time.Time).Before(timeSlice[i].(time.Time)) })
 		sort.Slice(csliceSlice, func(i, j int) bool { return getLen(csliceSlice[i]) < getLen(csliceSlice[j]) })
 		sort.Slice(mapSlice, func(i, j int) bool { return getLen(mapSlice[i]) < getLen(mapSlice[j]) })
 	}
 
-	if dict.Get("Subslices") == true {
-		if dict.Get("Emptyslices") == true {
+	if dict.Get("subslices") == true {
+		if dict.Get("emptyslices") == true {
 			outputSlice = append(outputSlice, numberSlice, stringSlice, timeSlice, csliceSlice, mapSlice, defaultSlice)
 		} else {
 			if len(numberSlice) > 0 {
@@ -1615,16 +1987,6 @@ func getLen(from interface{}) int {
 		return v.Len()
 	default:
 		return 0
-	}
-}
-
-func getString(from interface{}) string {
-	v := reflect.ValueOf(from)
-	switch v.Kind() {
-	case reflect.String:
-		return fmt.Sprintln(from)
-	default:
-		return ""
 	}
 }
 
@@ -1706,7 +2068,7 @@ func safeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err e
 			if e, ok := r.(error); ok {
 				err = e
 			} else {
-				err = fmt.Errorf("%v", r)
+				err = fmt.Errorf("%#v", r)
 			}
 		}
 	}()
@@ -1921,10 +2283,12 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 		return "", ErrTooManyAPICalls
 	}
 
-	targetID := targetUserID(target)
-	if targetID == 0 {
-		return "", nil
+	targetMember := c.getMember(target)
+	if targetMember == nil {
+		return "", errors.New("Target not found")
 	}
+
+	targetID := targetMember.ID
 
 	if c.IncreaseCheckCallCounter("set_roles"+discordgo.StrID(targetID), 1) {
 		return "", errors.New("Too many calls to setRoles for specific user ID (max 1 / user)")
@@ -1942,7 +2306,7 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 		return "", errors.New("Length of slice passed was > 250 (Discord role limit)")
 	}
 
-	roles := make([]int64, 0, rSlice.Len())
+	roles := make([]int64, 0)
 	for i := 0; i < rSlice.Len(); i++ {
 		switch v := rSlice.Index(i).Interface().(type) {
 		case string:
@@ -1956,6 +2320,13 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 			roles = append(roles, v)
 		default:
 			return "", errors.New("Could not convert slice to string slice")
+		}
+	}
+
+	for _, r := range targetMember.Roles {
+		role := c.GS.Role(true, r)
+		if role.Managed && !common.ContainsInt64Slice(roles, r) {
+			roles = append(roles, r)
 		}
 	}
 

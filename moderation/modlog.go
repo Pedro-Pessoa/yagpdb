@@ -58,8 +58,7 @@ func CreateModlogEmbed(config *Config, author *discordgo.User, action ModlogActi
 		}
 	}
 
-	name := ""
-	discriminator := ""
+	var name, discriminator string
 	var id int64
 	switch t := target.(type) {
 	case *discordgo.User:
@@ -83,9 +82,8 @@ func CreateModlogEmbed(config *Config, author *discordgo.User, action ModlogActi
 			Name:    fmt.Sprintf("%s#%s (ID %d)", author.Username, author.Discriminator, author.ID),
 			IconURL: discordgo.EndpointUserAvatar(author.ID, author.Avatar),
 		},
-		Color: action.Color,
-		Description: fmt.Sprintf("**%s%s %s**%s *(ID %d)*\n📄**Motivo:** %s",
-			action.Emoji, action.Prefix, name, discriminator, id, reason),
+		Color:       action.Color,
+		Description: fmt.Sprintf("**%s%s** %s%s *(ID %d)*\n📄**Motivo:** %s", action.Emoji, action.Prefix, name, discriminator, id, reason),
 	}
 
 	if discriminator != "" {

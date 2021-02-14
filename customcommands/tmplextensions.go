@@ -700,6 +700,14 @@ func ToLightDBEntry(m *models.TemplatesUserDatabase) (*LightDBEntry, error) {
 	}
 	entry.User.ID = entry.UserID
 
+	member, err := bot.GetMember(m.GuildID, m.UserID)
+	if err == nil {
+		user := member.DGoUser()
+		if user != nil {
+			entry.User = *user
+		}
+	}
+
 	return entry, nil
 }
 

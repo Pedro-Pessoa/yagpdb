@@ -4,10 +4,10 @@ package premium
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
 	"encoding/base32"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"emperror.dev/errors"
@@ -20,6 +20,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/commands"
 	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/premium/models"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/util"
 )
@@ -232,6 +233,7 @@ var cmdDeleteCode = &commands.TIDCommand{
 			if err == ErrCodeNotFound {
 				return "Código não encontrado", nil
 			}
+
 			return amount, err
 		}
 
@@ -268,4 +270,34 @@ func DeletePremiumCode(ctx context.Context, code string) (amount int64, err erro
 	}
 
 	return amount, nil
+}
+
+var cmdPremiumInfo = &commands.TIDCommand{
+	CmdCategory: commands.CategoryGeneral,
+	Name:        "premium",
+	Aliases:     []string{"prem", "premmy"},
+	Description: "Gives you information about tidbot's premium",
+	RunInDM:     true,
+	RunFunc: func(data *dcmd.Data) (interface{}, error) {
+		title := "Tid Bot Premium"
+
+		host := common.ConfHost.GetString()
+
+		thumb := &discordgo.MessageEmbedThumbnail{
+			URL: common.BotUser.AvatarURL("512"),
+		}
+
+		cor := int(rand.Int63n(16777215))
+
+		descr := fmt.Sprintf("Obrigado por querer ser premium! :)\nSer [premium](https://%s/premium) no tidbot tem vários benefícios. Tais como:\n\n• Suporte Prioritário\n• Aumento do armazenamento de mensagens de 1 para 12 horas. O que significa que você pode buscar mensagens apagadas no servidor nas últimas 12 horas\n• Limite de custom commands aumentado de 100 para 250.\n• Aumento de 10 vezes no limite de databases\n• **Permissão de usar as funções de simultaniedade que são até 10 vezes mais rápidas que as funções padrões de tibia.**\n\n• Aumento de limite de várias funções\n→ **getChar** 40 calls por CC;\n→ **getDeaths** 40 calls por CC; \n→ **getDeath** 40 calls por CC;\n→ **getGuild** 5 calls por CC;\n→ **getGuildMembers** 2 calls por CC;\n→ **checkOnline** 5 calls por CC;\n→ **getNews** 3 calls por CC;\n→ libera as funções **getMultipleChars** e **getMultipleCharsDeath**.\n\nPara mais informações, [clique aqui](https://%s/premium).", host, host)
+
+		embed := &discordgo.MessageEmbed{
+			Title:       title,
+			Thumbnail:   thumb,
+			Color:       cor,
+			Description: descr,
+		}
+
+		return embed, nil
+	},
 }

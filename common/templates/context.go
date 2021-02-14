@@ -190,9 +190,9 @@ func (c *Context) setupBaseData() {
 	if c.GS != nil {
 		var guild *discordgo.Guild
 		if !bot.IsGuildWhiteListed(c.GS.ID) {
-			guild = c.GS.DeepCopy(false, true, true, false)
+			guild = c.GS.DeepCopy(false, true, true, false, false)
 		} else {
-			guild = c.GS.DeepCopy(false, true, true, true)
+			guild = c.GS.DeepCopy(false, true, true, true, false)
 			guild.Members = make([]*discordgo.Member, len(c.GS.Members))
 			i := 0
 			for _, m := range c.GS.Members {
@@ -298,7 +298,7 @@ func (c *Context) executeParsed() (r string, err error) {
 			}
 
 			logger.WithField("guild", c.GS.ID).WithError(actual).Error("Panicked executing template: " + c.Name)
-			err = errors.New("bot unexpectedly panicked")
+			err = errors.WithMessage(err, "bot unexpectedly panicked")
 		}
 	}()
 
@@ -518,6 +518,9 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["deleteTrigger"] = c.tmplDelTrigger
 	c.ContextFuncs["deleteMessage"] = c.tmplDelMessage
 	c.ContextFuncs["getMessage"] = c.tmplGetMessage
+	c.ContextFuncs["getMessageReactors"] = c.tmplGetMessageReactors
+	c.ContextFuncs["pinMessage"] = c.tmplPinMessage
+	c.ContextFuncs["unpinMessage"] = c.tmplUnpinMessage
 
 	// Templates
 	c.ContextFuncs["sendTemplate"] = c.tmplSendTemplate
@@ -565,6 +568,7 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["editChannelTopic"] = c.tmplEditChannelTopic
 	c.ContextFuncs["editChannelName"] = c.tmplEditChannelName
 	c.ContextFuncs["getChannel"] = c.tmplGetChannel
+	c.ContextFuncs["createChannel"] = c.tmplCreateChannel
 
 	// Misc
 	c.ContextFuncs["getMember"] = c.tmplGetMember
@@ -582,6 +586,7 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["sort"] = c.tmplSort
 	c.ContextFuncs["tryCall"] = c.tmplTryCall
 	c.ContextFuncs["standardize"] = c.tmplStandardize
+	c.ContextFuncs["generatePerms"] = c.tmplGeneratePerms
 }
 
 type limitedWriter struct {

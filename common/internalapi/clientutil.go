@@ -55,7 +55,7 @@ func GetWithAddress(addr string, url string, dest interface{}) error {
 		var errDest string
 		err := json.NewDecoder(resp.Body).Decode(&errDest)
 		if err != nil {
-			return ErrServerError
+			return errors.WithMessagef(ErrServerError, "bugged json -> %#v", err)
 		}
 
 		return errors.New(errDest)

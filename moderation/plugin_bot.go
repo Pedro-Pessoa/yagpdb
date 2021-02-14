@@ -365,9 +365,8 @@ func checkAuditLogMemberRemoved(config *Config, data *discordgo.GuildMemberRemov
 // to avoid weird bugs from happening, we lock it so it can only be updated one place
 func LockRoleLockdownMW(next func(evt *eventsystem.EventData, PermsData int64) (retry bool, err error)) eventsystem.HandlerFunc {
 	return func(evt *eventsystem.EventData) (retry bool, err error) {
-		var roleID int64
-		roleUpdate := false
-		var rolePerms int64
+		var roleID, rolePerms int64
+		var roleUpdate bool
 
 		switch {
 		case evt.Type == eventsystem.EventGuildRoleDelete:

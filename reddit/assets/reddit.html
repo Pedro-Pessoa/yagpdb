@@ -87,7 +87,7 @@
                 </div>{{end}}
             </div>
 
-            {{checkbox "use_embeds" (joinStr "" "format-new-slow-" .Slow) `Use embeds<small class="ml-2">(Videos won't be attached, but just linked)</small>` true}}
+            {{checkbox "use_embeds" (print "format-new-slow-" .Slow) `Use embeds<small class="ml-2">(Videos won't be attached, but just linked)</small>` true}}
 
             <button type="submit" class="btn btn-success">Add</button>
         </form>
@@ -136,7 +136,7 @@
             <div class="form-row">
                 <div class="col d-flex flex-column">
                     <Span class="mb-2">Use embed</span>
-                    {{checkbox "use_embeds" (joinStr "" "format-" .ID) `` .UseEmbeds}}
+                    {{checkbox "use_embeds" (print "format-" .ID) `` .UseEmbeds}}
                 </div>
 
                 <div class="form-group col">

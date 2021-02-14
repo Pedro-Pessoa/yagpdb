@@ -173,7 +173,6 @@ func TIDCommandMiddleware(inner dcmd.RunFunc) dcmd.RunFunc {
 
 		if resp != "" {
 			if resp == ReasonCooldown {
-				fmt.Println("Were on cooldown")
 				if (data.GS != nil && bot.BotProbablyHasPermissionGS(data.GS, data.CS.ID, discordgo.PermissionAddReactions)) || data.GS == nil {
 					_ = common.BotSession.MessageReactionAdd(data.Msg.ChannelID, data.Msg.ID, "⏳")
 				}

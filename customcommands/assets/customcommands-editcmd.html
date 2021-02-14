@@ -110,7 +110,7 @@
                                             prefix or bot mention followed by the trigger.<br />
                                             For example: If you set the trigger to <code>hello</code> then you can type
                                             <code>-hello</code> or <code>@tidbot hello</code> to trigger it (assuming
-                                            default default settings)
+                                            default settings)
                                         </p>
                                         <p id="trigger-desc-prefix">
                                             Any message that starts with the trigger will run the command.
@@ -274,8 +274,8 @@
                                     {{range .CC.Responses}}
                                     <div class="entry input-group input-group-sm">
                                             <div class="form-control response-text-area tab-textbox withScrollbar">
-                                                <textarea class="tid-textarea form-control response-text-area tab-textbox withScrollbar" name="responses"
-                                                    placeholder="Command body here" rows="5" id="tid-textarea" onfocus="textAreaWrapper(this)" oninput="onCCChanged(this)">{{- . -}}
+                                                <textarea class="tid-textarea form-control response-text-area tab-textbox withScrollbar" name="responses" placeholder="Command body here" rows="5" id="tid-textarea" onfocus="textAreaWrapper(this)" oninput="onCCChanged(this)">
+                                                    {{- . -}}
                                                 </textarea>
                                             </div>
                                             <span class="input-group-append">
@@ -288,8 +288,7 @@
                                     {{else}}{{/* quite redundant */}}
                                     <div class="entry input-group  input-group-sm">
 
-                                        <textarea class="tid-textarea form-control response-text-area tab-textbox" name="responses"
-                                            placeholder="Command body here" rows="5"></textarea>
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox" name="responses" placeholder="Command body here" rows="5"></textarea>
                                         <span class="input-group-append">
                                             <button class="btn btn-success btn-add btn-circle" type="button">
                                                 <i class="fas fa-plus"></i>
@@ -597,8 +596,6 @@
             display.classList.remove("text-danger");
         }
     }
-
-    var idGen = 0
 </script>
 
 

@@ -176,6 +176,57 @@ func BotProbablyHasPermissionGS(gs *dstate.GuildState, channelID int64, permissi
 	return false
 }
 
+// BotProbablyHasPermission returns a slice of the permissions the bot has, from the input
+// it will return the input if an error has occurred (hence, probably)
+func BotProbablyAvailablePerms(gID, channelID int64, permissions []int64) ([]int64, int64, error) {
+	var inputPerms int64
+	for _, in := range permissions {
+		inputPerms |= in
+	}
+
+	gs := State.Guild(true, gID)
+	if gs == nil {
+		return permissions, inputPerms, errors.New("Guild is not in state")
+	}
+
+	return BotProbablyAvailablePermsGS(gs, channelID, permissions)
+}
+
+// Same as BotAvailablePerms but with guildstate instead of guildid
+func BotProbablyAvailablePermsGS(gs *dstate.GuildState, channelID int64, permissions []int64) ([]int64, int64, error) {
+	var inputPerms int64
+	for _, in := range permissions {
+		inputPerms |= in
+	}
+
+	ms, err := GetMember(gs.ID, common.BotUser.ID)
+	if err != nil {
+		logger.WithError(err).WithField("guild", gs.ID).Error("bot isnt a member of a guild? / Function BotAvailablePermGS")
+		return permissions, inputPerms, err
+	}
+
+	perms, err := gs.MemberPermissionsMS(true, channelID, ms)
+	if err != nil && err != dstate.ErrChannelNotFound {
+		logger.WithError(err).WithField("guild", gs.ID).Error("Failed checking perms / Function BotAvailablePermGS")
+		return permissions, inputPerms, err
+	}
+
+	outSlice := make([]int64, 0)
+	for _, p := range permissions {
+		if perms&p == p {
+			outSlice = append(outSlice, p)
+		}
+	}
+
+	// Lets do the bit operation already
+	var outPerm int64
+	for _, b := range outSlice {
+		outPerm |= b
+	}
+
+	return outSlice, outPerm, nil
+}
+
 func SendMessage(guildID int64, channelID int64, msg string) (permsOK bool, resp *discordgo.Message, err error) {
 	if !BotProbablyHasPermission(guildID, channelID, discordgo.PermissionSendMessages) {
 		return false, nil, nil

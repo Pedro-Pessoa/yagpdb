@@ -57,8 +57,8 @@ func (lp *Plugin) InitWeb() {
 	web.LoadHTMLTemplate("../../logs/assets/logs_view.html", "templates/plugins/logs_view.html")
 
 	web.AddSidebarItem(web.SidebarCategoryTools, &web.SidebarItem{
-		Name:   "Logging",
-		NamePT: "Logging",
+		Name:   "Web Logging",
+		NamePT: "Web Logging",
 		URL:    "logging/",
 		Icon:   "fas fa-database",
 	})

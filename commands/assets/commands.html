@@ -125,7 +125,7 @@
                 will disable all commands unless enabled in other overrides</b>`}}{{end}}
         {{$commandsEnabled := true}}
         {{if .Override}}{{$commandsEnabled = .Override.CommandsEnabled}}{{end}}
-        {{checkbox "CommandsEnabled" (joinStr "" "commands-enabled-" .Override.ID) $desc $commandsEnabled}}
+        {{checkbox "CommandsEnabled" (print "commands-enabled-" .Override.ID) $desc $commandsEnabled}}
         <hr />
 
         <div class="form-group col-md-5 ml-2">
@@ -232,7 +232,7 @@
                 </div>
                 <div class="form-row">
                     {{$id := ""}}
-                    {{if .Override}}{{$id = joinStr "" "cmd-override-commands-enabled-" .Override.ID}}{{else}}{{$id = joinStr "" "cmd-override-commands-enabled-" .Parent.ID "-new"}}{{end}}
+                    {{if .Override}}{{$id = print "cmd-override-commands-enabled-" .Override.ID}}{{else}}{{$id = print "cmd-override-commands-enabled-" .Parent.ID "-new"}}{{end}}
 
                     {{$commandsEnabled := true}}
                     {{if .Override}}{{$commandsEnabled = .Override.CommandsEnabled}}{{end}}

@@ -119,16 +119,33 @@ var cmdWhois = &commands.TIDCommand{
 			createdDurStr = "Less than an hour ago"
 		}
 
-		var memberStatus string
+		memberStatus := make([]string, 0)
 		state := [6]string{"Playing", "Streaming", "Listening", "Watching", "Custom Status", "Competing"}
-		if !member.PresenceSet || member.PresenceActivity == nil {
-			memberStatus = "Has no activity status, is invisible/offline or is not in the bot's cache."
+		if !member.PresenceSet || member.PresenceActivities == nil || len(member.PresenceActivities) == 0 {
+			memberStatus = append(memberStatus, "Has no activity status, is invisible/offline or is not in the bot's cache.")
 		} else {
-			if member.PresenceActivity.Type == 4 {
-				logger.Infof("ALL DATA -> %#v", member.PresenceActivity)
-				memberStatus = fmt.Sprintf("%s: %s", member.PresenceActivity.Name, member.PresenceActivity.State)
-			} else {
-				memberStatus = fmt.Sprintf("%s: %s", state[member.PresenceActivity.Type], member.PresenceActivity.Name)
+			for _, p := range member.PresenceActivities {
+				if p != nil {
+					if p.Type == 4 {
+						if p.Emoji.Name != "" {
+							var emoji string
+							if p.Emoji.ID != 0 {
+								if p.Emoji.Animated {
+									emoji = fmt.Sprintf("<a:%s:%d>", p.Emoji.Name, p.Emoji.ID)
+								} else {
+									emoji = fmt.Sprintf("<%s:%d>", p.Emoji.Name, p.Emoji.ID)
+								}
+							} else {
+								emoji = p.Emoji.Name
+							}
+							memberStatus = append(memberStatus, fmt.Sprintf("%s: %s%s", p.Name, emoji, p.State))
+						} else {
+							memberStatus = append(memberStatus, fmt.Sprintf("%s: %s", p.Name, p.State))
+						}
+					} else {
+						memberStatus = append(memberStatus, fmt.Sprintf("%s: %s", state[p.Type], p.Name))
+					}
+				}
 			}
 		}
 
@@ -177,15 +194,20 @@ var cmdWhois = &commands.TIDCommand{
 					Value:  joinedAtDurStr,
 					Inline: true,
 				},
-				{
-					Name:   "Activity Status",
-					Value:  memberStatus,
-					Inline: true,
-				},
 			},
 			Thumbnail: &discordgo.MessageEmbedThumbnail{
 				URL: discordgo.EndpointUserAvatar(member.ID, member.StrAvatar()),
 			},
+		}
+
+		for index, activity := range memberStatus {
+			embed.Fields = append(embed.Fields,
+				&discordgo.MessageEmbedField{
+					Name:   fmt.Sprintf("Activity Status [%d]", index+1),
+					Value:  activity,
+					Inline: true,
+				},
+			)
 		}
 
 		if config.UsernameLoggingEnabled.Bool {
@@ -379,7 +401,7 @@ var cmdClearNames = &commands.TIDCommand{
 	Name:        "ResetPastNames",
 	Description: "Reset your past usernames/nicknames.",
 	RunInDM:     true,
-	// Cooldown:    100,
+	Cooldown:    15,
 	RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
 		queries := []string{
 			"DELETE FROM username_listings WHERE user_id=$1",

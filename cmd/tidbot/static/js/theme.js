@@ -4246,7 +4246,7 @@ window.theme.fn = {
 			if( flag ) {
 				$(this).removeClass('hovered');
 			}
-		});	
+		});
 	}
 
 	$('.nav-main a').filter(':not([href])').attr('href', '#');
@@ -4494,7 +4494,7 @@ window.theme.fn = {
 					$html.removeClass( 'sidebar-left-opened' );
 					$html.off( 'click.close-left-sidebar' );
 				}
-				
+
 				// Recalculate Owl Carousel sizes
 				$('.owl-carousel').trigger('refresh.owl.carousel');
 			});
@@ -4751,7 +4751,7 @@ window.theme.fn = {
 						}
 
 						$(this).parent().addClass('expanding');
-						
+
 						$(this).closest('li').find( '> ul' ).slideDown( 'fast', function() {
 							$tabItem.parent().removeClass('expanding');
 							$(this).closest('li').addClass( 'nav-expanded' );
@@ -4767,16 +4767,16 @@ window.theme.fn = {
 						e.preventDefault();
 						return false;
 					}
-					
+
 					if( $(this).parent().hasClass('nav-expanded') ) {
 						$tabItem.parent().removeClass('nav-expanded');
 						$contentBody.removeClass('tab-menu-opened');
 						return;
 					}
-					
+
 					$tabItem.parent().removeClass('nav-expanded');
 					$contentBody.addClass('tab-menu-opened');
-					$(this).parent().addClass('nav-expanded');	
+					$(this).parent().addClass('nav-expanded');
 				}
 			}
 		});
@@ -4797,7 +4797,7 @@ window.theme.fn = {
 				$('html,body').animate({ scrollTop: $tabNav.offset().top - 50 }, 300);
 			}
 		});
-		
+
 	}
 
 }).apply(this, [jQuery]);

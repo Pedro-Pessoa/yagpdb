@@ -331,7 +331,8 @@ var (
 	})
 )
 
-var confStateRemoveOfflineMembers = config.RegisterOption("yagpdb.state.remove_offline_members", "Gateway connection logging channel", true)
+var confStateRemoveOfflineMembers = config.RegisterOption("yagpdb.state.remove_offline_members", "Remove Offline Members from state", false)
+var confStateTrackGuildPresences = config.RegisterOption("yagpdb.state.track_guild_presences", "Kepp guild presences on state", true)
 
 func setupState() {
 	// Things may rely on state being available at this point for initialization
@@ -342,9 +343,14 @@ func setupState() {
 	State.ThrowAwayDMMessages = true
 	State.TrackPrivateChannels = false
 	State.CacheExpirey = time.Hour * 2
+	State.TrackBeforeStates = true
 
 	if confStateRemoveOfflineMembers.GetBool() {
 		State.RemoveOfflineMembers = true
+	}
+
+	if confStateTrackGuildPresences.GetBool() {
+		State.TrackPresences = true
 	}
 
 	go State.RunGCWorker()

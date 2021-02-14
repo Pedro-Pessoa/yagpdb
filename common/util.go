@@ -299,7 +299,7 @@ var StringPerms = map[int64]string{
 	discordgo.PermissionSendMessages:       "Enviar Mensagens",
 	discordgo.PermissionSendTTSMessages:    "Enviar Mensagens TTS",
 	discordgo.PermissionManageMessages:     "Gerenciar Mensagens",
-	discordgo.PermissionEmbedLinks:         "Links com Embeds",
+	discordgo.PermissionEmbedLinks:         "Embed Links",
 	discordgo.PermissionAttachFiles:        "Anexar Arquivos",
 	discordgo.PermissionReadMessageHistory: "Ler Histórico de Mensagens",
 	discordgo.PermissionMentionEveryone:    "Mencionar Everyone",
@@ -404,7 +404,7 @@ func HumanizePermissions(perms int64) (res []string) {
 	}
 
 	if perms&discordgo.PermissionEmbedLinks == discordgo.PermissionEmbedLinks {
-		res = append(res, "Links com Embeds")
+		res = append(res, "Embed Links")
 	}
 
 	if perms&discordgo.PermissionAttachFiles == discordgo.PermissionAttachFiles {

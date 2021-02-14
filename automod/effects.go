@@ -2,6 +2,7 @@ package automod
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -721,6 +722,73 @@ func (rf *RemoveRoleEffect) Apply(ctxData *TriggeredRuleData, settings interface
 	}
 
 	return nil
+}
+
+/////////////////////////////////////////////////////////////
+
+type SendChannelMessageEffectData struct {
+	CustomReason string `valid:",0,150,trimspace"`
+	PingUser     bool
+}
+
+type SendChannelMessageEffect struct{}
+
+func (send *SendChannelMessageEffect) Kind() RulePartType {
+	return RulePartEffect
+}
+
+func (send *SendChannelMessageEffect) DataType() interface{} {
+	return &SendChannelMessageEffectData{}
+}
+
+func (send *SendChannelMessageEffect) Name() (name string) {
+	return "Send Message"
+}
+
+func (send *SendChannelMessageEffect) Description() (description string) {
+	return "Sends the message on the channel the rule was triggered"
+}
+
+func (send *SendChannelMessageEffect) UserSettings() []*SettingDef {
+	return []*SettingDef{
+		{
+			Name: "Custom message",
+			Key:  "CustomReason",
+			Min:  0,
+			Max:  150,
+			Kind: SettingTypeString,
+		},
+		{
+			Name:    "Ping user committing the infraction",
+			Key:     "PingUser",
+			Kind:    SettingTypeBool,
+			Default: false,
+		},
+	}
+}
+
+func (send *SendChannelMessageEffect) Apply(ctxData *TriggeredRuleData, settings interface{}) error {
+	settingsCast := settings.(*SendChannelMessageEffectData)
+
+	var reason string
+
+	if settingsCast.PingUser {
+		reason = fmt.Sprintf("<@%d>\n", ctxData.MS.ID)
+	}
+
+	reason += "Moderador automático:\n"
+	if settingsCast.CustomReason != "" {
+		reason += settingsCast.CustomReason
+	} else {
+		reason += ctxData.ConstructReason(true)
+	}
+
+	_, err := common.BotSession.ChannelMessageSend(ctxData.CS.ID, reason)
+	return err
+}
+
+func (send *SendChannelMessageEffect) MergeDuplicates(data []interface{}) interface{} {
+	return data[0] // no user data
 }
 
 /////////////////////////////////////////////////////////////

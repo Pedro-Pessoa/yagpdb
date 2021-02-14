@@ -574,6 +574,23 @@ func (s *State) Emoji(guildID, emojiID int64) (*Emoji, error) {
 	return nil, ErrStateNotFound
 }
 
+// Emojis returns all emojis for a guild
+func (s *State) Emojis(guildID int64) ([]*Emoji, error) {
+	if s == nil {
+		return nil, ErrNilState
+	}
+
+	guild, err := s.Guild(guildID)
+	if err != nil {
+		return nil, err
+	}
+
+	s.RLock()
+	defer s.RUnlock()
+
+	return guild.Emojis, nil
+}
+
 // EmojiAdd adds an emoji to the current world state.
 func (s *State) EmojiAdd(guildID int64, emoji *Emoji) error {
 	if s == nil {

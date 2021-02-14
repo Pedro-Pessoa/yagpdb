@@ -30,6 +30,8 @@ import (
 var (
 	VERSION = "unknown"
 
+	CurrentVersion = "1.95"
+
 	GORM *gorm.DB
 	PQ   *sql.DB
 	SQLX *sqlx.DB
@@ -110,7 +112,8 @@ func Init() error {
 	}
 
 	logger.Info("Initializing core schema")
-	InitSchemas("core_configs", CoreServerConfDBSchema, localIDsSchema)
+	InitSchemas("core_configs", localIDsSchema)
+	InitSchemas("core_configs", CoreServerConfDBSchemas...)
 	initQueuedSchemas()
 
 	return err

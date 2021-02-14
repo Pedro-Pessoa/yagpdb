@@ -298,28 +298,34 @@ func CheckPresence(client radix.Client, config *Config, ms *dstate.MemberState, 
 
 	// Now the real fun starts
 	// Either add or remove the stream
-	if ms.PresenceStatus != dstate.StatusOffline && ms.PresenceActivity != nil && ms.PresenceActivity.URL != "" && ms.PresenceActivity.Type == 1 {
-		// Streaming
-		if !config.MeetsRequirements(ms.Roles, ms.PresenceActivity.State, ms.PresenceActivity.Details) {
-			RemoveStreaming(client, config, gs.ID, ms.ID, ms.Roles)
-			return nil
-		}
+	if ms.PresenceStatus != dstate.StatusOffline && ms.PresenceActivities != nil && len(ms.PresenceActivities) != 0 {
+		for _, pres := range ms.PresenceActivities {
+			if pres.URL != "" && pres.Type == 1 {
+				// Streaming
+				if !config.MeetsRequirements(ms.Roles, pres.State, pres.Details) {
+					RemoveStreaming(client, config, gs.ID, ms.ID, ms.Roles)
+					return nil
+				}
 
-		if config.GiveRole != 0 {
-			go GiveStreamingRole(gs.Guild.ID, ms.ID, config.GiveRole, ms.Roles)
-		}
+				if config.GiveRole != 0 {
+					go GiveStreamingRole(gs.Guild.ID, ms.ID, config.GiveRole, ms.Roles)
+				}
 
-		// if true, then we were marked now, and not before
-		var markedNow bool
-		_ = client.Do(radix.FlatCmd(&markedNow, "SADD", KeyCurrentlyStreaming(gs.ID), ms.ID))
-		if !markedNow {
-			// Already marked
-			return nil
-		}
+				// if true, then we were marked now, and not before
+				var markedNow bool
+				_ = client.Do(radix.FlatCmd(&markedNow, "SADD", KeyCurrentlyStreaming(gs.ID), ms.ID))
+				if !markedNow {
+					// Already marked
+					return nil
+				}
 
-		// Send the streaming announcement if enabled
-		if config.AnnounceChannel != 0 && config.AnnounceMessage != "" {
-			SendStreamingAnnouncement(config, gs, ms)
+				// Send the streaming announcement if enabled
+				if config.AnnounceChannel != 0 && config.AnnounceMessage != "" {
+					SendStreamingAnnouncement(config, gs, ms)
+				}
+
+				break
+			}
 		}
 	} else {
 		// Not streaming
@@ -417,12 +423,38 @@ func SendStreamingAnnouncement(config *Config, guild *dstate.GuildState, ms *dst
 
 	go analytics.RecordActiveUnit(guild.ID, &Plugin{}, "sent_streaming_announcement")
 
+	streamActivity := dstate.LightActivity{}
+
+	for _, p := range ms.PresenceActivities {
+		if p != nil {
+			if p.Type == 1 {
+				streamActivity = dstate.LightActivity{
+					Name:       p.Name,
+					URL:        p.URL,
+					Type:       p.Type,
+					CreatedAt:  p.CreatedAt,
+					Timestamps: p.Timestamps,
+					Instance:   p.Instance,
+					Party:      p.Party,
+					Assets:     p.Assets,
+					Secrets:    p.Secrets,
+					Flags:      p.Flags,
+					Details:    p.Details,
+					State:      p.State,
+					Emoji:      p.Emoji,
+				}
+
+				break
+			}
+		}
+	}
+
 	ctx := templates.NewContext(guild, nil, ms)
-	ctx.Data["URL"] = ms.PresenceActivity.URL
-	ctx.Data["url"] = ms.PresenceActivity.URL
-	ctx.Data["Game"] = ms.PresenceActivity.State
-	ctx.Data["StreamTitle"] = ms.PresenceActivity.Details
-	ctx.Data["StreamPlatform"] = ms.PresenceActivity.Name
+	ctx.Data["URL"] = streamActivity.URL
+	ctx.Data["url"] = streamActivity.URL
+	ctx.Data["Game"] = streamActivity.State
+	ctx.Data["StreamTitle"] = streamActivity.Details
+	ctx.Data["StreamPlatform"] = streamActivity.Name
 
 	out, err := ctx.Execute(config.AnnounceMessage)
 	if err != nil {

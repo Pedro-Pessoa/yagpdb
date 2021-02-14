@@ -502,6 +502,7 @@ type CoreConfigPostForm struct {
 	AllowedWriteRoles       []int64 `valid:"role,true"`
 	AllowAllMembersReadOnly bool
 	AllowNonMembersReadOnly bool
+	Botnickname             string `valid:",0,32"`
 }
 
 func HandlePostCoreSettings(w http.ResponseWriter, r *http.Request) (TemplateData, error) {
@@ -516,9 +517,18 @@ func HandlePostCoreSettings(w http.ResponseWriter, r *http.Request) (TemplateDat
 
 		AllowAllMembersReadOnly: form.AllowAllMembersReadOnly,
 		AllowNonMembersReadOnly: form.AllowNonMembersReadOnly,
+
+		BotNickname: form.Botnickname,
 	}
 
-	err := common.CoreConfigSave(r.Context(), m)
+	_ = common.RedisPool.Do(radix.FlatCmd(nil, "SET", "cp_nickname_change", true, "EX", "3"))
+
+	err := common.BotSession.GuildMemberNicknameMe(g.ID, form.Botnickname)
+	if err != nil {
+		return templateData, err
+	}
+
+	err = common.CoreConfigSave(r.Context(), m)
 	if err != nil {
 		return templateData, err
 	}

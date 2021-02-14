@@ -1,10 +1,5 @@
 package tibia
 
-import (
-	"bytes"
-	"encoding/json"
-)
-
 // API Structs
 type Tibia struct {
 	Characters  TibiaCharacters `json:"characters"`
@@ -229,30 +224,6 @@ type ApiInformation struct {
 	ExecutionTime float64 `json:"execution_time"`
 	LastUpdated   string  `json:"last_updated"`
 	Timestamp     string  `json:"timestamp"`
-}
-
-func (f *Finalizada) UnmarshalJSON(data []byte) error {
-	if bytes.HasPrefix(data, []byte("{")) {
-		type finalizadaNoMethods Finalizada
-		return json.Unmarshal(data, (*finalizadaNoMethods)(f))
-	}
-	return nil
-}
-
-func (gh *GuildHouse) UnmarshalJSON(data []byte) error {
-	if bytes.HasPrefix(data, []byte("{")) {
-		type guildHouseNoMethods GuildHouse
-		return json.Unmarshal(data, (*guildHouseNoMethods)(gh))
-	}
-	return nil
-}
-
-func (ai *ActInfo) UnmarshalJSON(data []byte) error {
-	if bytes.HasPrefix(data, []byte("{")) {
-		type actInfoNoMethods ActInfo
-		return json.Unmarshal(data, (*actInfoNoMethods)(ai))
-	}
-	return nil
 }
 
 // Internal Structs

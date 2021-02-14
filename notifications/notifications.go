@@ -39,8 +39,9 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 
 type Config struct {
 	configstore.GuildConfigModel
-	JoinServerEnabled bool   `json:"join_server_enabled" schema:"join_server_enabled"`
-	JoinServerChannel string `json:"join_server_channel" schema:"join_server_channel" valid:"channel,true"`
+	JoinServerEnabled               bool   `json:"join_server_enabled" schema:"join_server_enabled"`
+	JoinServerChannel               string `json:"join_server_channel" schema:"join_server_channel" valid:"channel,true"`
+	JoinServerWaitForPendingEnabled bool   `json:"wait_for_pending_server_enabled" schema:"wait_for_pending_server_enabled"`
 
 	// Implementation note: gorilla/schema currently requires manual index
 	// setting in forms to parse sub-objects. GORM has_many is also complicated
@@ -55,8 +56,9 @@ type Config struct {
 	// Do Not Use! For persistence only.
 	JoinServerMsgs_ string `json:"-"`
 
-	JoinDMEnabled bool   `json:"join_dm_enabled" schema:"join_dm_enabled"`
-	JoinDMMsg     string `json:"join_dm_msg" schema:"join_dm_msg" valid:"template,5000"`
+	JoinDMEnabled               bool   `json:"join_dm_enabled" schema:"join_dm_enabled"`
+	JoinDMWaitForPendingEnabled bool   `json:"wait_for_pending_dm_enabled" schema:"wait_for_pending_dm_enabled"`
+	JoinDMMsg                   string `json:"join_dm_msg" schema:"join_dm_msg" valid:"template,5000"`
 
 	LeaveEnabled bool     `json:"leave_enabled" schema:"leave_enabled"`
 	LeaveChannel string   `json:"leave_channel" schema:"leave_channel" valid:"channel,true"`
@@ -147,8 +149,6 @@ func (c *Config) AfterFind() (err error) {
 
 	return nil
 }
-
-var DefaultConfig = &Config{}
 
 func GetConfig(guildID int64) (*Config, error) {
 	var conf Config

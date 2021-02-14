@@ -79,7 +79,7 @@ func HandleGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gCopy := guild.DeepCopy(true, true, false, true)
+	gCopy := guild.DeepCopy(true, true, false, true, false)
 
 	internalapi.ServeJson(w, r, gCopy)
 }

@@ -302,10 +302,11 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 	}
 
 	if roleS == "" {
-		if config.DefaultLockRole == "" {
+		switch roleStr := config.DefaultLockRole; roleStr {
+		case "":
 			roleS = "@everyone"
-		} else {
-			roleS = config.DefaultLockRole
+		default:
+			roleS = roleStr
 		}
 	}
 	role := FindRole(gs, roleS)
@@ -349,8 +350,7 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 
 	var newPerms int64
 	action := MAUnlock
-	outDur := ""
-	outPerms := ""
+	var outDur, outPerms string
 	if !alreadyLocked {
 		currentLockdown.GuildID = gs.ID
 		currentLockdown.RoleID = role.ID
@@ -504,8 +504,8 @@ const (
 	ErrNoMuteRole = errors.Sentinel("No mute role")
 )
 
-// Unmut or mute a user, ignore duration if unmuting
-// TODO: i don't think we need to track mutes in its own database anymore now with the new scheduled event system
+// Unmute or mute a user, ignore duration if unmuting
+// TODO: I don't think we need to track mutes in its own database anymore now with the new scheduled event system
 func MuteUnmuteUser(config *Config, mute bool, guildID int64, channel *dstate.ChannelState, message *discordgo.Message, author *discordgo.User, reason string, member *dstate.MemberState, duration int) error {
 	config, err := getConfigIfNotSet(guildID, config)
 	if err != nil {
@@ -592,6 +592,9 @@ func MuteUnmuteUser(config *Config, mute bool, guildID int64, channel *dstate.Ch
 				return errors.WithMessage(err, "failed scheduling unmute")
 			}
 		}
+
+		// kick the user from voice channels when mutting them
+		_ = common.BotSession.GuildMemberMove(guildID, member.ID, nil)
 	} else {
 		// Remove the mute role, and give back the role the bot took
 		err = RemoveMemberMuteRole(config, member.ID, member.Roles, currentMute)

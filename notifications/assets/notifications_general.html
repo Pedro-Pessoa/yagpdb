@@ -1,11 +1,12 @@
 {{define "cp_notifications_general"}}
+
 {{template "cp_head" .}}
+
 <header class="page-header">
     <h2>General</h2>
 </header>
 
 <form role="form" method="post" data-async-form>
-
     <section class="card mb-2">
         <div class="card-body mb-0">
             <div class="row">
@@ -19,20 +20,17 @@
                 </div>
             </div>
         </div>
-        <!-- /.col-lg-12 -->
     </section>
 
     {{template "cp_alerts" .}}
 
-    <!-- /.row -->
     <div class="row">
         <div class="col-lg-12">
             <div class="row">
                 <div class="col-lg-6">
-                    <section
-                        class="card {{if .NotifyConfig.JoinServerEnabled}}card-featured card-featured-success{{end}}">
+                    <section class="card {{if .NotifyConfig.JoinServerEnabled}}card-featured card-featured-success{{end}}">
                         <header class="card-header">
-                            {{checkbox "join_server_enabled" "join-server-enabled-check" `<h2 class="card-title">Join message in server channel</h2>` .NotifyConfig.JoinServerEnabled}}
+                            {{checkboxInverted "join_server_enabled" "join-server-enabled-check" `<h2 class="card-title">Join message in server channel</h2>` .NotifyConfig.JoinServerEnabled}}
                         </header>
                         <div class="card-body">
                             <div class="form-group">
@@ -42,38 +40,44 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Message</label>
+                                <label>Message (<span class="announce-length-counter">x</span>/5000)</label><br>
                                 {{/* Use .btn-add for simplicity and let the page loader adjust. */}}
                                 {{range .NotifyConfig.JoinServerMsgs}}
-                                <div class="entry input-group input-group-sm">
-                                    <textarea rows="5" class="form-control" name="join_server_msgs">{{.}}</textarea>
-                                    <span class="input-group-append">
-                                        <button class="btn btn-success btn-add btn-circle" type="button">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </span>
-                                </div>
+                                    <div class="entry input-group input-group-sm">
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox withScrollbar" name="join_server_msgs" placeholder="Announce message here" rows="5" id="tid-textarea" onfocus="textAreaWrapper(this)" oninput="onCCChanged(this)">
+                                            {{- . -}}
+                                        </textarea>
+                                        <span class="input-group-append">
+                                            <button class="btn btn-success btn-add btn-circle" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </span>
+                                    </div>
                                 {{else}}
-                                <div class="entry input-group input-group-sm">
-                                    <textarea rows="5" class="form-control" name="join_server_msgs"></textarea>
-                                    <span class="input-group-append">
-                                        <button class="btn btn-success btn-add btn-circle" type="button">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </span>
-                                </div>
+                                    <div class="entry input-group input-group-sm">
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox" name="join_server_msgs" placeholder="Announce message here" rows="5"></textarea>
+                                        <span class="input-group-append">
+                                            <button class="btn btn-success btn-add btn-circle" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </span>
+                                    </div>
                                 {{end}}
-                                <p class="help-block">Available template data is {{template "template_helper_user"}} and
-                                    {{template "template_helper_guild"}}. YAGPDB will pick one message at random from
-                                    all configured.</p>
+                                <p class="help-block">
+                                    Available template data is {{template "template_helper_user"}} and {{template "template_helper_guild"}}. YAGPDB will pick one message at random from all configured.
+                                </p>
+                            </div>
+                            <div class ="form-group">
+                                {{checkbox "wait_for_pending_server_enabled" "wait_for_pending_server_enabled" "Wait for member screening" .NotifyConfig.JoinServerWaitForPendingEnabled}}
                             </div>
                         </div>
                     </section>
                 </div>
+
                 <div class="col-lg-6">
                     <section class="card {{if .NotifyConfig.LeaveEnabled}}card-featured card-featured-success{{end}}">
                         <header class="card-header">
-                            {{checkbox "leave_enabled" "leave_enabled" `<h2 class="card-title">User Leave Message</h2>` .NotifyConfig.LeaveEnabled}}
+                            {{checkboxInverted "leave_enabled" "leave_enabled" `<h2 class="card-title">User Leave Message</h2>` .NotifyConfig.LeaveEnabled}}
                         </header>
                         <div class="card-body">
                             <div class="form-group">
@@ -83,57 +87,63 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Message</label>
+                                <label>Message (<span class="announce-length-counter">x</span>/5000)</label><br>
                                 {{/* Use .btn-add for simplicity and let the page loader adjust. */}}
                                 {{range .NotifyConfig.LeaveMsgs}}
-                                <div class="entry input-group input-group-sm">
-                                    <textarea rows="5" class="form-control" name="leave_msgs">{{.}}</textarea>
-                                    <span class="input-group-append">
-                                        <button class="btn btn-success btn-add btn-circle" type="button">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </span>
-                                </div>
+                                    <div class="entry input-group input-group-sm">
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox withScrollbar" name="leave_msgs" placeholder="Announce message here" rows="5" id="tid-textarea" onfocus="textAreaWrapper(this)" oninput="onCCChanged(this)">
+                                            {{- . -}}
+                                        </textarea>
+                                        <span class="input-group-append">
+                                            <button class="btn btn-success btn-add btn-circle" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </span>
+                                    </div>
                                 {{else}}
-                                <div class="entry input-group input-group-sm">
-                                    <textarea rows="5" class="form-control" name="leave_msgs"></textarea>
-                                    <span class="input-group-append">
-                                        <button class="btn btn-success btn-add btn-circle" type="button">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </span>
-                                </div>
+                                    <div class="entry input-group input-group-sm">
+                                        <textarea class="tid-textarea form-control response-text-area tab-textbox" name="leave_msgs" placeholder="Announce message here" rows="5"></textarea>
+                                        <span class="input-group-append">
+                                            <button class="btn btn-success btn-add btn-circle" type="button">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </span>
+                                    </div>
                                 {{end}}
-                                <p class="help-block">Available template data is {{template "template_helper_user"}} and
-                                    {{template "template_helper_guild"}}. YAGPDB will pick one message at random from
-                                    all configured.</p>
+                                <p class="help-block">
+                                    Available template data is {{template "template_helper_user"}} and {{template "template_helper_guild"}}. YAGPDB will pick one message at random from all configured.
+                                </p>
                             </div>
                         </div>
                     </section>
                 </div>
-                <!-- /.col-lg-6 (nested) -->
             </div>
+
             <div class="row mt-4">
                 <div class="col-lg-6">
                     <section class="card {{if .NotifyConfig.JoinDMEnabled}}card-featured card-featured-success{{end}}">
                         <header class="card-header">
-                            {{checkbox "join_dm_enabled" "join_dm_enabled" `<h2 class="card-title">Join message in direct message</h2>` .NotifyConfig.JoinDMEnabled}}
+                            {{checkboxInverted "join_dm_enabled" "join_dm_enabled" `<h2 class="card-title">Join message in direct message</h2>` .NotifyConfig.JoinDMEnabled}}
                         </header>
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Message</label>
-                                <textarea rows="5" class="form-control"
-                                    name="join_dm_msg">{{.NotifyConfig.JoinDMMsg}}</textarea>
-                                <p class="help-block">Available template data is {{template "template_helper_user"}} and
-                                    {{template "template_helper_guild"}}</p>
+                                <label>Message (<span class="announce-dm-length-counter">x</span>/5000)</label>
+                                <textarea rows="5" class="form-control" name="join_dm_msg" oninput="onDMChanged(this)">{{.NotifyConfig.JoinDMMsg}}</textarea>
+                                <p class="help-block">
+                                    Available template data is {{template "template_helper_user"}} and {{template "template_helper_guild"}}
+                                </p>
+                            </div>
+                            <div class ="form-group">
+                                {{checkbox "wait_for_pending_dm_enabled" "wait_for_pending_dm_enabled" "Wait for member screening" .NotifyConfig.JoinDMWaitForPendingEnabled}}
                             </div>
                         </div>
                     </section>
                 </div>
-                <div class="col-lg-6">
+                <!-- Channel topic is removed in favor of the new discord logger -->
+                <!-- <div class="col-lg-6">
                     <section class="panel {{if .NotifyConfig.TopicEnabled}}card-featured card-featured-success{{end}}">
                         <header class="card-header">
-                            {{checkbox "topic_enabled" "topic_enabled" `<h2 class="card-title">Topic change message</h2>` .NotifyConfig.TopicEnabled}}
+                            {{checkboxInverted "topic_enabled" "topic_enabled" `<h2 class="card-title">Topic change message</h2>` .NotifyConfig.TopicEnabled}}
                         </header>
                         <div class="card-body">
                             <div class="form-group">
@@ -144,22 +154,55 @@
                             </div>
                         </div>
                     </section>
-                </div>
-                <!-- /.col-lg-6 (nested) -->
+                </div> -->
             </div>
             <div class="row mt-4">
                 <button type="submit" class="btn btn-primary btn-lg btn-block">Save</button>
             </div>
-            <!-- /.row (nested) -->
-            <!-- /.panel-body -->
-            <!-- /.panel -->
         </div>
-        <!-- /.col-lg-12 -->
     </div>
-    <!-- /.row -->
-
 </form>
 
 {{template "cp_footer" .}}
+
+<script type="text/javascript">
+    function onCCChanged(textArea,editor) {
+        var textAreas = textArea.parentElement.parentElement.parentElement.querySelectorAll('textarea.tid-textarea');
+        var combinedLength = 0;
+
+        textAreas.forEach(function (elem) {
+            combinedLength += elem.value.length;
+        })
+
+        var display = textArea.parentElement.parentElement.parentElement.querySelector(".announce-length-counter")
+        display.textContent = combinedLength
+
+        if (combinedLength > 5000) {
+            display.classList.add("text-danger");
+        } else {
+            display.classList.remove("text-danger");
+        }
+    }
+</script>
+
+<script type="text/javascript">
+    function onDMChanged(textArea) {
+        var textAreas = textArea.parentElement.querySelectorAll('textarea');
+        var combinedLength = 0;
+
+        textAreas.forEach(function (elem) {
+            combinedLength += elem.value.length;
+        });
+
+        var display = textArea.parentElement.querySelector(".announce-dm-length-counter");
+        display.textContent = combinedLength;
+
+        if (combinedLength > 5000) {
+            display.classList.add("text-danger");
+        } else {
+            display.classList.remove("text-danger");
+        }
+    }
+</script>
 
 {{end}}

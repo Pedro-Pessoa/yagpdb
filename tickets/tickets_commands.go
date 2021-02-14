@@ -9,14 +9,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
-<<<<<<< HEAD
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"github.com/Pedro-Pessoa/tidbot/analytics"
+	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/commands"
 	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/Pedro-Pessoa/tidbot/common/templates"
@@ -24,24 +25,26 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 	"github.com/Pedro-Pessoa/tidbot/tickets/models"
-=======
-	"github.com/jonas747/dcmd"
-	"github.com/jonas747/discordgo"
-	"github.com/jonas747/dstate/v2"
-	"github.com/jonas747/yagpdb/analytics"
-	"github.com/jonas747/yagpdb/bot"
-	"github.com/jonas747/yagpdb/commands"
-	"github.com/jonas747/yagpdb/common"
-	"github.com/jonas747/yagpdb/common/templates"
-	"github.com/jonas747/yagpdb/tickets/models"
-	"github.com/volatiletech/sqlboiler/boil"
-	"github.com/volatiletech/sqlboiler/queries/qm"
->>>>>>> master
 )
 
 const InTicketPerms = discordgo.PermissionReadMessageHistory | discordgo.PermissionViewChannel | discordgo.PermissionSendMessages | discordgo.PermissionEmbedLinks | discordgo.PermissionAttachFiles
+const BotNeededPerms = InTicketPerms | discordgo.PermissionManageChannels
+
+var InTicketPermsSlice = []int64{discordgo.PermissionReadMessageHistory, discordgo.PermissionViewChannel, discordgo.PermissionSendMessages, discordgo.PermissionEmbedLinks, discordgo.PermissionAttachFiles}
+var BotNeededPermsSlice = []int64{discordgo.PermissionReadMessageHistory, discordgo.PermissionViewChannel, discordgo.PermissionSendMessages, discordgo.PermissionEmbedLinks, discordgo.PermissionAttachFiles, discordgo.PermissionManageChannels}
 
 var _ commands.CommandProvider = (*Plugin)(nil)
+
+func missingTicketPerms(backSlice []int64) int64 {
+	var missingPerms int64
+	for _, p := range BotNeededPermsSlice {
+		if !common.ContainsInt64Slice(backSlice, p) {
+			missingPerms |= p
+		}
+	}
+
+	return missingPerms
+}
 
 func (p *Plugin) AddCommands() {
 	categoryTickets := &dcmd.Category{
@@ -70,16 +73,26 @@ func (p *Plugin) AddCommands() {
 				return "No category for ticket channels set", nil
 			}
 
-<<<<<<< HEAD
-			inCurrentTickets, _ := models.Tickets(
-=======
-			if !bot.BotProbablyHasPermissionGS(parsed.GS, parsed.CS.ID, InTicketPerms) {
-				return fmt.Sprintf("The bot is missing one of the following permissions: %s", common.HumanizePermissions(InTicketPerms)), nil
-				// return "", nil
+			var modifyErrOutput, modifyOpenMsg bool
+			var missingPerms int64
+			backSlice, availablePerms, err := bot.BotProbablyAvailablePermsGS(parsed.GS, parsed.CS.ID, BotNeededPermsSlice)
+			if err != nil || availablePerms == BotNeededPerms {
+				missingPerms = missingTicketPerms(backSlice)
+				modifyErrOutput = true
+			} else if availablePerms != BotNeededPerms {
+				missingPerms = missingTicketPerms(backSlice)
+				modifyErrOutput = true
+				modifyOpenMsg = true
 			}
 
-			inCurrentTickets, err := models.Tickets(
->>>>>>> master
+			var ticketPerms int64
+			if availablePerms&discordgo.PermissionManageChannels == discordgo.PermissionManageChannels {
+				ticketPerms = availablePerms ^ discordgo.PermissionManageChannels
+			} else {
+				ticketPerms = availablePerms
+			}
+
+			inCurrentTickets, _ := models.Tickets(
 				qm.Where("closed_at IS NULL"),
 				qm.Where("guild_id = ?", parsed.GS.ID),
 				qm.Where("author_id = ?", parsed.Msg.Author.ID)).AllG(parsed.Context())
@@ -100,8 +113,12 @@ func (p *Plugin) AddCommands() {
 			}
 
 			subject := parsed.Args[0].Str()
-			id, channel, err := createTicketChannel(conf, parsed.GS, parsed.Msg.Author.ID, subject)
+			id, channel, err := createTicketChannel(conf, parsed.GS, parsed.Msg.Author.ID, subject, ticketPerms)
 			if err != nil {
+				if modifyErrOutput {
+					return fmt.Sprintf("The bot is missing these perms to create a ticket: %s", common.HumanizePermissions(missingPerms)), nil
+				}
+
 				return "Failed creating the channel, make sure the bot has proper perms and the channel limit hasn't been reached.", nil
 			}
 
@@ -129,6 +146,10 @@ func (p *Plugin) AddCommands() {
 			ticketOpenMsg := conf.TicketOpenMSG
 			if ticketOpenMsg == "" {
 				ticketOpenMsg = DefaultTicketMsg
+			}
+
+			if modifyOpenMsg {
+				ticketOpenMsg = fmt.Sprintf("%s\n\n**Warning**: `the bot doesn't have all perms to set up the ticket channel properly. Missing these perms: [%s]\nPlease give these permissions to the bot or else the ticket might bug out.`", ticketOpenMsg, strings.Join(common.HumanizePermissions(missingPerms), ", "))
 			}
 
 			err = tmplCTX.ExecuteAndSendWithErrors(ticketOpenMsg, channel.ID)
@@ -672,23 +693,23 @@ func transcriptChannel(conf *models.TicketConfig, adminOnly bool) int64 {
 	return conf.TicketsTranscriptsChannel
 }
 
-func createTicketChannel(conf *models.TicketConfig, gs *dstate.GuildState, authorID int64, subject string) (int64, *discordgo.Channel, error) {
+func createTicketChannel(conf *models.TicketConfig, gs *dstate.GuildState, authorID int64, subject string, availablePerms int64) (int64, *discordgo.Channel, error) {
 	// assemble the permission overwrites for the channel were about to create
 	overwrites := []*discordgo.PermissionOverwrite{
 		{
 			Type:  discordgo.PermissionOverwriteTypeMember,
 			ID:    authorID,
-			Allow: InTicketPerms,
+			Allow: availablePerms,
 		},
 		{
 			Type: discordgo.PermissionOverwriteTypeRole,
 			ID:   gs.ID,
-			Deny: InTicketPerms,
+			Deny: availablePerms,
 		},
 		{
 			Type:  discordgo.PermissionOverwriteTypeMember,
 			ID:    common.BotUser.ID,
-			Allow: InTicketPerms,
+			Allow: availablePerms,
 		},
 	}
 
@@ -697,7 +718,7 @@ OUTER:
 	for _, v := range conf.ModRoles {
 		for _, po := range overwrites {
 			if po.Type == discordgo.PermissionOverwriteTypeRole && po.ID == v {
-				po.Allow |= InTicketPerms
+				po.Allow |= availablePerms
 				continue OUTER
 			}
 		}
@@ -706,7 +727,7 @@ OUTER:
 		overwrites = append(overwrites, &discordgo.PermissionOverwrite{
 			Type:  discordgo.PermissionOverwriteTypeRole,
 			ID:    v,
-			Allow: InTicketPerms,
+			Allow: availablePerms,
 		})
 	}
 
@@ -715,7 +736,7 @@ OUTER2:
 	for _, v := range conf.AdminRoles {
 		for _, po := range overwrites {
 			if po.Type == discordgo.PermissionOverwriteTypeRole && po.ID == v {
-				po.Allow |= InTicketPerms
+				po.Allow |= availablePerms
 				continue OUTER2
 			}
 		}
@@ -724,7 +745,7 @@ OUTER2:
 		overwrites = append(overwrites, &discordgo.PermissionOverwrite{
 			Type:  discordgo.PermissionOverwriteTypeRole,
 			ID:    v,
-			Allow: InTicketPerms,
+			Allow: availablePerms,
 		})
 	}
 
@@ -747,16 +768,16 @@ OUTER2:
 	return id, channel, nil
 }
 
-func applyChannelParentSettings(gs *dstate.GuildState, parentCategoryID int64, overwrites []*discordgo.PermissionOverwrite) []*discordgo.PermissionOverwrite {
+/* func applyChannelParentSettings(gs *dstate.GuildState, parentCategoryID int64, overwrites []*discordgo.PermissionOverwrite) []*discordgo.PermissionOverwrite {
 	cs := gs.ChannelCopy(true, parentCategoryID)
 	if cs == nil {
 		return overwrites
 	}
 
 	return applyChannelParentSettingsOverwrites(cs.PermissionOverwrites, overwrites)
-}
+} */
 
-func applyChannelParentSettingsOverwrites(parentOverwrites []*discordgo.PermissionOverwrite, newChannelOverwrites []*discordgo.PermissionOverwrite) []*discordgo.PermissionOverwrite {
+/* func applyChannelParentSettingsOverwrites(parentOverwrites []*discordgo.PermissionOverwrite, newChannelOverwrites []*discordgo.PermissionOverwrite) []*discordgo.PermissionOverwrite {
 OUTER:
 	for _, v := range parentOverwrites {
 		for _, nov := range newChannelOverwrites {
@@ -779,3 +800,4 @@ OUTER:
 
 	return newChannelOverwrites
 }
+*/

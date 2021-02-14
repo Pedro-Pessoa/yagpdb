@@ -71,6 +71,30 @@ func CtxChannelFromCSLocked(cs *dstate.ChannelState) *CtxChannel {
 	return ctxChannel
 }
 
+func CtxChannelFromDGoChannel(dc *discordgo.Channel) *CtxChannel {
+	ctxChannel := &CtxChannel{
+		ID:                   dc.ID,
+		Name:                 dc.Name,
+		Type:                 dc.Type,
+		Topic:                dc.Topic,
+		LastMessageID:        dc.LastMessageID,
+		NSFW:                 dc.NSFW,
+		Position:             dc.Position,
+		Bitrate:              dc.Bitrate,
+		PermissionOverwrites: dc.PermissionOverwrites,
+		ParentID:             dc.ParentID,
+	}
+
+	if !dstate.IsPrivate(ctxChannel.Type) {
+		ctxChannel.GuildID = dc.GuildID
+		ctxChannel.IsPrivate = false
+	} else {
+		ctxChannel.IsPrivate = true
+	}
+
+	return ctxChannel
+}
+
 type CtxExecReturn struct {
 	Return   []interface{}
 	Response *discordgo.MessageSend
@@ -86,15 +110,15 @@ func (c CtxExecReturn) String() string {
 type CtxMember struct {
 	*discordgo.Member
 	//extra fields from Member State
-	Status   dstate.PresenceStatus `json:"status"`
-	Activity *dstate.LightActivity `json:"activity"`
+	Status     dstate.PresenceStatus   `json:"status"`
+	Activities []*dstate.LightActivity `json:"activity"`
 }
 
 func CtxMemberFromMS(ms *dstate.MemberState) *CtxMember {
 	ctxMember := &CtxMember{
-		Member:   ms.DGoCopy(),
-		Status:   ms.PresenceStatus,
-		Activity: ms.PresenceActivity,
+		Member:     ms.DGoCopy(),
+		Status:     ms.PresenceStatus,
+		Activities: ms.PresenceActivities,
 	}
 
 	return ctxMember

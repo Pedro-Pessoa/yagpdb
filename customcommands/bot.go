@@ -432,7 +432,7 @@ func HandleMessageCreate(evt *eventsystem.EventData) {
 	ms := evt.GS.MemberCopy(true, mc.Member.User.ID)
 	if ms != nil {
 		member.PresenceStatus = ms.PresenceStatus
-		member.PresenceActivity = ms.PresenceActivity
+		member.PresenceActivities = ms.PresenceActivities
 	}
 
 	var matchedCustomCommands []*TriggeredCC

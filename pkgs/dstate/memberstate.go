@@ -21,11 +21,19 @@ const (
 )
 
 type LightActivity struct {
-	Name    string                 `json:"name"`
-	URL     string                 `json:"url,omitempty"`
-	Details string                 `json:"details,omitempty"`
-	State   string                 `json:"state,omitempty"`
-	Type    discordgo.ActivityType `json:"type"`
+	Name       string                    `json:"name"`
+	URL        string                    `json:"url,omitempty"`
+	Details    string                    `json:"details,omitempty"`
+	State      string                    `json:"state,omitempty"`
+	Type       discordgo.ActivityType    `json:"type"`
+	CreatedAt  int                       `json:"created_at"`
+	Timestamps discordgo.TimeStamps      `json:"timestamps,omitempty"`
+	Emoji      discordgo.ActivityEmoji   `json:"emoji,omitempty"`
+	Party      discordgo.ActivityParty   `json:"party,omitempty"`
+	Assets     discordgo.ActivityAssets  `json:"assets,omitempty"`
+	Secrets    discordgo.ActivitySecrets `json:"secrets,omitempty"`
+	Instance   bool                      `json:"instance,omitempty"`
+	Flags      discordgo.ActivityFlags   `json:"flags,omitempty"`
 }
 
 // MemberState represents the state of a member
@@ -45,8 +53,8 @@ type MemberState struct {
 	// A list of IDs of the roles which are possessed by the member.
 	Roles []int64 `json:"roles"`
 
-	PresenceStatus   PresenceStatus `json:"presence_status"`
-	PresenceActivity *LightActivity `json:"presence_activity"`
+	PresenceStatus     PresenceStatus   `json:"presence_status"`
+	PresenceActivities []*LightActivity `json:"presence_activity"`
 
 	// The users username.
 	Username string `json:"username"`
@@ -127,32 +135,37 @@ func (m *MemberState) UpdateMember(member *discordgo.Member) {
 func (m *MemberState) UpdatePresence(presence *discordgo.Presence) {
 	m.PresenceSet = true
 
-	// get the main activity
-	// it either gets the first one, or the one with typ 1 (streaming)
-	var mainActivity *discordgo.Activity
-	for i, v := range presence.Activities {
-		if i == 0 || v.Type == 1 {
-			mainActivity = v
-		}
-	}
+	m.PresenceActivities = make([]*LightActivity, 0)
 
-	if mainActivity == nil {
-		m.PresenceActivity = nil
-	} else {
-		m.PresenceActivity = &LightActivity{
-			Name: mainActivity.Name,
-			// Details: mainActivity.Details,
-			URL: mainActivity.URL,
-			// State:   mainActivity.State,
-			Type: mainActivity.Type,
-		}
+	for _, p := range presence.Activities {
+		if p != nil {
+			lightActivity := &LightActivity{
+				Name:       p.Name,
+				URL:        p.URL,
+				Type:       p.Type,
+				CreatedAt:  p.CreatedAt,
+				Timestamps: p.Timestamps,
+				Instance:   p.Instance,
+				Party:      p.Party,
+				Assets:     p.Assets,
+				Secrets:    p.Secrets,
+				Flags:      p.Flags,
+			}
 
-		if mainActivity.Details != nil {
-			m.PresenceActivity.Details = *mainActivity.Details
-		}
+			// update the rest
+			if p.Details != nil {
+				lightActivity.Details = *p.Details
+			}
 
-		if mainActivity.State != nil {
-			m.PresenceActivity.State = *mainActivity.State
+			if p.State != nil {
+				lightActivity.State = *p.State
+			}
+
+			if p.Emoji != nil {
+				lightActivity.Emoji = *p.Emoji
+			}
+
+			m.PresenceActivities = append(m.PresenceActivities, lightActivity)
 		}
 	}
 

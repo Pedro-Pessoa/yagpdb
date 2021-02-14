@@ -8,10 +8,10 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/web/discorddata"
 
 	// Core yagpdb packages
-
 	"github.com/Pedro-Pessoa/tidbot/admin"
 	"github.com/Pedro-Pessoa/tidbot/bot/paginatedmessages"
 	"github.com/Pedro-Pessoa/tidbot/common/internalapi"
+	"github.com/Pedro-Pessoa/tidbot/common/nicknameweb"
 	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
 
 	// Plugin imports
@@ -22,6 +22,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/commands"
 	"github.com/Pedro-Pessoa/tidbot/customcommands"
 	"github.com/Pedro-Pessoa/tidbot/discordlogger"
+	"github.com/Pedro-Pessoa/tidbot/logger"
 	"github.com/Pedro-Pessoa/tidbot/logs"
 	"github.com/Pedro-Pessoa/tidbot/moderation"
 	"github.com/Pedro-Pessoa/tidbot/notifications"
@@ -32,7 +33,8 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/reputation"
 	"github.com/Pedro-Pessoa/tidbot/rolecommands"
 	"github.com/Pedro-Pessoa/tidbot/safebrowsing"
-	"github.com/Pedro-Pessoa/tidbot/serverstats"
+
+	// "github.com/Pedro-Pessoa/tidbot/serverstats"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands"
 	"github.com/Pedro-Pessoa/tidbot/streaming"
 	"github.com/Pedro-Pessoa/tidbot/tibia"
@@ -56,8 +58,9 @@ func main() {
 	safebrowsing.RegisterPlugin()
 	discordlogger.Register()
 	commands.RegisterPlugin()
+	nicknameweb.RegisterPlugin()
 	stdcommands.RegisterPlugin()
-	serverstats.RegisterPlugin()
+	// serverstats.RegisterPlugin()
 	notifications.RegisterPlugin()
 	customcommands.RegisterPlugin()
 	reddit.RegisterPlugin()
@@ -83,6 +86,7 @@ func main() {
 	internalapi.RegisterPlugin()
 	prom.RegisterPlugin()
 	featureflags.RegisterPlugin()
+	logger.RegisterPlugin()
 
 	run.Run()
 }

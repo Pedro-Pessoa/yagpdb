@@ -23,7 +23,9 @@ type GuildState struct {
 	Guild *discordgo.Guild `json:"guild"`
 
 	Members  map[int64]*MemberState  `json:"members"`
-	Channels map[int64]*ChannelState `json:"channels" `
+	Channels map[int64]*ChannelState `json:"channels"`
+
+	Emojis map[int64]*discordgo.Emoji
 
 	MaxMessages          int           // Absolute max number of messages cached in a channel
 	MaxMessageDuration   time.Duration // Max age of messages, if 0 ignored. (Only checks age whena new message is received on the channel)
@@ -58,19 +60,23 @@ func NewGuildState(guild *discordgo.Guild, state *State) *GuildState {
 		guildState.ChannelAddUpdate(false, channel)
 	}
 
-	if state != nil && state.TrackMembers {
-		for _, member := range gCop.Members {
-			guildState.MemberAddUpdate(false, member)
+	if state != nil {
+		if state.TrackMembers {
+			for _, member := range gCop.Members {
+				guildState.MemberAddUpdate(false, member)
+			}
+
+			for _, presence := range gCop.Presences {
+				guildState.PresenceAddUpdate(false, presence)
+			}
 		}
 
-		for _, presence := range gCop.Presences {
-			guildState.PresenceAddUpdate(false, presence)
+		if !state.TrackPresences {
+			gCop.Presences = nil
 		}
 	}
 
-	gCop.Presences = nil
 	gCop.Members = nil
-	gCop.Emojis = nil
 	gCop.Channels = nil
 
 	return guildState
@@ -147,7 +153,7 @@ func (g *GuildState) LightCopy(lock bool) *discordgo.Guild {
 }
 
 // DeepCopy returns a deeper copy of the inner guild, with full copies of the specified slices
-func (g *GuildState) DeepCopy(lock bool, copyRoles, copyVoiceStates, copyChannels bool) *discordgo.Guild {
+func (g *GuildState) DeepCopy(lock bool, copyRoles, copyVoiceStates, copyChannels, copyPresences bool) *discordgo.Guild {
 	if lock {
 		g.RLock()
 		defer g.RUnlock()
@@ -180,6 +186,10 @@ func (g *GuildState) DeepCopy(lock bool, copyRoles, copyVoiceStates, copyChannel
 			gCopy.Channels[i] = v.DGoCopy()
 			i++
 		}
+	}
+
+	if copyPresences {
+		gCopy.Presences = g.Guild.Presences
 	}
 
 	return gCopy
@@ -679,4 +689,49 @@ func (g *GuildState) IsAvailable(lock bool) bool {
 	}
 
 	return !g.Guild.Unavailable
+}
+
+// Copy returns a new copy of the GuildState without the issue of copying a lock
+func (g *GuildState) Copy() *GuildState {
+	out := new(GuildState)
+	out.ID = g.ID
+	out.Guild = g.Guild
+	out.Members = g.Members
+	out.Channels = g.Channels
+	out.MaxMessages = g.MaxMessages
+	out.MaxMessageDuration = g.MaxMessageDuration
+	out.RemoveOfflineMembers = g.RemoveOfflineMembers
+	out.userCache = g.userCache
+	return out
+}
+
+// EmojisAddUpdate adds or updates the guilds emojis
+func (g *GuildState) EmojisAddUpdate(lock bool, newEmojis []*discordgo.Emoji) {
+	if lock {
+		g.Lock()
+		defer g.Unlock()
+	}
+
+	if g.Emojis == nil {
+		g.Emojis = make(map[int64]*discordgo.Emoji)
+	}
+
+	for _, e := range newEmojis {
+		if e == nil {
+			continue
+		}
+
+		eCopy := *e
+		g.Emojis[e.ID] = &eCopy
+	}
+}
+
+// Emoji returns the specified emoji, nil if not found
+func (g *GuildState) Emoji(lock bool, emojiID int64) *discordgo.Emoji {
+	if lock {
+		g.Lock()
+		defer g.Unlock()
+	}
+
+	return g.Emojis[emojiID]
 }

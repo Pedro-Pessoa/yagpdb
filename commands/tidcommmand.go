@@ -116,7 +116,7 @@ type TIDCommand struct {
 
 	RunInDM      bool // Set to enable this commmand in DM's
 	HideFromHelp bool // Set to hide from help
-	IsModCmd     bool // Set if the command is suppose to be used by admins/owner only. This is only so that yag wont type if a normal user use an admin command
+	IsModCmd     bool // Set if the command is suppose to be used by admins/owner only. This is only so that yag wont type if a normal user uses an admin command
 
 	RequireDiscordPerms []int64 // Require users to have one of these permission sets to run the command
 

@@ -16,7 +16,7 @@ html {
 
 body {
 	color: #777;
-	font-family: "Open Sans", Arial, sans-serif;
+	font-family: 'Montserrat', sans-serif;
 	line-height: 22px;
 	margin: 0;
 	font-size: 13px;
@@ -163,11 +163,6 @@ a:active {
 }
 /* Layout Base - Flexbox supported */
 @media only screen and (min-width: 768px) {
-	html.flexbox,
-	html.flexboxlegacy {
-		/* Tab Navigation */;
-	}
-
 	html.flexbox .inner-wrapper,
 	html.flexboxlegacy .inner-wrapper {
 		display: -webkit-box;
@@ -1733,14 +1728,6 @@ html.mobile-device.sidebar-light .sidebar-left {
 		        box-shadow: none;
 	}
 
-	html.sidebar-left-big-icons.sidebar-left-with-menu {
-		/* Sidebar Left Opened - Sidebar Right Closed / Not Scroll */
-		/* Sidebar Left Opened - Sidebar Right Closed */
-		/* Sidebar Left Collapsed */
-		/* Scroll Layout */
-		/* min 768px & max 1365px */;
-	}
-
 	html.sidebar-left-big-icons.sidebar-left-with-menu:not(.sidebar-right-opened):not(.scroll) .inner-body {
 		margin-left: 153px;
 	}
@@ -1785,12 +1772,6 @@ html.mobile-device.sidebar-light .sidebar-left {
 }
 
 @media only screen and (min-width: 768px) and (max-width: 1365px) {
-	html.sidebar-left-big-icons.sidebar-left-with-menu {
-		/* Sidebar Left Opened - Sidebar Right Closed / Not Scroll */
-		/* Sidebar Left Collapsed */
-		/* Inner Menu Opened */;
-	}
-
 	html.sidebar-left-big-icons.sidebar-left-with-menu .inner-body {
 		width: calc(100% - 153px);
 	}
@@ -1834,13 +1815,6 @@ html.mobile-device.sidebar-light .sidebar-left {
 }
 
 @media only screen and (min-width: 768px) {
-	html.left-sidebar-panel {
-		/* Sidebar Right Opened */
-		/* Fixed */
-		/* Boxed */
-		/* ie9 */;
-	}
-
 	html.left-sidebar-panel .inner-wrapper {
 		padding-top: 85px;
 	}
@@ -1870,10 +1844,6 @@ html.mobile-device.sidebar-light .sidebar-left {
 
 	html.left-sidebar-panel.sidebar-right-opened .sidebar-left {
 		margin: 0 25px 0 0;
-	}
-
-	html.left-sidebar-panel.fixed {
-		/* Fixed & Sidebar Right Opened */;
 	}
 
 	html.left-sidebar-panel.fixed .page-header {
@@ -2105,7 +2075,6 @@ html.no-overflowscrolling.sidebar-light:not(.dark) .inner-menu .nano {
 	-webkit-box-sizing: content-box;
 	        box-sizing: content-box;
 	display: inline-block;
-	float: left;
 	height: 50px;
 	font-size: 19.2px;
 	font-size: 1.2rem;
@@ -2299,14 +2268,6 @@ html.sidebar-right-opened .page-header .sidebar-right-toggle i:before {
 	}
 }
 
-html.ie {
-	/* Page header */;
-}
-
-html.ie .page-header {
-	/* Left Breadcumb */;
-}
-
 html.ie .page-header.page-header-left-breadcrumb h2 {
 	float: left;
 }
@@ -2346,11 +2307,6 @@ html.has-tab-navigation .inner-wrapper {
 	html.has-tab-navigation .inner-wrapper {
 		padding: 15px;
 	}
-}
-
-html.has-tab-navigation {
-	/* Mobile */
-	/* IE */;
 }
 
 html.has-tab-navigation .content-body {
@@ -2595,7 +2551,6 @@ html.has-tab-navigation .tip.skin {
 		display: inline-block;
 		font-family: 'Font Awesome 5 Free';
 		font-weight: 900;
-		float: right;
 	}
 
 	.tab-navigation nav > ul > li > ul > li .dropdown-menu li.nav-active > a {
@@ -2727,7 +2682,6 @@ html.has-tab-navigation .tip.skin {
 		display: inline-block;
 		font-family: 'Font Awesome 5 Free';
 		font-weight: 900;
-		float: right;
 		border: none;
 		margin-right: .755rem;
 	}
@@ -2813,7 +2767,6 @@ html.has-tab-navigation .tip.skin {
 		display: inline-block;
 		font-family: 'Font Awesome 5 Free';
 		font-weight: 900;
-		float: right;
 	}
 }
 
@@ -4036,11 +3989,6 @@ html.header-dark .header .separator {
 		margin-top: 60px;
 	}
 }
-/* Header Nav Menu */
-.header.header-nav-menu {
-	/* Header Nav Main */
-	/* Header Nav Main Mobile */;
-}
 
 @media only screen and (min-width: 768px) {
 	.header.header-nav-menu .logo {
@@ -4907,14 +4855,6 @@ html.header-dark .header .separator {
 		top: 0;
 		right: 60px;
 	}
-}
-
-/* Header Nav Menu Dark */
-html.dark .header.header-nav-menu,
-html.header-dark .header.header-nav-menu {
-	/* Header Nav Main */
-	/* Header Nav Stripe & Header Nav Top Line */
-	/* Header Nav Main Mobile */;
 }
 
 @media only screen and (min-width: 768px) {
@@ -5953,10 +5893,6 @@ html.sidebar-light:not(.dark) ul.nav-main li .nav-children li a:hover, html.side
 	border-color: black black black;
 }
 
-html {
-	/* Buttons - Social */;
-}
-
 html .btn-facebook, html .btn-facebook:active, html .btn-facebook:hover, html .btn-facebook:focus,
 html .btn-twitter,
 html .btn-twitter:active,
@@ -6153,11 +6089,6 @@ html.dark .show > .dropdown-toggle.btn-default {
 	}
 }
 
-/* Responsive */
-html:not(.sidebar-left-collapsed) {
-	/* Boxed Layout */;
-}
-
 @media (max-width: 1400px) {
 	html:not(.sidebar-left-collapsed) .call-to-action .call-to-action-btn > span {
 		display: none;
@@ -6309,6 +6240,16 @@ html:not(.sidebar-left-collapsed).boxed .call-to-action .call-to-action-btn > sp
 	padding: 0;
 	text-transform: none;
 	margin: 0;
+}
+
+.card-right {
+	color: #ffffff;
+	font-size: 20px;
+	font-weight: 400;
+	line-height: 20px;
+	padding: 0;
+	text-transform: none;
+	margin-right: 10px;
 }
 
 .card-subtitle {
@@ -7264,7 +7205,6 @@ html .card-dark .card-title {
 
 .small-chart-wrapper .small-chart {
 	display: inline-block;
-	float: left;
 	margin-bottom: 8px;
 	min-width: 80px;
 }
@@ -8192,7 +8132,6 @@ html.dark .dropzone:hover .dz-default span {
 
 .fileupload .uneditable-input .fileupload-preview {
 	display: inline-block;
-	float: left;
 	overflow: hidden;
 	padding: 0 0 0 17px;
 	text-overflow: ellipsis;
@@ -12573,7 +12512,6 @@ html.dark .select2-container--bootstrap .select2-search--dropdown .select2-searc
 	display: block;
 	color: #FFF;
 	font-weight: 600;
-	vertical-align: top;
 	line-height: 1.3em;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -14511,7 +14449,6 @@ html.header-dark .userbox .dropdown-menu a {
 	background-color: #CCC;
 	border-radius: 2px;
 	display: inline-block;
-	float: left;
 	font-size: 12px;
 	font-weight: 400;
 	letter-spacing: 0;
@@ -15496,16 +15433,6 @@ ul.widget-todo-list li:last-child {
 	.widget-twitter-profile .profile-quote blockquote {
 		padding-left: 45px;
 	}
-}
-
-html.dark {
-	/* Widget Summary */
-	/* Panel Footer - Button Group */
-	/* To-do List */
-	/* Simple Post List */
-	/* Simple User List */
-	/* Simple Bullet List */
-	/* Simple Compose Box */;
 }
 
 html.dark .widget-summary .summary .title,
@@ -18286,4 +18213,13 @@ html.dark .thumbnail {
 
 html.dark .notification-menu .title {
 	color: #c3c3c3;
+}
+
+.sortable-ghost {
+	opacity: 0.4;
+}
+
+.sortable-chosen {
+	color: #282d36;
+	background-color: #40464d;
 }

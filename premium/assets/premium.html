@@ -1,4 +1,5 @@
 {{define "premium_user_setup"}}
+
 {{template "cp_head" .}}
 
 <div class="page-header">
@@ -13,7 +14,6 @@
             <header class="card-header">
                 <h2 class="card-title">Info</h2>
             </header>
-
             <div class="card-body">
                 <p>Aqui você pode usar seus códigos de sorteios e transformar seu servidor em Premium!</p>
                 <p>Manter um bot de discord rodando 24 horas por dia não é barato. Além disso, o bot funciona principalmente gerando requests http
@@ -22,8 +22,7 @@
                 Pegando 3 slots premium, ou mais, e vou te dar todos os meus códigos personalizados e montar o servidor inteiro pra você! E não só isso, esses códigos são até 10 vezes mais rápidos e eficientes que os códigos de quem só tem 2 slots premium.</p>
                 <p><b>Se você tiver qualquer problema com seu premium me avisa!</b></p>
                 <p><b>OBS:</b>Esse bot ainda é um hobby desenvolvido por 1 cara no tempo livre. Com isso em mente, saiba que o premium é so um suporte para mim e não um produto.</p>
-                <button class="btn btn-primary mb-2" type="button" data-toggle="collapse"
-                    data-target="#premium-how-to-get" aria-expanded="false" aria-controls="premium-how-to-get">
+                <button class="btn btn-primary mb-2" type="button" data-toggle="collapse" data-target="#premium-how-to-get" aria-expanded="false" aria-controls="premium-how-to-get">
                     Como eu consigo premium?
                 </button>
                 <div class="collapse" id="premium-how-to-get">
@@ -43,9 +42,9 @@
                             </ul>
                         </div>
                     </section>
-                </div><br>
-                <button class="btn btn-primary" type="button" data-toggle="collapse"
-                    data-target="#premium-full-benefits" aria-expanded="false" aria-controls="premium-full-benefits">
+                </div>
+                <br>
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#premium-full-benefits" aria-expanded="false" aria-controls="premium-full-benefits">
                     Lista de benefícios premium
                 </button>
                 <div class="collapse" id="premium-full-benefits">
@@ -53,7 +52,6 @@
                         <div class="card-body">
                             <b>Geral</b>
                             <ul>
-                                <li>Retenção infinita dos status do seu servidor!</li>
                                 <li>Suporte prioritário</li>
                             </ul>
 
@@ -80,86 +78,77 @@
                 </div>
             </div>
         </section>
-        <!-- /.panel -->
     </div>
-    <!-- /.col-lg-12 -->
 </div>
-<!-- /.row -->
 <div class="row">
     <div class="col-lg-12">
         <section class="card">
             <header class="card-header">
                 <h2 class="card-title">Código</h2>
             </header>
-
             <div class="card-body">
                 <form method="post" data-async-form>
                     <input type="text" class="form-control" name="code">
-                    <button type="submit" value="Redeem code" class="btn btn-success"
-                        formaction="/premium/redeemcode">Código</button>
-                    <button type="submit" value="Check code" class="btn btn-primary"
-                        formaction="/premium/lookupcode">Verificar código</button>
+                    <button type="submit" value="Redeem code" class="btn btn-success" formaction="/premium/redeemcode">Código</button>
+                    <button type="submit" value="Check code" class="btn btn-primary" formaction="/premium/lookupcode">Verificar código</button>
                 </form>
-
-                {{if .QueriedCode}}
-                <ul>
-                    <li>Cóigo: <code>{{.QueriedCode.Code}}</code></li>
-                    <li>Permanente: <code>{{.QueriedCode.Permanent}}</code></li>
-                    <li>Duração: <code>{{.QueriedCode.Duration}}</code></li>
-                </ul>
+                {{with .QueriedCode}}
+                    <ul>
+                        <li>Cóigo: <code>{{.Code}}</code></li>
+                        <li>Permanente: <code>{{.Permanent}}</code></li>
+                        <li>Duração: <code>{{.Duration}}</code></li>
+                    </ul>
                 {{end}}
             </div>
         </section>
-        <!-- /.panel -->
     </div>
-    <!-- /.col-lg-12 -->
 </div>
 <div class="row">
     {{$dot := .}}
     {{range .PremiumSlots}}
-    <div class="col-md-6 mb-2">
-        <section class="card {{if .GuildID.Valid}}card-featured card-featured-success{{end}}">
-            <header class="card-header">
-                <h2 class="card-title">Slot: {{.Title}}</h2>
-            </header>
+        <div class="col-md-6 mb-2">
+            <section class="card {{if .GuildID.Valid}}card-featured card-featured-success{{end}}">
+                <header class="card-header">
+                    <h2 class="card-title">Slot: {{.Title}}</h2>
+                </header>
 
-            <div class="card-body">
-                <ul>
-                    <li>{{if not .Permanent}}Expira em:
-                        <code>{{humanizeDurationHours (call $dot.PremiumSlotDurationRemaining .)}}</code>{{else}}Nunca
-                        expira{{end}}.</li>
-                    {{if .Message}}<li>{{.Message}}</li>{{end}}
-                </ul>
+                <div class="card-body">
+                    <ul>
+                        <li>
+                            {{if not .Permanent}} Expira em: <code>{{humanizeDurationHours (call $dot.PremiumSlotDurationRemaining .)}}</code>
+                            {{else}} Nunca expira
+                            {{end}}.
+                        </li>
+                        {{with .Message}}<li>{{.}}</li>{{end}}
+                    </ul>
 
-                <form action="/premium/updateslot/{{.ID}}" method="post" data-async-form>
-                    <div class="form-group">
-                        <label for="slot-{{.ID}}">Escolha o servidor</label>
-                        <select name="GuildID" class="form-control" id="slot-{{.ID}}">
-                            {{$found := false}}
-                            <option value="0" {{if not .GuildID.Valid}}{{$found = true}} selected{{end}}>Nenhum</option>
+                    <form action="/premium/updateslot/{{.ID}}" method="post" data-async-form>
+                        <div class="form-group">
+                            <label for="slot-{{.ID}}">Escolha o servidor</label>
+                            <select name="GuildID" class="form-control" id="slot-{{.ID}}">
+                                {{$found := false}}
+                                <option value="0" {{if not .GuildID.Valid}}{{$found = true}} selected{{end}}>Nenhum</option>
+                                {{$selected := .GuildID.Int64}}
+                                {{range  $dot.UserGuilds}}
+                                    {{if .Connected}}
+                                        <option value="{{.ID}}" {{if eq .ID $selected}}{{$found = true}} selected {{end}}>{{.Name}}</option>
+                                    {{end}}
+                                {{end}}
 
+                                {{if not $found}}
+                                    <option value="{{.GuildID.Int64}}" selected>Servidor desconhecido ({{.GuildID.Int64}})</option>
+                                {{end}}
+                            </select>
+                        </div>
 
-                            {{$selected := .GuildID.Int64}}
-                            {{range  $dot.UserGuilds}}{{if .Connected}}
-                            <option value="{{.ID}}" {{if eq .ID $selected}}{{$found = true}} selected {{end}}>{{.Name}}
-                            </option>
-                            {{end}}{{end}}
-
-                            {{if not $found}}
-                            <option value="{{.GuildID.Int64}}" selected>Servidor desconhecido ({{.GuildID.Int64}})</option>
-                            {{end}}
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-success mt-2">Update slot premium</button>
-                </form>
-            </div>
-        </section>
-        <!-- /.panel -->
-    </div>
+                        <button type="submit" class="btn btn-success mt-2">Update slot premium</button>
+                    </form>
+                </div>
+            </section>
+        </div>
     {{end}}
-    <!-- /.col-lg-12 -->
 </div>
+
 {{template "cp_footer" .}}
 
 {{end}}

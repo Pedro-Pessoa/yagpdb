@@ -101,24 +101,25 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 		}
 	}
 
-	output := InternalChar{}
-	output.Name = tibia.Characters.Data.Name
-	output.Level = level
-	output.World = tibia.Characters.Data.World
-	output.Vocation = tibia.Characters.Data.Vocation
-	output.Residence = tibia.Characters.Data.Residence
-	output.AccountStatus = tibia.Characters.Data.AccountStatus
-	output.Status = strings.Title(tibia.Characters.Data.Status)
-	output.Loyalty = lealdade
-	output.AchievementPoints = tibia.Characters.Data.AchievementPoints
-	output.Sex = strings.Title(tibia.Characters.Data.Sex)
-	output.Married = casado
-	output.Guild = guild
-	output.Rank = cargo
-	output.Comment = comentario
-	output.CreatedAt = criado
-	output.House = casa
-	output.Deaths = mortes
+	output := InternalChar{
+		Name:              tibia.Characters.Data.Name,
+		Level:             level,
+		World:             tibia.Characters.Data.World,
+		Vocation:          tibia.Characters.Data.Vocation,
+		Residence:         tibia.Characters.Data.Residence,
+		AccountStatus:     tibia.Characters.Data.AccountStatus,
+		Status:            strings.Title(tibia.Characters.Data.Status),
+		Loyalty:           lealdade,
+		AchievementPoints: tibia.Characters.Data.AchievementPoints,
+		Sex:               strings.Title(tibia.Characters.Data.Sex),
+		Married:           casado,
+		Guild:             guild,
+		Rank:              cargo,
+		Comment:           comentario,
+		CreatedAt:         criado,
+		House:             casa,
+		Deaths:            mortes,
+	}
 
 	return &output, nil
 }
@@ -167,14 +168,15 @@ func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
 		}
 	}
 
-	output := InternalGuild{}
-	output.Name = guild.Guild.Data.Name
-	output.Description = desc
-	output.MemberCount = guild.Guild.Data.Totalmembers
-	output.World = guild.Guild.Data.World
-	output.GuildHall = guildHall
-	output.War = guerra
-	output.Members = membros
+	output := InternalGuild{
+		Name:        guild.Guild.Data.Name,
+		Description: desc,
+		MemberCount: guild.Guild.Data.Totalmembers,
+		World:       guild.Guild.Data.World,
+		GuildHall:   guildHall,
+		War:         guerra,
+		Members:     membros,
+	}
 
 	return &output, nil
 }
@@ -288,13 +290,14 @@ func formatNews(tibiaInside *TibiaSpecificNews, url string) (*InternalNews, erro
 		shortdesc = desc
 	}
 
-	output := InternalNews{}
-	output.Title = tibiaInside.News.Title
-	output.Description = desc
-	output.ShortDescription = shortdesc
-	output.URL = url
-	output.Date = t.Format("02/01/2006")
-	output.ID = tibiaInside.News.ID
+	output := InternalNews{
+		Title:            tibiaInside.News.Title,
+		Description:      desc,
+		ShortDescription: shortdesc,
+		URL:              url,
+		Date:             t.Format("02/01/2006"),
+		ID:               tibiaInside.News.ID,
+	}
 
 	return &output, nil
 }

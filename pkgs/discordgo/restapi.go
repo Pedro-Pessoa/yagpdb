@@ -1051,7 +1051,7 @@ type GuildChannelCreateData struct {
 	RateLimitPerUser     int                    `json:"rate_limit_per_user,omitempty"`
 	Position             int                    `json:"position,omitempty"`
 	PermissionOverwrites []*PermissionOverwrite `json:"permission_overwrites,omitempty"`
-	ParentID             int64                  `json:"parent_id,omitempty"`
+	ParentID             int64                  `json:"parent_id,string,omitempty"`
 	NSFW                 bool                   `json:"nsfw,omitempty"`
 }
 

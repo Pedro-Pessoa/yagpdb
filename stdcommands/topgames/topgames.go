@@ -80,7 +80,7 @@ func checkGuild(dst map[string]int, gs *dstate.GuildState) {
 	defer gs.RUnlock()
 
 	for _, ms := range gs.Members {
-		if !ms.PresenceSet || ms.PresenceActivity == nil || ms.PresenceActivity.Name == "" {
+		if !ms.PresenceSet || ms.PresenceActivities == nil || len(ms.PresenceActivities) == 0 {
 			continue
 		}
 
@@ -88,8 +88,12 @@ func checkGuild(dst map[string]int, gs *dstate.GuildState) {
 			continue
 		}
 
-		name := ms.PresenceActivity.Name
-		dst[name]++
+		for _, p := range ms.PresenceActivities {
+			if p != nil {
+				name := p.Name
+				dst[name]++
+			}
+		}
 	}
 }
 

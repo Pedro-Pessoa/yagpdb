@@ -13,6 +13,20 @@ cmd/yagpdb/shutdown_logs
 cmd/yagpdb/safebrowsing_db
 cmd/yagpdb/static/video/*
 
+cmd/tidbot/static/bower_components
+cmd/tidbot/static/pages
+cmd/tidbot/static/index.html
+cmd/tidbot/cert
+cmd/tidbot/access_log
+cmd/tidbot/access.log
+cmd/tidbot/static/report.html
+cmd/tidbot/tidbot
+cmd/tidbot/templates/plugins/*.html
+cmd/tidbot/soundboard
+cmd/tidbot/shutdown_logs
+cmd/tidbot/safebrowsing_db
+cmd/tidbot/static/video/*
+
 # We don't want filthy pre-configured config files here ! >:O
 # The graw agent file
 *.agent

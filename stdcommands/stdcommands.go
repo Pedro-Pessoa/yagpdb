@@ -35,6 +35,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/ping"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/poll"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/roll"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/serverinfo"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/setstatus"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/simpleembed"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/sleep"
@@ -104,6 +105,7 @@ func (p *Plugin) AddCommands() {
 		covidstats.Command,
 		edtn.Command,
 		throw.Command,
+		serverinfo.Command,
 
 		//Tibia
 		//Chars
@@ -178,6 +180,7 @@ func (p *Plugin) AddCommands() {
 		sleep.Command,
 		toggledbg.Command,
 		globalrl.Command,
+		serverinfo.AdminCommand,
 	)
 
 }

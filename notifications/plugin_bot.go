@@ -20,6 +20,7 @@ var _ bot.BotInitHandler = (*Plugin)(nil)
 
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLast(p, HandleGuildMemberAdd, eventsystem.EventGuildMemberAdd)
+	eventsystem.AddHandlerAsyncLast(p, HandleGuildMemberUpdate, eventsystem.EventGuildMemberUpdate)
 	eventsystem.AddHandlerAsyncLast(p, HandleGuildMemberRemove, eventsystem.EventGuildMemberRemove)
 	eventsystem.AddHandlerFirst(p, HandleChannelUpdate, eventsystem.EventChannelUpdate)
 }
@@ -42,6 +43,93 @@ func HandleGuildMemberAdd(evtData *eventsystem.EventData) (retry bool, err error
 
 	gs := bot.State.Guild(true, evt.GuildID)
 	ms := dstate.MSFromDGoMember(gs, evt.Member)
+
+	// Beware of the pyramid and its curses
+	if config.JoinDMEnabled && !evt.User.Bot {
+		if config.JoinDMWaitForPendingEnabled {
+			return
+		}
+
+		cid, err := common.BotSession.UserChannelCreate(evt.User.ID)
+		if err != nil {
+			if bot.CheckDiscordErrRetry(err) {
+				return true, errors.WithStackIf(err)
+			}
+
+			logger.WithError(err).WithField("user", evt.User.ID).Error("Failed retrieving user channel")
+		} else {
+			thinCState := &dstate.ChannelState{
+				Owner: gs,
+				Guild: gs,
+				ID:    cid.ID,
+				Name:  evt.User.Username,
+				Type:  discordgo.ChannelTypeDM,
+			}
+
+			go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_msg")
+
+			if sendTemplate(thinCState, config.JoinDMMsg, ms, "join dm", false) {
+				return true, nil
+			}
+		}
+	}
+
+	if config.JoinServerEnabled && len(config.JoinServerMsgs) > 0 {
+		if config.JoinServerWaitForPendingEnabled {
+			return
+		}
+
+		channel := gs.Channel(true, config.JoinServerChannelInt())
+		if channel == nil {
+			return
+		}
+
+		go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_dm")
+
+		chanMsg := config.JoinServerMsgs[rand.Intn(len(config.JoinServerMsgs))]
+		if sendTemplate(channel, chanMsg, ms, "join server msg", config.CensorInvites) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err error) {
+	if !bot.State.TrackBeforeStates {
+		return
+	}
+
+	evt := evtData.GuildMemberUpdate()
+
+	if evt.Pending {
+		return
+	}
+
+	config, err := GetConfig(evt.GuildID)
+	if err != nil {
+		return true, errors.WithStackIf(err)
+	}
+
+	if !config.JoinDMWaitForPendingEnabled && !config.JoinServerWaitForPendingEnabled {
+		return
+	}
+
+	if !config.JoinServerEnabled && !config.JoinDMEnabled {
+		return
+	}
+
+	if (!config.JoinDMEnabled || evt.User.Bot) && !config.JoinServerEnabled {
+		return
+	}
+
+	gs := bot.State.Guild(true, evt.GuildID)
+	ms := dstate.MSFromDGoMember(gs, evt.Member)
+
+	if bot.State.BeforeStateMemberMap[evt.Member.User.ID] == nil || !bot.State.BeforeStateMemberMap[evt.Member.User.ID].MemberState.Pending {
+		// Msg probably already sent
+		return
+	}
 
 	// Beware of the pyramid and its curses
 	if config.JoinDMEnabled && !evt.User.Bot {
@@ -173,20 +261,22 @@ func sendTemplate(cs *dstate.ChannelState, tmpl string, ms *dstate.MemberState, 
 }
 
 func HandleChannelUpdate(evt *eventsystem.EventData) (retry bool, err error) {
-	cu := evt.ChannelUpdate()
+	cur := evt.ChannelUpdate()
 
-	curChannel := bot.State.ChannelCopy(true, cu.ID)
+	curChannel := bot.State.ChannelCopy(true, cur.ID)
 	if curChannel == nil {
 		return
 	}
 
 	oldTopic := curChannel.Topic
 
-	if oldTopic == cu.Topic {
+	logger.Infof("Old topic -> %#v || New topic -> %#v", oldTopic, cur.Topic)
+
+	if oldTopic == cur.Topic {
 		return
 	}
 
-	config, err := GetConfig(cu.GuildID)
+	config, err := GetConfig(cur.GuildID)
 	if err != nil {
 		return true, errors.WithStackIf(err)
 	}
@@ -195,7 +285,7 @@ func HandleChannelUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 		return
 	}
 
-	topicChannel := cu.Channel.ID
+	topicChannel := cur.Channel.ID
 	if config.TopicChannelInt() != 0 {
 		c := curChannel.Guild.Channel(true, config.TopicChannelInt())
 		if c != nil {
@@ -203,12 +293,12 @@ func HandleChannelUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 		}
 	}
 
-	go analytics.RecordActiveUnit(cu.GuildID, &Plugin{}, "posted_topic_change")
+	go analytics.RecordActiveUnit(cur.GuildID, &Plugin{}, "posted_topic_change")
 
 	go func() {
-		_, err := common.BotSession.ChannelMessageSend(topicChannel, fmt.Sprintf("Topic in channel <#%d> changed to **%s**", cu.ID, cu.Topic))
+		_, err := common.BotSession.ChannelMessageSend(topicChannel, fmt.Sprintf("Topic in channel <#%d> changed to **%s**", cur.ID, cur.Topic))
 		if err != nil {
-			logger.WithError(err).WithField("guild", cu.GuildID).Warn("Failed sending topic change message")
+			logger.WithError(err).WithField("guild", cur.GuildID).Warn("Failed sending topic change message")
 		}
 	}()
 

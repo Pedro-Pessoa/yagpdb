@@ -1,12 +1,12 @@
 package tibia
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
 
 	"emperror.dev/errors"
+	"github.com/mailru/easyjson"
 )
 
 func GetChar(name string) (*Tibia, error) {
@@ -21,7 +21,7 @@ func GetChar(name string) (*Tibia, error) {
 
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&tibia)
+	err = easyjson.UnmarshalFromReader(resp.Body, &tibia)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func GetWorld(name string) (*TibiaWorld, error) {
 
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&world)
+	err = easyjson.UnmarshalFromReader(resp.Body, &world)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func GetSpecificGuild(name string) (*SpecificGuild, error) {
 
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&specificGuild)
+	err = easyjson.UnmarshalFromReader(resp.Body, &specificGuild)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func GetNews(url string) (*TibiaNews, error) {
 
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&tibia)
+	err = easyjson.UnmarshalFromReader(resp.Body, &tibia)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func InsideNews(number int) (*TibiaSpecificNews, error) {
 
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&tibiaInside)
+	err = easyjson.UnmarshalFromReader(resp.Body, &tibiaInside)
 	if err != nil {
 		return nil, err
 	}

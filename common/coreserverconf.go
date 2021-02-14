@@ -11,7 +11,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/common/models"
 )
 
-const CoreServerConfDBSchema = `
+var CoreServerConfDBSchemas = []string{`
 CREATE TABLE IF NOT EXISTS core_configs (
 	guild_id BIGINT PRIMARY KEY,
 
@@ -20,9 +20,10 @@ CREATE TABLE IF NOT EXISTS core_configs (
 
 	allow_all_members_read_only BOOLEAN NOT NULL,
 	allow_non_members_read_only BOOLEAN NOT NULL
-)
-
-`
+);
+`, `
+ALTER TABLE core_configs ADD COLUMN IF NOT EXISTS bot_nickname TEXT NOT NULL DEFAULT '';
+`}
 
 var CoreServerConfigCache = rcache.NewInt(coreServerConfigCacheFetcher, time.Minute)
 

@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	SessionCookieName = "yagpdb-session-3"
+	SessionCookieName = "tidbot-session-3"
 	OauthConf         *oauth2.Config
 )
 
@@ -28,8 +28,8 @@ func InitOauth() {
 		ClientSecret: common.ConfClientSecret.GetString(),
 		Scopes:       []string{"identify", "guilds"},
 		Endpoint: oauth2.Endpoint{
-			TokenURL: "https://discordapp.com/api/oauth2/token",
-			AuthURL:  "https://discordapp.com/api/oauth2/authorize",
+			TokenURL: discordgo.EndpointOauth2 + "token",
+			AuthURL:  discordgo.EndpointOauth2 + "authorize",
 		},
 	}
 

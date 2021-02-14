@@ -29,6 +29,7 @@ type CoreConfig struct {
 	AllowedWriteRoles       types.Int64Array `boil:"allowed_write_roles" json:"allowed_write_roles,omitempty" toml:"allowed_write_roles" yaml:"allowed_write_roles,omitempty"`
 	AllowAllMembersReadOnly bool             `boil:"allow_all_members_read_only" json:"allow_all_members_read_only" toml:"allow_all_members_read_only" yaml:"allow_all_members_read_only"`
 	AllowNonMembersReadOnly bool             `boil:"allow_non_members_read_only" json:"allow_non_members_read_only" toml:"allow_non_members_read_only" yaml:"allow_non_members_read_only"`
+	BotNickname             string           `boil:"bot_nickname" json:"bot_nickname" toml:"bot_nickname" yaml:"bot_nickname"`
 
 	R *coreConfigR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L coreConfigL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -40,12 +41,14 @@ var CoreConfigColumns = struct {
 	AllowedWriteRoles       string
 	AllowAllMembersReadOnly string
 	AllowNonMembersReadOnly string
+	BotNickname             string
 }{
 	GuildID:                 "guild_id",
 	AllowedReadOnlyRoles:    "allowed_read_only_roles",
 	AllowedWriteRoles:       "allowed_write_roles",
 	AllowAllMembersReadOnly: "allow_all_members_read_only",
 	AllowNonMembersReadOnly: "allow_non_members_read_only",
+	BotNickname:             "bot_nickname",
 }
 
 // Generated where
@@ -105,18 +108,43 @@ func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field
 func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
+type whereHelperstring struct{ field string }
+
+func (w whereHelperstring) EQ(x string) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperstring) NEQ(x string) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperstring) LT(x string) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperstring) LTE(x string) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperstring) GT(x string) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperstring) GTE(x string) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperstring) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var CoreConfigWhere = struct {
 	GuildID                 whereHelperint64
 	AllowedReadOnlyRoles    whereHelpertypes_Int64Array
 	AllowedWriteRoles       whereHelpertypes_Int64Array
 	AllowAllMembersReadOnly whereHelperbool
 	AllowNonMembersReadOnly whereHelperbool
+	BotNickname             whereHelperstring
 }{
 	GuildID:                 whereHelperint64{field: "\"core_configs\".\"guild_id\""},
 	AllowedReadOnlyRoles:    whereHelpertypes_Int64Array{field: "\"core_configs\".\"allowed_read_only_roles\""},
 	AllowedWriteRoles:       whereHelpertypes_Int64Array{field: "\"core_configs\".\"allowed_write_roles\""},
 	AllowAllMembersReadOnly: whereHelperbool{field: "\"core_configs\".\"allow_all_members_read_only\""},
 	AllowNonMembersReadOnly: whereHelperbool{field: "\"core_configs\".\"allow_non_members_read_only\""},
+	BotNickname:             whereHelperstring{field: "\"core_configs\".\"bot_nickname\""},
 }
 
 // CoreConfigRels is where relationship names are stored.
@@ -136,9 +164,9 @@ func (*coreConfigR) NewStruct() *coreConfigR {
 type coreConfigL struct{}
 
 var (
-	coreConfigAllColumns            = []string{"guild_id", "allowed_read_only_roles", "allowed_write_roles", "allow_all_members_read_only", "allow_non_members_read_only"}
+	coreConfigAllColumns            = []string{"guild_id", "allowed_read_only_roles", "allowed_write_roles", "allow_all_members_read_only", "allow_non_members_read_only", "bot_nickname"}
 	coreConfigColumnsWithoutDefault = []string{"guild_id", "allowed_read_only_roles", "allowed_write_roles", "allow_all_members_read_only", "allow_non_members_read_only"}
-	coreConfigColumnsWithDefault    = []string{}
+	coreConfigColumnsWithDefault    = []string{"bot_nickname"}
 	coreConfigPrimaryKeyColumns     = []string{"guild_id"}
 )
 

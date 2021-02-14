@@ -1,49 +1,57 @@
-{{define "template_helper_mod_author"}}<code>{{"{{"}}.Author.(Username/ID/Discriminator){{"}}"}}</code> - The author of
-the punishment{{end}}
+{{define "template_helper_mod_author"}}
+    <code>{{"{{"}}.Author.(Username/ID/Discriminator){{"}}"}}</code> - The author of the punishment
+{{end}}
 
 {{define "cp_moderation"}}
+
 {{template "cp_head" .}}
+
 <header class="page-header">
     <h2>Moderation tools</h2>
 </header>
 
 {{template "cp_alerts" .}}
 
-<!-- /.row -->
 <form role="form" method="post" data-async-form>
     <div class="row">
         <div class="col">
             <div class="tabs">
                 <ul class="nav nav-tabs">
-                    <li class="nav-item active"><a class="nav-link show active" href="#general" aria-controls="general"
-                            role="tab" data-toggle="tab">
+                    <li class="nav-item active">
+                        <a class="nav-link show active" href="#general" aria-controls="general" role="tab" data-toggle="tab">
                             General
-                        </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#mute" aria-controls="mute/unmute" role="tab"
-                            data-toggle="tab">
-                            Mute <span
-                                class="indicator indicator-{{if .ModConfig.MuteEnabled}}success{{else}}danger{{end}}"></span>
-                        </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#kick" aria-controls="kick" role="tab"
-                            data-toggle="tab">
-                            Kick <span
-                                class="indicator indicator-{{if .ModConfig.KickEnabled}}success{{else}}danger{{end}}"></span>
-                        </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#ban" aria-controls="ban" role="tab"
-                            data-toggle="tab">
-                            Ban <span
-                                class="indicator indicator-{{if .ModConfig.BanEnabled}}success{{else}}danger{{end}}"></span>
-                        </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#warn" aria-controls="warnings" role="tab"
-                            data-toggle="tab">
-                            Warnings <span
-                                class="indicator indicator-{{if .ModConfig.WarnCommandsEnabled}}success{{else}}danger{{end}}"></span>
-                        </a></li>
-                    <li class="nav-item"><a class="nav-link" href="#lockdown" aria-controls="lockdown" role="tab"
-                        data-toggle="tab">
-                        Lockdown <span
-                            class="indicator indicator-{{if .ModConfig.LockdownCmdEnabled}}success{{else}}danger{{end}}"></span>
-                    </a></li>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#mute" aria-controls="mute/unmute" role="tab" data-toggle="tab">
+                            Mute
+                            <span class="indicator indicator-{{if .ModConfig.MuteEnabled}}success{{else}}danger{{end}}"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#kick" aria-controls="kick" role="tab" data-toggle="tab">
+                            Kick
+                            <span class="indicator indicator-{{if .ModConfig.KickEnabled}}success{{else}}danger{{end}}"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#ban" aria-controls="ban" role="tab" data-toggle="tab">
+                            Ban
+                            <span class="indicator indicator-{{if .ModConfig.BanEnabled}}success{{else}}danger{{end}}"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#warn" aria-controls="warnings" role="tab" data-toggle="tab">
+                            Warnings
+                            <span class="indicator indicator-{{if .ModConfig.WarnCommandsEnabled}}success{{else}}danger{{end}}"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#lockdown" aria-controls="lockdown" role="tab" data-toggle="tab">
+                        Lockdown
+                        <span class="indicator indicator-{{if .ModConfig.LockdownCmdEnabled}}success{{else}}danger{{end}}"></span>
+                        </a>
+                    </li>
                 </ul>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="general">{{template "moderation_general" .}}</div>
@@ -61,7 +69,6 @@ the punishment{{end}}
             <button type="submit" class="btn btn-primary btn-lg btn-block">Save</button>
         </div>
     </div>
-    <!-- /.row -->
 </form>
 <div id="clear-server-warnings-modal" class="modal-block modal-full-color modal-block-danger mfp-hide">
     <section class="card">
@@ -92,6 +99,7 @@ the punishment{{end}}
         </footer>
     </section>
 </div>
+
 <script>
     function MuteManagedChanged() {
         if ($("#mute-managed").prop("checked")) {
@@ -105,20 +113,44 @@ the punishment{{end}}
         MuteManagedChanged();
     })
 </script>
+
+<script type="text/javascript">
+    function onCCChanged(textArea) {
+        var textAreas = textArea.parentElement.querySelectorAll('textarea');
+        var combinedLength = 0;
+
+        textAreas.forEach(function (elem) {
+            combinedLength += elem.value.length;
+        });
+
+        var display = textArea.parentElement.querySelector(".announce-length-counter");
+        display.textContent = combinedLength;
+
+        if (combinedLength > 5000) {
+            display.classList.add("text-danger");
+        } else {
+            display.classList.remove("text-danger");
+        }
+    }
+</script>
+
 {{template "cp_footer" .}}
 
 {{end}}
 
+<!-- SubPages -->
+
 {{define "moderation_general"}}
-<p>A set of moderation tools and commands to help you run a server.</p>
-<p>Commands for performing moderation actions such as kicks and bans, as well as mutes, timed bans, warnings, mass
-    deleting messages and so on.<br>
-    It is highly recommended to couple the moderation actions with the message logs, this means that whenever your mods
-    decide to perform an action on someone, a message log of the channel they ran the command in will be recorded and
-    added to the mod log.</p>
-<p>The moderation actions coupled with the message logs have been one of the most useful tools for me personally when
-    running servers with thousands of members.</p>
-<p><a href="https://docs.yagpdb.xyz/moderation" target="_blank">More documentation</a></p>
+<p> A set of moderation tools and commands to help you run a server. </p>
+
+<p>
+    Commands for performing moderation actions such as kicks and bans, as well as mutes, timed bans, warnings, mass deleting messages and so on.<br>
+    It is highly recommended to couple the moderation actions with the message logs, this means that whenever your mods decide to perform an action on someone, a message log of the channel they ran the command in will be recorded and added to the mod log.
+</p>
+
+<p> The moderation actions coupled with the message logs have been one of the most useful tools for me personally when running servers with thousands of members. </p>
+<p> <a href="https://docs.yagpdb.xyz/moderation" target="_blank">More documentation</a> </p>
+
 <div class="row">
     <div class="col-sm">
         <div class="form-group">
@@ -152,16 +184,18 @@ the punishment{{end}}
         {{checkbox "GiveRoleCmdEnabled" "give-role-enabled" "Enable the <code>giverole/addrole and removerole</code> commands" .ModConfig.GiveRoleCmdEnabled}}
         <p>People with manage roles permissions plus extra roles set below can use this.</p>
         <div class="form-group">
-            <label>Users with the following roles will have permission to use the
-                <code>giverole/addrole and removerole</code> commands</label><br>
+            <label>
+                Users with the following roles will have permission to use the <code>giverole/addrole and removerole</code> commands
+            </label>
+            <br>
             <select class="multiselect" name="GiveRoleCmdRoles" data-plugin-multiselect multiple="multiple">
                 {{roleOptionsMulti .ActiveGuild.Roles nil .ModConfig.GiveRoleCmdRoles}}
             </select>
         </div>
         {{checkbox "GiveRoleCmdModlog" "give-role-modlog" "Log <code>giverole/addrole and removerole</code> to modlog?" .ModConfig.GiveRoleCmdModlog}}
         <hr />
-
     </div>
+
     <div class="col-sm">
         <div class="form-group">
             <label>Channel to send messages for the mods/admins in (reports and such)</label>
@@ -170,6 +204,7 @@ the punishment{{end}}
             </select>
         </div>
         <hr />
+
         {{checkbox "CleanEnabled" "clean-enabled" "Enable clean command?" .ModConfig.CleanEnabled}}
         <p>
             <code>(mention or prefix) clean NUM {@user <- optional}</code><br />
@@ -177,15 +212,16 @@ the punishment{{end}}
             Clean command can delete up to a 1000 messages back in history (max 100 messages at a time).<br />
             See <code>-help clean</code> for more advanced usage.
         </p>
-
         <hr />
+
         {{checkbox "LogBans" "log-bans" "Log ban events not made through the bot" .ModConfig.LogBans}}
         <p>For the author and reason to show up when this is used you need to give the bot "audit log" permissions.</p>
+        <hr />
 
         {{checkbox "LogKicks" "log-kicks" "Log kick events not made through the bot" .ModConfig.LogKicks}}
         <p>For the author and reason to show up when this is used you need to give the bot "audit log" permissions.</p>
-
         <hr />
+
         {{checkbox "SlowmodeCommandEnabled" "slowmode-enabled" "Enable slowmode command?" .ModConfig.SlowmodeCommandEnabled}}
         <p>
             <code>(mention or prefix)slowmode 10 1h</code><br />
@@ -201,13 +237,14 @@ the punishment{{end}}
 {{define "moderation_mute"}}
 <p>Muting users allows you to punish users by removing their ability to talk.</p>
 <p>How YAGPDB Mutes users is it gives them a role which has the "Send messages" permission removed on all channels</p>
-<p>The simplest way to use it is to have the bot manage the mute role (see below), but for more advanced usages you can
-    blacklist channels and fully manage it on your own.</p>
+<p>The simplest way to use it is to have the bot manage the mute role (see below), but for more advanced usages you can blacklist channels and fully manage it on your own.</p>
 <div class="row">
     <div class="col-sm">
         {{checkbox "MuteEnabled" "mute-enabled" "Enable Mute/Unmute" .ModConfig.MuteEnabled}}
-        <p><code>(mention or prefix) mute/unmute @user 10 some reason</code><br />
-            Only users with kick permission can use this (or with roles specified below).<br /></p>
+        <p>
+            <code>(mention or prefix) mute/unmute @user 10 some reason</code><br>
+            Only users with kick permission can use this (or with roles specified below).<br>
+        </p>
         <hr />
 
         <div class="form-group">
@@ -230,8 +267,8 @@ the punishment{{end}}
                 {{textChannelOptionsMulti .ActiveGuild.Channels .ModConfig.MuteIgnoreChannels}}
             </select>
         </div>
-
         <hr />
+
         <div class="form-group">
             <label>Users with the following roles will have permission to use mute related commands</label><br>
             <select class="multiselect" name="MuteCmdRoles" data-plugin-multiselect multiple="multiple">
@@ -239,11 +276,10 @@ the punishment{{end}}
             </select>
         </div>
         <hr />
+
         <div class="form-group">
-            <label>Remove the following roles from the user when muted, and give them back when the mute
-                ends.</label><br>
-            <select name="MuteRemoveRoles" class="multiselect form-control populate" multiple="multiple"
-                data-plugin-multiselect>
+            <label>Remove the following roles from the user when muted, and give them back when the mute ends.</label><br>
+            <select name="MuteRemoveRoles" class="multiselect form-control populate" multiple="multiple" data-plugin-multiselect>
                 {{roleOptionsMulti .ActiveGuild.Roles .HighestRole .ModConfig.MuteRemoveRoles}}
             </select>
         </div>
@@ -255,35 +291,33 @@ the punishment{{end}}
 
         <div class="form-group">
             <label>Default mute duration in minutes. Set to 0 for infinite</label>
-            <input type="number" name="DefaultMuteDuration.Int64" class="form-control"
-                value="{{.ModConfig.DefaultMuteDuration.Int64}}">
+            <input type="number" name="DefaultMuteDuration.Int64" class="form-control" value="{{.ModConfig.DefaultMuteDuration.Int64}}">
         </div>
         <hr />
     </div>
+
     <div class="col-sm">
         <div class="form-group">
-            <label>Mute DM (Leave empty for default)</label>
-            <textarea rows="5" class="form-control" name="MuteMessage"
-                placeholder="{{.DefaultDMMessage}}">{{or .ModConfig.MuteMessage .DefaultDMMessage}}</textarea>
+            <label>Mute DM (Leave empty for default) [<span class="announce-length-counter">x</span>/5000]</label>
+            <textarea rows="5" class="form-control" name="MuteMessage" placeholder="{{.DefaultDMMessage}}" oninput="onCCChanged(this)">{{or .ModConfig.MuteMessage .DefaultDMMessage}}</textarea>
             <p class="help-block">
-                Available template data:<br />
-                {{template "template_helper_user"}} - The user being muted<br />
-                <code>{{"{{.Reason}}"}}</code> - The reason specified in the mute<br />
+                Available template data:<br>
+                {{template "template_helper_user"}} - The user being muted<br>
+                <code>{{"{{.Reason}}"}}</code> - The reason specified in the mute<br>
                 {{template "template_helper_mod_author"}}<br>
                 <code>{{"{{.Duration}}"}}</code> - The duration<br>
-                <code>{{"{{.HumanDuration}}"}}</code> - The duration in a human friendly format
-                (<code>1 hour and 3 minutes</code> for example)<br>
+                <code>{{"{{.HumanDuration}}"}}</code> - The duration in a human friendly format (<code>1 hour and 3 minutes</code> for example)<br>
             </p>
         </div>
         <hr />
+
         <div class="form-group">
-            <label>Unmute DM (Leave empty for default)</label>
-            <textarea rows="5" class="form-control" name="UnmuteMessage"
-                placeholder="{{.DefaultDMMessage}}">{{or .ModConfig.UnmuteMessage .DefaultDMMessage}}</textarea>
+            <label>Unmute DM (Leave empty for default) [<span class="announce-length-counter">x</span>/5000]</label>
+            <textarea rows="5" class="form-control" name="UnmuteMessage" placeholder="{{.DefaultDMMessage}}" oninput="onCCChanged(this)">{{or .ModConfig.UnmuteMessage .DefaultDMMessage}}</textarea>
             <p class="help-block">
-                Available template data:<br />
-                {{template "template_helper_user"}} - The user being unmuted<br />
-                <code>{{"{{.Reason}}"}}</code> - The reason specified in the unmute<br />
+                Available template data:<br>
+                {{template "template_helper_user"}} - The user being unmuted<br>
+                <code>{{"{{.Reason}}"}}</code> - The reason specified in the unmute<br>
                 {{template "template_helper_mod_author"}}<br>
             </p>
         </div>
@@ -292,20 +326,19 @@ the punishment{{end}}
 {{end}}
 
 {{define "moderation_kick"}}
-<p>Allows you to kick members through a command, there's several benefits using this over just kicking them in Discord:
-</p>
+<p>Allows you to kick members through a command, there's several benefits using this over just kicking them in Discord: </p>
 <ul>
     <li>They get sent a DM that they were kicked</li>
-    <li>If you have the modlog enabled, a log containing the last 100 messages from the channel will be included in the
-        modlog entry</li>
+    <li>If you have the modlog enabled, a log containing the last 100 messages from the channel will be included in the modlog entry</li>
     <li>You can remove their messages from the channel at the same time</li>
 </ul>
 
 <div class="row">
     <div class="col-sm">
         {{checkbox "KickEnabled" "kick-enabled" "Enable Kick command" .ModConfig.KickEnabled}}
-        <p><code>(mention or prefix) kick @user some reason</code><br />
-            Only users with kick permission can use this (or with roles specified below).<br />
+        <p>
+            <code>(mention or prefix) kick @user some reason</code><br>
+            Only users with kick permission can use this (or with roles specified below).<br>
             Same as ban command, but kicks instead.
         </p>
         <hr />
@@ -324,44 +357,40 @@ the punishment{{end}}
         {{checkbox "KickReasonOptional" "KickReasonOptional" "Make the <code>reason</code> optional" .ModConfig.KickReasonOptional}}
         <hr />
     </div>
+
     <div class="col-sm">
         <div class="form-group">
-            <label>Kick DM (Leave empty for default)</label>
-            <textarea rows="5" class="form-control" name="KickMessage"
-                placeholder="{{.DefaultDMMessage}}">{{or .ModConfig.KickMessage .DefaultDMMessage}}</textarea>
+            <label>Kick DM (Leave empty for default) [<span class="announce-length-counter">x</span>/5000]</label>
+            <textarea rows="5" class="form-control" name="KickMessage" placeholder="{{.DefaultDMMessage}}" oninput="onCCChanged(this)">{{or .ModConfig.KickMessage .DefaultDMMessage}}</textarea>
 
-            <p class="help-block">Available template data:<br />
-                {{template "template_helper_user"}} - The user being banned/kicked<br />
-                <code>{{"{{.Reason}}"}}</code> - The reason specified in the ban/kick<br />
-                {{template "template_helper_mod_author"}}</p>
+            <p class="help-block">Available template data:<br>
+                {{template "template_helper_user"}} - The user being banned/kicked<br>
+                <code>{{"{{.Reason}}"}}</code> - The reason specified in the ban/kick<br>
+                {{template "template_helper_mod_author"}}
+            </p>
         </div>
     </div>
 </div>
 {{end}}
 
 {{define "moderation_ban"}}
-<p>Allows you to ban users through the commands <code>ban @user somereason</code> and
-    <code>banid 1034924032 somereason</code>, it has the following advantages over just banning them through discord:
-</p>
+<p>Allows you to ban users through the commands <code>ban @user somereason</code> and <code>banid 1034924032 somereason</code>, it has the following advantages over just banning them through discord: </p>
 <ul>
     <li>They get sent a DM that they were banned</li>
-    <li>If you have the modlog enabled, a log containing the last 100 messages from the channel will be included
-        in the modlog entry</li>
+    <li>If you have the modlog enabled, a log containing the last 100 messages from the channel will be included in the modlog entry</li>
     <li>You can ban using user ids (even if they left the server)</li>
     <li>You can put a duration on the bans</li>
 </ul>
-<p>Note that the bans themselves are on discord. To unban someone you can run the unban command
-    <code>unban @user somereason</code> or <code> unban 1034924032 somereason</code> or go into
-    your banlist on discord and unban them.</p>
+<p>Note that the bans themselves are on discord. To unban someone you can run the unban command <code>unban @user somereason</code> or <code> unban 1034924032 somereason</code> or go into your banlist on discord and unban them.</p>
 <div class="row">
     <div class="col-sm">
         {{checkbox "BanEnabled" "BanEnabled" "Enable the Ban/Unban commands" .ModConfig.BanEnabled}}
         <p>
-            <code>ban/unban @user some reason</code><br />
-            Only users with ban permission can use this. (or with roles specified below)<br />
+            <code>ban/unban @user some reason</code><br>
+            Only users with ban permission can use this. (or with roles specified below)<br>
             The ban command will ban a user as well as sending a message that the user was banned in the
             action channel.The unban command unbans a banned user and optionally sends a message to the
-	    action channel.
+	        action channel.
         </p>
         <hr />
 
@@ -378,23 +407,21 @@ the punishment{{end}}
 
         <div class="form-group">
             <label>Default number of days of messages to delete while banning. Range 0 to 7.</label>
-            <input type="number" name="DefaultBanDeleteDays.Int64" class="form-control"
-                value="{{.ModConfig.DefaultBanDeleteDays.Int64}}">
+            <input type="number" name="DefaultBanDeleteDays.Int64" class="form-control" value="{{.ModConfig.DefaultBanDeleteDays.Int64}}">
         </div>
         <hr />
     </div>
+
     <div class="col-sm">
         <div class="form-group">
-            <label>Ban DM (Leave empty for default)</label>
-            <textarea rows="5" class="form-control" name="BanMessage"
-                placeholder="{{.DefaultDMMessage}}">{{or .ModConfig.BanMessage .DefaultDMMessage}}</textarea>
-            <p class="help-block">Available template data:<br />
-                {{template "template_helper_user"}} - The user being banned/kicked<br />
-                <code>{{"{{.Reason}}"}}</code> - The reason specified in the ban/kick<br />
+            <label>Ban DM (Leave empty for default) [<span class="announce-length-counter">x</span>/5000]</label>
+            <textarea rows="5" class="form-control" name="BanMessage" placeholder="{{.DefaultDMMessage}}" oninput="onCCChanged(this)">{{or .ModConfig.BanMessage .DefaultDMMessage}}</textarea>
+            <p class="help-block">Available template data:<br>
+                {{template "template_helper_user"}} - The user being banned/kicked<br>
+                <code>{{"{{.Reason}}"}}</code> - The reason specified in the ban/kick<br>
                 {{template "template_helper_mod_author"}}<br>
                 <code>{{"{{.Duration}}"}}</code> - The duration<br>
-                <code>{{"{{.HumanDuration}}"}}</code> - The duration in a human friendly format
-                (<code>1 hour and 3 minutes</code> for example)<br>
+                <code>{{"{{.HumanDuration}}"}}</code> - The duration in a human friendly format (<code>1 hour and 3 minutes</code> for example)<br>
             </p>
         </div>
     </div>
@@ -402,23 +429,21 @@ the punishment{{end}}
 {{end}}
 
 {{define "moderation_warn"}}
-<p>Allows you to put warnings on users that shows up in the modlog. Warnings of a user can be accessed through
-    <code>warnings @user</code></p>
+<p>Allows you to put warnings on users that shows up in the modlog. Warnings of a user can be accessed through <code>warnings @user</code></p>
 <div class="row">
     <div class="col-sm">
         {{checkbox "WarnCommandsEnabled" "WarnCommandsEnabled" "Enable the warning commands" .ModConfig.WarnCommandsEnabled}}
         <p>
-            Only users with manage messages permission can use this (or with roles specified below).<br />
-            <code>warn @user some reason</code><br />
-            Creates a new warning for the user<br />
-            <code>warnings @user</code><br />
-            Displays a list of a specified user's warnings<br />
+            Only users with manage messages permission can use this (or with roles specified below).<br>
+            <code>warn @user some reason</code><br>
+            Creates a new warning for the user<br>
+            <code>warnings @user</code><br>
+            Displays a list of a specified user's warnings<br>
         </p>
         <hr />
 
         <div class="form-group">
-            <label>Users with the following roles will have permission to use warning related
-                commands</label><br>
+            <label>Users with the following roles will have permission to use warning related commands</label><br>
             <select class="multiselect" name="WarnCmdRoles" data-plugin-multiselect multiple="multiple">
                 {{roleOptionsMulti .ActiveGuild.Roles nil .ModConfig.WarnCmdRoles}}
             </select>
@@ -429,14 +454,14 @@ the punishment{{end}}
         {{checkbox "WarnSendToModlog" "WarnSendToModlog" "Send warnings to the modlog" .ModConfig.WarnSendToModlog}}
         <hr />
     </div>
+
     <div class="col-sm">
         <div class="form-group">
-            <label>Warning DM (Leave empty for default)</label>
-            <textarea rows="5" class="form-control" name="WarnMessage"
-                placeholder="{{.DefaultDMMessage}}">{{or .ModConfig.WarnMessage .DefaultDMMessage}}</textarea>
-            <p class="help-block">Available template data:<br />
-                {{template "template_helper_user"}} - The user being warned<br />
-                <code>{{"{{.Reason}}"}}</code> - The reason specified in the warning<br />
+            <label>Warning DM (Leave empty for default) [<span class="announce-length-counter">x</span>/5000]</label>
+            <textarea rows="5" class="form-control" name="WarnMessage" placeholder="{{.DefaultDMMessage}}" oninput="onCCChanged(this)">{{or .ModConfig.WarnMessage .DefaultDMMessage}}</textarea>
+            <p class="help-block">Available template data:<br>
+                {{template "template_helper_user"}} - The user being warned<br>
+                <code>{{"{{.Reason}}"}}</code> - The reason specified in the warning<br>
                 {{template "template_helper_mod_author"}}<br>
             </p>
         </div>
@@ -444,8 +469,7 @@ the punishment{{end}}
 </div>
 <div class="row">
     <div class="col">
-        <a class="mb-1 mt-1 mr-1 modal-basic btn btn-info btn-sm" href="#clear-server-warnings-modal">Delete all
-            warnings</a>
+        <a class="mb-1 mt-1 mr-1 modal-basic btn btn-info btn-sm" href="#clear-server-warnings-modal">Delete all warnings</a>
     </div>
 </div>
 {{end}}
@@ -459,14 +483,15 @@ the punishment{{end}}
         <p>People with manage roles permissions plus extra roles set below can use this.</p>
         <p>Usage is, for example: <code>(prefix)lockdown "rolename" -all -d 6h</code></p>
         <hr />
+
         <div class="form-group">
-            <label>Users with the following roles will have permission to use the
-                <code>lockdown/lock and unlock</code> commands</label><br>
+            <label>Users with the following roles will have permission to use the <code>lockdown/lock and unlock</code> commands</label><br>
             <select class="multiselect" name="LockdownCmdRoles" data-plugin-multiselect multiple="multiple">
                 {{roleOptionsMulti .ActiveGuild.Roles nil .ModConfig.LockdownCmdRoles}}
             </select>
         </div>
         <hr />
+
         <div class="form-group">
             <label for="DefaultLockRole">Default Lock Role</label>
             <select class="form-control" name="DefaultLockRole">
@@ -479,14 +504,16 @@ the punishment{{end}}
     <div class="col-sm">
         {{checkbox "LockdownCmdModlog" "lock-down-modlog" "Log <code>lockdown and unlock</code> to modlog?" .ModConfig.LockdownCmdModlog}}
         <hr />
+
         {{checkbox "LockIncludeChannelLogs" "LockIncludeChannelLogs" "Create message logs in the channel that the command was run in" .ModConfig.LockIncludeChannelLogs}}
-	<hr />
-	 <div class="form-group">
+	    <hr />
+
+	    <div class="form-group">
             <label>Default Lockdown duration in minutes. Set to 0 for infinite</label>
-            <input type="number" name="DefaultLockdownDuration.Int64" class="form-control"
-                value="{{.ModConfig.DefaultLockdownDuration.Int64}}">
+            <input type="number" name="DefaultLockdownDuration.Int64" class="form-control" value="{{.ModConfig.DefaultLockdownDuration.Int64}}">
         </div>
         <hr />
+
         {{checkbox "LockHasResponse" "LockHasResponse" "Should the bot respond to the usage of the command?" .ModConfig.LockHasResponse}}
         <hr />
     </div>

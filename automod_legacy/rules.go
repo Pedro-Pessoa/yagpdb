@@ -70,13 +70,15 @@ func (r BaseRule) IgnoreChannelsParsed() []int64 {
 }
 
 func (r BaseRule) PushViolation(key string) (p Punishment, err error) {
-	violations := 0
+	var violations int
 	err = common.RedisPool.Do(radix.Cmd(&violations, "INCR", key))
 	if err != nil {
 		return
 	}
 
-	_ = common.RedisPool.Do(radix.FlatCmd(nil, "EXPIRE", key, r.ViolationsExpire))
+	if r.ViolationsExpire > 0 {
+		_ = common.RedisPool.Do(radix.FlatCmd(nil, "EXPIRE", key, r.ViolationsExpire*60))
+	}
 
 	mute := r.MuteAfter > 0 && violations >= r.MuteAfter
 	kick := r.KickAfter > 0 && violations >= r.KickAfter

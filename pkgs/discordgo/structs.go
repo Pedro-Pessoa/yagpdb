@@ -725,6 +725,7 @@ type Presence struct {
 	User         *User        `json:"user"`
 	Status       Status       `json:"status"`
 	Activities   []*Activity  `json:"activities"`
+	Since        *int         `json:"since"`
 	ClientStatus ClientStatus `json:"client_status"`
 }
 

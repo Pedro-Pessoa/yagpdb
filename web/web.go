@@ -33,11 +33,11 @@ var (
 	ListenAddressHTTPS = ":5001"
 
 	// Muxers
-	RootMux           *goji.Mux
-	CPMux             *goji.Mux
-	ServerPublicMux   *goji.Mux
-	ServerPubliAPIMux *goji.Mux
-	Error404Mux       *goji.Mux
+	RootMux            *goji.Mux
+	CPMux              *goji.Mux
+	ServerPublicMux    *goji.Mux
+	ServerPublicAPIMux *goji.Mux
+	Error404Mux        *goji.Mux
 
 	properAddresses bool
 
@@ -88,6 +88,7 @@ func init() {
 		"hasPerm":          hasPerm,
 		"formatTime":       prettyTime,
 		"checkbox":         tmplCheckbox,
+		"checkboxInverted": tmplCheckboxInverted,
 		"roleOptions":      tmplRoleDropdown,
 		"roleOptionsMulti": tmplRoleDropdownMutli,
 
@@ -279,17 +280,17 @@ func setupRoutes() *goji.Mux {
 	ServerPublicMux = serverPublicMux
 
 	// same as above but for API stuff
-	ServerPubliAPIMux = goji.SubMux()
-	ServerPubliAPIMux.Use(ActiveServerMW)
-	ServerPubliAPIMux.Use(RequireActiveServer)
-	ServerPubliAPIMux.Use(LoadCoreConfigMiddleware)
-	ServerPubliAPIMux.Use(SetGuildMemberMiddleware)
-	ServerPublicMux.Use(NotFound())
+	ServerPublicAPIMux = goji.SubMux()
+	ServerPublicAPIMux.Use(ActiveServerMW)
+	ServerPublicAPIMux.Use(RequireActiveServer)
+	ServerPublicAPIMux.Use(LoadCoreConfigMiddleware)
+	ServerPublicAPIMux.Use(SetGuildMemberMiddleware)
+	ServerPublicAPIMux.Use(NotFound())
 
-	RootMux.Handle(pat.Get("/api/:server"), ServerPubliAPIMux)
-	RootMux.Handle(pat.Get("/api/:server/*"), ServerPubliAPIMux)
+	RootMux.Handle(pat.Get("/api/:server"), ServerPublicAPIMux)
+	RootMux.Handle(pat.Get("/api/:server/*"), ServerPublicAPIMux)
 
-	ServerPubliAPIMux.Handle(pat.Get("/channelperms/:channel"), RequireActiveServer(APIHandler(HandleChanenlPermissions)))
+	ServerPublicAPIMux.Handle(pat.Get("/channelperms/:channel"), RequireActiveServer(APIHandler(HandleChanenlPermissions)))
 
 	// Server selection has its own handler
 	RootMux.Handle(pat.Get("/manage"), RenderHandler(HandleSelectServer, "cp_selectserver"))
@@ -341,6 +342,7 @@ func setupRoutes() *goji.Mux {
 			}
 
 			CPMux.Handle(pat.Get("/homewidgets/"+p.PluginInfo().SysName), handler)
+			CPMux.Use(NotFound())
 		}
 	}
 

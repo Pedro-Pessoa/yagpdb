@@ -216,7 +216,6 @@ var ModerationCommands = []*commands.TIDCommand{
 		Description:        "Bloqueia o servidor ou algum cargo específico.",
 		LongDescription:    "Requer permissão de gerenciamento de cargos. Esse comando vai retirar a permissão do \"everyone\" de enviar mensagens.\nVocê pode escolher um cargo para ser bloqueado usando o nome ou o ID dele.\n\nVocê também pode usar flags para retirar mais permissões:\n**-reaction** -> Retira a permissão de adicionar reações\n**-voicespeak** -> Retira a permissão de falar\n**-voiceconnect** -> Retira a permissão de se conectar a uma canal de voz\n**-all* -> Retira todas as permissões anteriores\n**-force** -> As permissões originais do cargo são sobrepostas durante o unlock",
 		GuildScopeCooldown: 10,
-		RequiredArgs:       0,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "Cargo", Help: "Cargo opcional", Type: dcmd.String},
 		},
@@ -277,7 +276,6 @@ var ModerationCommands = []*commands.TIDCommand{
 		Description:        "Unlocks the server or a specific role.",
 		LongDescription:    "Requer permissão de gerenciamento de cargos.\nEsse comando vai adicionar a permissão do \"everyone\" de enviar mensagens.\nVocê pode escolher um cargo para ser bloqueado usando o nome ou o ID dele.\n\nVocê também pode usar flags para adicionar mais permissões:\n**-reaction** -> Adiciona a permissão de adicionar reações\n**-voicespeak** -> Adiciona a permissão de falar\n**-voiceconnect** -> Adiciona a permissão de se conectar a uma canal de voz\n**-all* -> Adiciona todas as permissões anteriores\n**-force** -> As permissões originais do cargo são sobrepostas.",
 		GuildScopeCooldown: 10,
-		RequiredArgs:       0,
 		Arguments: []*dcmd.ArgDef{
 			{Name: "Cargo", Help: "Optional role", Type: dcmd.String},
 		},
@@ -521,6 +519,7 @@ var ModerationCommands = []*commands.TIDCommand{
 			{Switch: "minage", Default: time.Duration(0), Name: "Min age", Type: &commands.DurationArg{}},
 			{Switch: "i", Name: "Regex case insensitive"},
 			{Switch: "nopin", Name: "Ignore pinned messages"},
+			{Switch: "bot", Name: "Only remove messages made by bots"},
 			{Switch: "to", Name: "Stop at this msg ID", Type: dcmd.Int},
 			{Switch: "a", Name: "Filter Attachments", Type: dcmd.String},
 		},
@@ -570,6 +569,14 @@ var ModerationCommands = []*commands.TIDCommand{
 				}
 			}
 
+			// Check if we should clean only bot messages
+			var onlyBots bool
+			if parsed.Switches["bot"].Value != nil && parsed.Switches["bot"].Value.(bool) {
+				onlyBots = true
+				filtered = true
+			}
+
+			// Check if we should only delete messages with or without attachments
 			checkAttachs := false
 			attach := false
 			if parsed.Switches["a"].Value != nil {
@@ -618,7 +625,7 @@ var ModerationCommands = []*commands.TIDCommand{
 			// Wait a second so the client dosen't gltich out
 			time.Sleep(time.Second)
 
-			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, checkAttachs, attach, toID, ma, minAge, pe, num, limitFetch)
+			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, checkAttachs, attach, toID, ma, minAge, pe, onlyBots, num, limitFetch)
 
 			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), err
 		},
@@ -1087,7 +1094,7 @@ var ModerationCommands = []*commands.TIDCommand{
 	},
 }
 
-func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, checkAttachs, attach bool, toID int64, maxAge time.Duration, minAge time.Duration, pinFilterEnable bool, deleteNum, fetchNum int) (int, error) {
+func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, checkAttachs, attach bool, toID int64, maxAge time.Duration, minAge time.Duration, pinFilterEnable bool, onlyBotsFilterEnable bool, deleteNum, fetchNum int) (int, error) {
 	var compiledRegex *regexp.Regexp
 	if regex != "" {
 		// Start by compiling the regex
@@ -1150,6 +1157,11 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, che
 			if _, found := pinnedMessages[msgs[i].ID]; found {
 				continue
 			}
+		}
+
+		// Check if only bots deletion
+		if onlyBotsFilterEnable && !msgs[i].Author.Bot {
+			continue
 		}
 
 		// Continue only if current msg ID is < toID

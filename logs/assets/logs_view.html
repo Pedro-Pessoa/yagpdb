@@ -71,14 +71,14 @@ function deleteMessage(msg){
     req.send(data);
 }
 
-var caretUp = '<i class="fa fa-caret-up"></i>' 
-var caretDown = '<i class="fa fa-caret-down"></i>' 
+var caretUp = '<i class="fa fa-caret-up"></i>'
+var caretDown = '<i class="fa fa-caret-down"></i>'
 var timeBase = 'Time (UTC) '
 var sortedUpwards = true;
 $(function(){
     $("#time-col").click(function(){
         console.log("clicked");
-        
+
         sortedUpwards = !sortedUpwards;
 
         if (sortedUpwards) {
@@ -101,7 +101,7 @@ function sortTable(table, reverse) {
         var indexB = b.id.replace("log-row-", "");
         var parsedA = parseInt(indexA);
         var parsedB = parseInt(indexB);
-        
+
         return reverse ? parsedA - parsedB : parsedB - parsedA;
     });
     for(i = 0; i < tr.length; ++i) tb.appendChild(tr[i]); // append each row in order

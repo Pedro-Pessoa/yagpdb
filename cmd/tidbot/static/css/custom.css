@@ -229,7 +229,7 @@ html.sidebar-left-collapsed #nav-footer {
 @media only screen and (max-width: 768px) {
   .card-body {
     padding: 0.5rem !important;
-  }  
+  }
 }
 
 .content-editable-form::before {
@@ -548,8 +548,32 @@ html.dark select optgroup {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  
+
   background-color: #000000d9;
+  border-radius: 1em;
+  padding: 1em;
+  pointer-events: auto;
+}
+
+#reordered-roles-popup{
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+#reordered-roles-popup-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #000000;
   border-radius: 1em;
   padding: 1em;
   pointer-events: auto;
