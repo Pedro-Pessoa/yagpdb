@@ -8,7 +8,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/alfredxing/calc v0.0.0-20180827002445-77daf576f976
-	github.com/araddon/dateparse v0.0.0-20201001162425-8aadafed4dc4
+	github.com/araddon/dateparse v0.0.0-20210207001429-0eec95c9db7e
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dghubble/oauth1 v0.7.0
 	github.com/didip/tollbooth v4.0.2+incompatible
@@ -23,7 +23,7 @@ require (
 	github.com/google/safebrowsing v0.0.0-20190624211811-bbf0d20d26b3
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/hashicorp/go-cleanhttp v0.5.1
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/jarcoal/httpmock v1.0.8 // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jmoiron/sqlx v1.3.1
@@ -38,7 +38,7 @@ require (
 	github.com/karlseguin/rcache v1.0.1
 	github.com/lib/pq v1.9.0
 	github.com/lunixbochs/vtclean v1.0.0
-	github.com/mailru/easyjson v0.7.6
+	github.com/mailru/easyjson v0.7.7
 	github.com/mediocregopher/radix/v3 v3.7.0
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/miolini/datacounter v1.0.2
@@ -47,11 +47,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
 	github.com/russross/blackfriday v1.6.0
-	github.com/shirou/gopsutil v3.20.12+incompatible
+	github.com/shirou/gopsutil v3.21.1+incompatible
 	github.com/shurcooL/github_flavored_markdown v0.0.0-20181002035957-2122de532470
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.7.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/buntdb v1.1.8
+	github.com/tidwall/buntdb v1.2.0
 	github.com/tkuchiki/go-timezone v0.2.0
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/volatiletech/null v8.0.0+incompatible
@@ -60,11 +60,11 @@ require (
 	github.com/volatiletech/strmangle v0.0.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
+	golang.org/x/image v0.0.0-20210216034530-4410531fe030
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/oauth2 v0.0.0-20210126194326-f9ce19ea3013
+	golang.org/x/oauth2 v0.0.0-20210210192628-66670185b0cd
 	golang.org/x/text v0.3.5
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
-	google.golang.org/api v0.38.0
+	google.golang.org/api v0.40.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )
