@@ -38,15 +38,14 @@ type assignRoleEventdata struct {
 
 func (p *Plugin) BotInit() {
 	// Autorole
-	eventsystem.AddHandlerAsyncLast(p, onMemberJoin, eventsystem.EventGuildMemberAdd) // Handle autorole when member join
+	eventsystem.AddHandlerAsyncLast(p, onMemberJoin, eventsystem.EventGuildMemberAdd) // Handles autorole when member join
 	// eventsystem.AddHandlerAsyncLast(p, HandlePresenceUpdate, eventsystem.EventPresenceUpdate) // deprecated
-	eventsystem.AddHandlerAsyncLastLegacy(p, handleGuildChunk, eventsystem.EventGuildMembersChunk)  // Handle GuildChunk events for autorole
-	eventsystem.AddHandlerAsyncLast(p, handleGuildMemberUpdate, eventsystem.EventGuildMemberUpdate) // Handle MemberUpdate events for autorole
+	eventsystem.AddHandlerAsyncLastLegacy(p, handleGuildChunk, eventsystem.EventGuildMembersChunk)  // Handles GuildChunk events for autorole
+	eventsystem.AddHandlerAsyncLast(p, handleGuildMemberUpdate, eventsystem.EventGuildMemberUpdate) // Handles MemberUpdate events for autorole
 
 	// Stickyroles
-	eventsystem.AddHandlerAsyncLast(p, onMemberJoinSticky, eventsystem.EventGuildMemberAdd)               // Handle stickyroles when member join
-	eventsystem.AddHandlerAsyncLastLegacy(p, handleGuildChunkSticky, eventsystem.EventGuildMembersChunk)  // Handle GuildChunk events for stickyroles
-	eventsystem.AddHandlerAsyncLast(p, handleGuildMemberUpdateSticky, eventsystem.EventGuildMemberUpdate) // Handle MemberUpdate events for stickyroles
+	eventsystem.AddHandlerAsyncLast(p, onMemberJoinSticky, eventsystem.EventGuildMemberAdd)               // Handles stickyroles when member join
+	eventsystem.AddHandlerAsyncLast(p, handleGuildMemberRemoveSticky, eventsystem.EventGuildMemberRemove) // Handles stickyroles when member leave
 
 	scheduledevents2.RegisterHandler("autorole_assign_role", assignRoleEventdata{}, handleAssignRole)
 
@@ -423,22 +422,17 @@ func onMemberJoinSticky(evt *eventsystem.EventData) (retry bool, err error) {
 		}
 
 		logger.Errorf("Failed fetching member data for sticky roles. Member: %d, Guild: %d, Err: %#v", addEvt.User.ID, addEvt.GuildID, err)
-		return false, err
-	}
-
-	if len(memberTable.Roles) == 0 || memberTable.Roles == nil || len(evt.GS.Guild.Roles) == 0 || evt.GS.Guild.Roles == nil {
-		return false, nil
-	}
-
-	memberRoles, err := deserializeValue(memberTable.Roles)
-	if err != nil {
 		return true, err
+	}
+
+	if len(memberTable.Roles) == 0 || len(evt.GS.Guild.Roles) == 0 {
+		return false, nil
 	}
 
 	assignRoleList := make([]int64, 0)
 	evt.GS.RLock()
 	// Filter out roles that no longer exist
-	for _, memberRole := range memberRoles {
+	for _, memberRole := range memberTable.Roles {
 		for _, guildRole := range evt.GS.Guild.Roles {
 			if memberRole == guildRole.ID {
 				assignRoleList = append(assignRoleList, memberRole)
@@ -448,28 +442,21 @@ func onMemberJoinSticky(evt *eventsystem.EventData) (retry bool, err error) {
 	}
 	evt.GS.RUnlock()
 
+	// We dont need this table on our database anymore
+	go func() {
+		err = common.GORM.Delete(&memberTable).Error
+		if err != nil {
+			logger.Warnf("Failed deleting sticky role member table for member %d on guild %d... Err -> %#v", memberTable.MemberID, evt.GS.ID, err)
+		}
+	}()
+
 	// If the member has managed roles, we have to send them in the API call
 	// otherwise it will return with invalid permissions
-	for _, roleEvt := range addEvt.Member.Roles {
-		assignRoleList = append(assignRoleList, roleEvt)
-	}
-
-	tableRoles, err := serializeValue(assignRoleList)
-	if err != nil && len(tableRoles) > 0 {
-		return true, err
-	}
-
-	memberTable.Roles = tableRoles
-	err = common.GORM.Save(memberTable).Error
-	if err != nil {
-		return true, err
-	}
+	assignRoleList = append(assignRoleList, addEvt.Member.Roles...)
 
 	if reflect.DeepEqual(addEvt.Member.Roles, assignRoleList) { // no action needed
 		return false, nil
 	}
-
-	logger.Infof("Assign list role -> %d", assignRoleList)
 
 	if config.CanAssignStickyTo(assignRoleList) {
 		_, retry, err = assignStickyRoles(config, evt.GS.ID, addEvt.User.ID, assignRoleList)
@@ -502,7 +489,7 @@ func assignStickyRoles(config *GeneralConfig, guildID int64, targetID int64, rol
 }
 
 // Check if we can assign stickyroles to current member
-func (conf *GeneralConfig) CanAssignStickyTo(currentRoles []int64) (boolean bool) {
+func (conf *GeneralConfig) CanAssignStickyTo(currentRoles []int64) bool {
 	// If there is no blacklisted nor required roles, we can assign
 	if len(conf.BlacklistedRoles) < 1 && len(conf.WhitelistedRoles) < 1 {
 		return true
@@ -529,96 +516,10 @@ func (conf *GeneralConfig) CanAssignStickyTo(currentRoles []int64) (boolean bool
 	return true
 }
 
-// Called when guildchunk is evoked to check if we should start the work on stickyroles
-func handleGuildChunkSticky(evt *eventsystem.EventData) {
-	chunk := evt.GuildMembersChunk()
-	err := common.RedisPool.Do(radix.Cmd(nil, "SETEX", RedisKeyGuildChunkProecssing(chunk.GuildID), "100", "1"))
-	if err != nil {
-		logger.WithError(err).Error("failed marking autorole chunk processing")
-	}
+// Handles member table when a memberremove event is received
+func handleGuildMemberRemoveSticky(evt *eventsystem.EventData) (retry bool, err error) {
+	update := evt.GuildMemberRemove()
 
-	config, err := GetGeneralConfig(chunk.GuildID)
-	if err != nil {
-		return
-	}
-
-	if !config.StickyrolesEnabled {
-		return
-	}
-
-	go createMembersTablesFromGuildChunk(evt.GS, config, chunk.Members)
-}
-
-// Creates/updates tables for all members of the server
-func createMembersTablesFromGuildChunk(gs *dstate.GuildState, config *GeneralConfig, members []*discordgo.Member) {
-	lastTimeUpdatedBlockingKey := time.Now()
-	lastTimeUpdatedConfig := time.Now()
-
-	if !config.StickyrolesEnabled {
-		return
-	}
-
-	for _, m := range members {
-		time.Sleep(time.Second * 2)
-
-		logger.Println("creating member table for ", m.User.ID, " from guild chunk event")
-
-		memberTable := MemberTable{}
-		_ = common.GORM.Where(&MemberTable{MemberID: m.User.ID}).First(&memberTable).Error
-
-		rolesDeserealized, _ := deserializeValue(memberTable.Roles)
-		if reflect.DeepEqual(rolesDeserealized, m.Roles) { // no action needed
-			continue
-		}
-
-		memberRoles, err := serializeValue(m.Roles)
-		if err != nil {
-			logger.Errorf("Error serializing value for memberRoles: %#v", err)
-			continue
-		}
-
-		memberTable = MemberTable{
-			MemberID: m.User.ID,
-			Roles:    memberRoles,
-		}
-
-		err = common.GORM.Save(&memberTable).Error
-		if err != nil {
-			logger.Errorf("Failed creating table for member %d, on guild %d. Err: %#v", m.User.ID, gs.Guild.ID, err)
-		}
-
-		if time.Since(lastTimeUpdatedConfig) > time.Second*10 {
-			// Refresh the config occasionally to make sure it dosen't go stale
-			newConf, err := GetGeneralConfig(gs.Guild.ID)
-			if err == nil {
-				config = newConf
-			} else {
-				return
-			}
-
-			lastTimeUpdatedConfig = time.Now()
-
-			config = newConf
-			if !config.StickyrolesEnabled {
-				logger.WithField("guild", gs.Guild.ID).Info("stickyroles was disabled in the middle of full retroactive assignment, cancelling")
-				return
-			}
-		}
-
-		if time.Since(lastTimeUpdatedBlockingKey) > time.Second*10 {
-			lastTimeUpdatedBlockingKey = time.Now()
-
-			err := common.RedisPool.Do(radix.Cmd(nil, "SETEX", RedisKeyGuildChunkProecssing(gs.Guild.ID), "100", "1"))
-			if err != nil {
-				logger.WithError(err).Error("failed marking autorole chunk processing")
-			}
-		}
-	}
-}
-
-// Handles member table when a memberupdate event is received
-func handleGuildMemberUpdateSticky(evt *eventsystem.EventData) (retry bool, err error) {
-	update := evt.GuildMemberUpdate()
 	config, err := GuildCacheGetGeneralConfig(evt.GS)
 	if err != nil {
 		return true, errors.WithStackIf(err)
@@ -628,36 +529,27 @@ func handleGuildMemberUpdateSticky(evt *eventsystem.EventData) (retry bool, err 
 		return false, nil
 	}
 
-	// We sleep because this is called when the member leaves the server,
-	// and we dont want to update their database if thats the case
-	// after sleeping we will check if they are still part of the guild
-	time.Sleep(200 * time.Millisecond)
-
-	newGS := bot.State.Guild(false, evt.GS.ID)
-	if newGS != nil {
-		if newGS.Members[update.User.ID] == nil { // Member left, do not update database
-			return false, nil
-		}
+	oldMember := bot.State.BeforeStateMemberMap[update.Member.User.ID]
+	if oldMember == nil || oldMember.MemberState == nil {
+		return false, nil
 	}
 
-	go analytics.RecordActiveUnit(update.GuildID, &Plugin{}, "created_strickyroles_table")
-
-	memberRoles, err := serializeValue(update.Roles)
-	if err != nil {
-		logger.Errorf("Error serializing value for memberRoles: %#v", err)
-		return true, err
+	if len(oldMember.MemberState.Roles) == 0 {
+		return false, nil
 	}
 
-	// if we branched here then all the checks passed and we should create the member table
 	memberTable := MemberTable{
 		MemberID: update.User.ID,
-		Roles:    memberRoles,
+		Roles:    oldMember.MemberState.Roles,
 	}
 
 	err = common.GORM.Save(&memberTable).Error
 	if err != nil {
 		logger.Errorf("Failed creating table for member %d, on guild %d. Err: %#v", update.User.ID, evt.GS.ID, err)
+		return true, err
 	}
 
-	return false, err
+	go analytics.RecordActiveUnit(update.GuildID, &Plugin{}, "created_strickyroles_table")
+
+	return false, nil
 }

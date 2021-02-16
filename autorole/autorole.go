@@ -1,12 +1,10 @@
 package autorole
 
 import (
-	"bytes"
-
 	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/Pedro-Pessoa/tidbot/common/config"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
-	"github.com/vmihailenco/msgpack"
+	"github.com/lib/pq"
 )
 
 var _ = config.RegisterOption("yagpdb.autorole.non_premium_retroactive_assignment", "Wether to enable retroactive assignemnt on non premium guilds", true)
@@ -52,27 +50,8 @@ type GeneralConfig struct {
 
 // Member table for sticky roles
 type MemberTable struct {
-	MemberID int64 `gorm:"primary_key"`
-	Roles    []byte
-}
-
-func serializeValue(v []int64) ([]byte, error) {
-	var b bytes.Buffer
-	enc := msgpack.NewEncoder(&b)
-	err := enc.Encode(v)
-	return b.Bytes(), err
-}
-
-func deserializeValue(v []byte) ([]int64, error) {
-	var out []int64
-	if len(v) == 0 {
-		return out, nil
-	}
-	err := msgpack.Unmarshal(v, &out)
-	if err != nil {
-		return out, err
-	}
-	return out, nil
+	MemberID int64         `gorm:"primary_key"`
+	Roles    pq.Int64Array `gorm:"type:bigint[]" valid:"role,true"`
 }
 
 func GetGeneralConfig(guildID int64) (*GeneralConfig, error) {

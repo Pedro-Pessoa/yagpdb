@@ -116,7 +116,7 @@
                     <p>Therefore you can use this to perform a full scan of your server, this may become an automatic premium option at some point.</p>
                     <p>You will have to wait a couple minutes in-between each completed scan, to cancel this you can set the role to "None" and it should stop within a minute.</p>
                     {{if .FullScanActive}}<p class="text-danger">Already performing a full scan</p>
-                    {{else if and (eq .Autorole.Role 0) (not .Autorole.StickyrolesEnabled)}}<p class="text-danger">Neither autorole nor stickyroles enabled.</p>
+                    {{else if eq .Autorole.Role 0}}<p class="text-danger">Autorole is not enabled.</p>
                     {{else}}<button type="submit" class="btn btn-warning btn-lg btn-block" data-async-form-alertsonly>Perform full scan</button>
                     {{end}}
                 </div>

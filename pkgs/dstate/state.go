@@ -438,6 +438,22 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 
 		g := s.Guild(true, evt.GuildID)
 		if g != nil {
+			if s.TrackBeforeStates {
+				if evt.Member.User != nil {
+					old := g.Member(true, evt.Member.User.ID)
+					if old != nil {
+						oldCopy := *old
+						if s.BeforeStateMemberMap == nil {
+							s.BeforeStateMemberMap = make(map[int64]*BeforeStateMember)
+						}
+
+						s.BeforeStateMemberMap[evt.Member.User.ID] = &BeforeStateMember{
+							CreatedAt:   time.Now(),
+							MemberState: &oldCopy,
+						}
+					}
+				}
+			}
 			g.MemberRemove(true, evt.User.ID)
 		}
 
