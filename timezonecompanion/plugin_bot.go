@@ -84,7 +84,8 @@ func (p *Plugin) AddCommands() {
 				}
 			}
 
-			var out, manyZones, zone string
+			var manyZones, zone string
+			var out strings.Builder
 			userInput := parsed.Args[0].Str()
 			zones := FindZone(userInput)
 			if len(zones) < 1 {
@@ -101,16 +102,17 @@ func (p *Plugin) AddCommands() {
 					return nil, err
 				}
 
-				out = "More than 1 result, reuse the command for fine tuning with a one of the following:\n"
+				out.WriteString("More than 1 result, reuse the command for fine tuning with a one of the following:\n")
 				levDistance := 1000
+				re := regexp.MustCompile(`.*` + userInput + `.*:`)
 				for _, v := range zones {
 					if s := StrZone(v); s != "" {
-						re := regexp.MustCompile(`.*` + userInput + `.*:`)
 						if levD := levenshtein([]rune(userInput), []rune(re.FindString(s))); levD <= levDistance {
 							levDistance = levD
 							manyZones = v
 						}
-						out += s + "\n"
+
+						out.WriteString(s + "\n")
 					}
 				}
 			}
@@ -137,8 +139,8 @@ func (p *Plugin) AddCommands() {
 			}
 
 			if manyZones != "" {
-				out += "\n" + fmt.Sprintf("Set your timezone to closest match `%s`: %s\n", zone, name)
-				return out, nil
+				out.WriteString("\n" + fmt.Sprintf("Set your timezone to closest match `%s`: %s\n", zone, name))
+				return out.String(), nil
 			}
 
 			return fmt.Sprintf("Set your timezone to `%s`: %s\n", zone, name), nil
@@ -245,11 +247,11 @@ func paginatedTimezones(timezones []string) func(p *paginatedmessages.PaginatedM
 	return func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
 		numSkip := (page - 1) * 10
 
-		out := ""
+		var out strings.Builder
 		numAdded := 0
 		for i := numSkip; i < len(timezones); i++ {
 			if s := StrZone(timezones[i]); s != "" {
-				out += s + "\n"
+				out.WriteString(s + "\n")
 				numAdded++
 				if numAdded >= 10 {
 					break
@@ -258,7 +260,7 @@ func paginatedTimezones(timezones []string) func(p *paginatedmessages.PaginatedM
 		}
 
 		return &discordgo.MessageEmbed{
-			Description: "Please redo the command with one of the following:\n" + out,
+			Description: "Please redo the command with one of the following:\n" + out.String(),
 		}, nil
 	}
 }

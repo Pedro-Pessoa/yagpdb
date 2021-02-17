@@ -393,7 +393,7 @@ func GetTibiaMultiple(c *templates.Context, chars []string, deathsonly bool) (in
 	close(fila)
 
 	if deathsonly {
-		var output []InternalDeaths
+		output := make([]InternalDeaths, 0, len(fila))
 		for e := range fila {
 			if len(e.Deaths) > 0 {
 				output = append(output, e.Deaths[0])
@@ -403,7 +403,7 @@ func GetTibiaMultiple(c *templates.Context, chars []string, deathsonly bool) (in
 		return output, nil
 	}
 
-	var output []InternalChar
+	output := make([]InternalChar, 0, len(fila))
 	for e := range fila {
 		output = append(output, e)
 	}

@@ -39,13 +39,12 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 		return nil, err
 	}
 
-	var structure []byte
 	var deserialized, check []InternalChar
 
 	if !alreadySet {
 		tracking.ServerID = server
-		tracking.Tracks = structure
-		tracking.Hunteds = structure
+		tracking.Tracks = []byte{}
+		tracking.Hunteds = []byte{}
 	}
 
 	if isHunted {
@@ -90,27 +89,21 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 
 	already := "Esse char já está sendo acompanhado!"
 
-	if len(deserialized) > 0 {
-		for _, v := range deserialized {
-			if strings.EqualFold(v.Name, insideChar.Name) {
-				return already, nil
-			}
+	for _, v := range deserialized {
+		if strings.EqualFold(v.Name, insideChar.Name) {
+			return already, nil
 		}
 	}
 
-	if len(check) > 0 {
-		for _, e := range check {
-			if strings.EqualFold(e.Name, insideChar.Name) {
-				return already, nil
-			}
+	for _, e := range check {
+		if strings.EqualFold(e.Name, insideChar.Name) {
+			return already, nil
 		}
 	}
 
-	if len(guild) > 0 {
-		for _, k := range guild {
-			if strings.EqualFold(k.Name, insideChar.Name) {
-				return already, nil
-			}
+	for _, k := range guild {
+		if strings.EqualFold(k.Name, insideChar.Name) {
+			return already, nil
 		}
 	}
 

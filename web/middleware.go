@@ -716,37 +716,38 @@ func RequirePermMW(perms ...int64) func(http.Handler) http.Handler {
 				currentPerms = permsInterface.(int64)
 			}
 
-			has := ""
-			missing := ""
+			var has, missing strings.Builder
 
 			for _, perm := range perms {
 				if currentPerms&perm != 0 {
-					if has != "" {
-						has += ", "
+					if has.String() != "" {
+						has.WriteString(", ")
 					}
-					has += common.StringPerms[perm]
-				} else {
-					if missing != "" {
-						missing += ", "
-					}
-					missing += common.StringPerms[perm]
 
+					has.WriteString(common.StringPerms[perm])
+				} else {
+					if missing.String() != "" {
+						missing.WriteString(", ")
+					}
+
+					missing.WriteString(common.StringPerms[perm])
 				}
 			}
 
 			c, tmpl := GetCreateTemplateData(ctx)
 			ctx = c
 
-			if missing != "" {
+			if missing.String() != "" {
 				tmpl.AddAlerts(&Alert{
 					Style:   AlertWarning,
-					Message: fmt.Sprint("This plugin is missing the following permissions: ", missing, ", It may continue to work without the functionality that requires those permissions."),
+					Message: "This plugin is missing the following permissions: " + missing.String() + ", It may continue to work without the functionality that requires those permissions.",
 				})
 			}
-			if has != "" {
+
+			if has.String() != "" {
 				tmpl.AddAlerts(&Alert{
 					Style:   AlertInfo,
-					Message: fmt.Sprint("The bot has the following permissions used by this plugin: ", has),
+					Message: "The bot has the following permissions used by this plugin: " + has.String(),
 				})
 			}
 

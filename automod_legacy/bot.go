@@ -1,6 +1,7 @@
 package automod_legacy
 
 import (
+	"strings"
 	"time"
 
 	"github.com/karlseguin/ccache"
@@ -98,11 +99,10 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 
 	member := dstate.MSFromDGoMember(cs.Guild, m.Member)
 
-	del := false // Set if a rule triggered a message delete
-	punishMsg := ""
+	var del, didCheck bool // del is set if a rule triggered a message delete
+	var muteDuration int
+	var punishMsg strings.Builder
 	highestPunish := PunishNone
-	muteDuration := 0
-	didCheck := false
 
 	rules := []Rule{config.Spam, config.Invite, config.Mention, config.Links, config.Words, config.Sites}
 
@@ -129,7 +129,7 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 			continue
 		}
 
-		punishMsg += msg + "\n"
+		punishMsg.WriteString(msg + "\n")
 
 		if punishment > highestPunish {
 			highestPunish = punishment
@@ -147,21 +147,23 @@ func CheckMessage(evt *eventsystem.EventData, m *discordgo.Message) bool {
 
 	go analytics.RecordActiveUnit(cs.Guild.ID, &Plugin{}, "rule_triggered")
 
-	if punishMsg != "" {
+	punishMsgString := punishMsg.String()
+
+	if punishMsgString != "" {
 		// Strip last newline
-		punishMsg = punishMsg[:len(punishMsg)-1]
+		punishMsgString = punishMsgString[:len(punishMsgString)-1]
 	}
 
 	go func() {
 		switch highestPunish {
 		case PunishNone:
-			err = moderation.WarnUser(nil, cs.Guild.ID, cs, m, common.BotUser, member.DGoUser(), "Automoderator: "+punishMsg)
+			err = moderation.WarnUser(nil, cs.Guild.ID, cs, m, common.BotUser, member.DGoUser(), "Automoderator: "+punishMsgString)
 		case PunishMute:
-			err = moderation.MuteUnmuteUser(nil, true, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsg, member, muteDuration)
+			err = moderation.MuteUnmuteUser(nil, true, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsgString, member, muteDuration)
 		case PunishKick:
-			err = moderation.KickUser(nil, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsg, member.DGoUser())
+			err = moderation.KickUser(nil, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsgString, member.DGoUser())
 		case PunishBan:
-			err = moderation.BanUser(nil, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsg, member.DGoUser())
+			err = moderation.BanUser(nil, cs.Guild.ID, cs, m, common.BotUser, "Automoderator: "+punishMsgString, member.DGoUser())
 		}
 
 		// Execute the punishment before removing the message to make sure it's included in logs

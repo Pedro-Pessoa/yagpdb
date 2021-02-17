@@ -3,6 +3,7 @@ package automod
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,7 +52,7 @@ func (p *Plugin) AddCommands() {
 				enabledStr = "disabled"
 			}
 
-			return fmt.Sprintf("Ruleset **%s** is now `%s`", ruleset.Name, enabledStr), nil
+			return "Ruleset **" + ruleset.Name + "** is now `" + enabledStr + "`", nil
 		},
 	}
 
@@ -79,7 +80,7 @@ func (p *Plugin) AddCommands() {
 					onOff = "Disabled"
 				}
 
-				out.WriteString(fmt.Sprintf("%s: %s\n", v.Name, onOff))
+				out.WriteString(v.Name + ": " + onOff + "\n")
 			}
 			out.WriteString("```")
 
@@ -189,7 +190,7 @@ func (p *Plugin) AddCommands() {
 				return "No Active Violations or No Violations fetched with specified conditions", nil
 			}
 
-			out := ""
+			var out strings.Builder
 
 			violations := make(map[string]int)
 			for _, entry := range listViolations {
@@ -197,17 +198,17 @@ func (p *Plugin) AddCommands() {
 			}
 
 			for name, count := range violations {
-				out += fmt.Sprintf("Violation: %-20s Count: %d\n", name, count)
+				out.WriteString(fmt.Sprintf("Violation: %-20s Count: %s\n", name, strconv.Itoa(count)))
 			}
 
-			if out == "" {
+			if out.String() == "" {
 				return "No Violations found with specified conditions", nil
 			}
 
-			out = "```" + out + fmt.Sprintf("%-31s Count: %d\n", "Total", len(listViolations)) + "```"
+			output := "```" + out.String() + fmt.Sprintf("%-31s Count: %s\n", "Total", strconv.Itoa(len(listViolations))) + "```"
 			return &discordgo.MessageEmbed{
 				Title:       "Violations Summary",
-				Description: out,
+				Description: output,
 			}, nil
 		},
 	}
@@ -248,21 +249,21 @@ func (p *Plugin) AddCommands() {
 				return nil, paginatedmessages.ErrNoResults
 			}
 
-			out := ""
+			var out strings.Builder
+			var output string
 			if len(listViolations) > 0 {
 				for _, entry := range listViolations {
-
-					out += fmt.Sprintf("#%-4d: [%-19s] Rule ID: %d \nViolation Name: %s\n\n", entry.ID, entry.CreatedAt.UTC().Format(time.RFC822), entry.RuleID.Int64, entry.Name)
+					out.WriteString(fmt.Sprintf("#%-4s: [%-19s] Rule ID: %s \nViolation Name: %s\n\n", strconv.FormatInt(entry.ID, 10), entry.CreatedAt.UTC().Format(time.RFC822), strconv.FormatInt(entry.RuleID.Int64, 10), entry.Name))
 				}
 
-				out = "```" + out + "```"
+				output = "```" + out.String() + "```"
 			} else {
-				out = "No violations"
+				output = "No violations"
 			}
 
 			return &discordgo.MessageEmbed{
 				Title:       "Violation Logs",
-				Description: out,
+				Description: output,
 			}, nil
 		}),
 	}
@@ -360,7 +361,7 @@ func (p *Plugin) AddCommands() {
 				return nil, err
 			}
 
-			return fmt.Sprintf("%d Violations Cleared!!", cleared), nil
+			return strconv.FormatInt(cleared, 10) + " Violations Cleared!!", nil
 		},
 	}
 

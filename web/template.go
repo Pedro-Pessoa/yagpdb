@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,7 +65,7 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 	}
 
 	hasEmptyName := len(args) > 1
-	emptyName := ""
+	var emptyName string
 	if hasEmptyName {
 		emptyName = templates.ToString(args[1])
 	}
@@ -75,13 +76,15 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 		emptyName = templates.ToString(args[2])
 	}
 
-	output := ""
+	var output strings.Builder
 	if hasEmptyName {
-		output += `<option value=""`
+		output.WriteString(`<option value=""`)
+
 		if currentSelected == 0 {
-			output += `selected`
+			output.WriteString(`selected`)
 		}
-		output += ">" + template.HTMLEscapeString(emptyName) + "</option>\n"
+
+		output.WriteString(">" + template.HTMLEscapeString(emptyName) + "</option>\n")
 	}
 
 	found := false
@@ -95,33 +98,33 @@ func tmplRoleDropdown(roles []*discordgo.Role, highestBotRole *discordgo.Role, a
 			continue
 		}
 
-		output += `<option value="` + discordgo.StrID(role.ID) + `"`
+		output.WriteString(`<option value="` + discordgo.StrID(role.ID) + `"`)
 		if role.ID == currentSelected {
-			output += " selected"
+			output.WriteString(" selected")
 			found = true
 		}
 
 		if role.Color != 0 {
 			hexColor := fmt.Sprintf("%06x", int64(role.Color))
-			output += " style=\"color: #" + hexColor + "\""
+			output.WriteString(" style=\"color: #" + hexColor + "\"")
 		}
 
 		optName := template.HTMLEscapeString(role.Name)
 		if highestBotRole != nil {
 			if dutil.IsRoleAbove(role, highestBotRole) || role.ID == highestBotRole.ID {
-				output += " disabled"
+				output.WriteString(" disabled")
 				optName += " (role is above bot)"
 			}
 		}
 
-		output += ">" + optName + "</option>\n"
+		output.WriteString(">" + optName + "</option>\n")
 	}
 
 	if !found && currentSelected != 0 {
-		output += `<option value="` + discordgo.StrID(currentSelected) + `" selected>` + unknownName + "</option>\n"
+		output.WriteString(`<option value="` + discordgo.StrID(currentSelected) + `" selected>` + unknownName + "</option>\n")
 	}
 
-	return template.HTML(output)
+	return template.HTML(output.String())
 }
 
 // Same as tmplRoleDropdown but supports multiple selections
@@ -137,7 +140,7 @@ OUTER:
 			}
 		}
 
-		builder.WriteString(fmt.Sprintf(`<option value="0" selected>Deleted role: %d</option>\n`, sr))
+		builder.WriteString(`<option value="0" selected>Deleted role: ` + strconv.FormatInt(sr, 10) + `</option>\n`)
 	}
 
 	for k, role := range roles {

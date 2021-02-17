@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -80,12 +81,13 @@ func (p *Plugin) AddCommands() {
 
 			rand.Seed(time.Now().UnixNano())
 
-			out := fmt.Sprintf("**Sentiment analysis on %d message(s):**\n", len(toAnalyze))
+			var out strings.Builder
+			out.WriteString("**Sentiment analysis on " + strconv.Itoa(len(toAnalyze)) + " message(s):**\n")
 			for _, resp := range toAnalyze {
-				out += fmt.Sprintf("*%s*\nPolarity: **%s** *(Confidence: %s%%)* Subjectivity: **%s** *(Confidence: %s%%)*\n\n", resp, RandPolarity(), RandConfidencePol(), RandSubjective(), RandConfidenceSub())
+				out.WriteString("*" + resp + "*\nPolarity: **" + RandPolarity() + "** *(Confidence: " + RandConfidencePol() + "%)* Subjectivity: **" + RandSubjective() + "** *(Confidence: " + RandConfidenceSub() + "%)*\n\n")
 			}
 
-			return out, nil
+			return out.String(), nil
 		},
 	},
 		&commands.TIDCommand{
@@ -99,7 +101,7 @@ func (p *Plugin) AddCommands() {
 			RequiredArgs: 1,
 			RunFunc: func(cmd *dcmd.Data) (interface{}, error) {
 				rand.Seed(time.Now().UnixNano())
-				return fmt.Sprintf("**8Ball**:\n_%s_\n%s", cmd.Args[0].Str(), Rand8Ball()), nil
+				return "**8Ball**:\n_" + cmd.Args[0].Str() + "_\n" + Rand8Ball(), nil
 			},
 		},
 	)

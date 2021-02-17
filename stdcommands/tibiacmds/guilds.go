@@ -34,25 +34,25 @@ var SpecificGuildCommand = &commands.TIDCommand{
 		}
 
 		desc := guild.Description
-		descOut := ""
+		var descOut strings.Builder
 		if len(desc) > 1700 {
 			split := strings.Split(desc, " ")
-			for i := range split {
-				if len(descOut) < 1700 {
-					descOut += fmt.Sprintf("%s, ", split[i])
+			for _, s := range split {
+				if len(descOut.String()) < 1700 {
+					descOut.WriteString(s + " ")
 				} else {
-					descOut += "..."
+					descOut.WriteString("...")
 					break
 				}
 			}
 		} else {
-			descOut = desc
+			descOut.WriteString(desc)
 		}
 
 		embed := &discordgo.MessageEmbed{
 			Title:       guild.Name,
 			Color:       int(rand.Int63n(16777215)),
-			Description: descOut,
+			Description: descOut.String(),
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "Número de membros",

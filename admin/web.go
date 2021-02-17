@@ -341,7 +341,7 @@ func (p *Plugin) handleReconnectShard(w http.ResponseWriter, r *http.Request) {
 		queryParams = "?reidentify=1"
 	}
 
-	resp, err := http.Post(fmt.Sprintf("http://%s/shard/%s/reconnect%s", sh.InternalAPIAddress, shardID, queryParams), "", nil)
+	resp, err := http.Post("http://"+sh.InternalAPIAddress+"/shard/"+shardID+"/reconnect"+queryParams, "", nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("Error querying internal api: " + err.Error()))

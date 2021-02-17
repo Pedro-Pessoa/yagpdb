@@ -68,17 +68,14 @@ var TibiaSetGuild = &commands.TIDCommand{
 }
 
 var TibiaSetDeathChannel = &commands.TIDCommand{
-	CmdCategory: commands.CategoryTibia,
-	Name:        "TibiaSetDeathChannel",
-	Aliases:     []string{"tsdc", "deathchannel", "dc"},
-	Description: "O canal onde esse comando for usado será utilizado para enviar avisos de morte.",
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "TibiaSetDeathChannel",
+	Aliases:             []string{"tsdc", "deathchannel", "dc"},
+	Description:         "O canal onde esse comando for usado será utilizado para enviar avisos de morte.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
-		}
-
-		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
-			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
 		out, err := tibia.SetServerDeathChannel(data.GS.ID, data.CS.ID)
@@ -91,17 +88,14 @@ var TibiaSetDeathChannel = &commands.TIDCommand{
 }
 
 var TibiaSetUpdatesChannel = &commands.TIDCommand{
-	CmdCategory: commands.CategoryTibia,
-	Name:        "TibiaSetUpdatesChannel",
-	Aliases:     []string{"tsuc", "updateshannel", "updatehannel", "uc"},
-	Description: "O canal onde esse comando for usado será utilizado para enviar avisos de players.",
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "TibiaSetUpdatesChannel",
+	Aliases:             []string{"tsuc", "updateshannel", "updatehannel", "uc"},
+	Description:         "O canal onde esse comando for usado será utilizado para enviar avisos de players.",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		if util.IsExecedByCC(data) {
 			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
-		}
-
-		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
-			return "Apenas o dono do servidor pode usar esse comando.", nil
 		}
 
 		out, err := tibia.SetServerUpdatesChannel(data.GS.ID, data.CS.ID)
@@ -114,13 +108,14 @@ var TibiaSetUpdatesChannel = &commands.TIDCommand{
 }
 
 var TibiaToggleDeaths = &commands.TIDCommand{
-	CmdCategory: commands.CategoryTibia,
-	Name:        "TibiaToggleDeaths",
-	Aliases:     []string{"ttd", "senddeaths", "sd"},
-	Description: "Determina se o bot enviará notícias de mortes de players ou não",
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "TibiaToggleDeaths",
+	Aliases:             []string{"ttd", "senddeaths", "sd"},
+	Description:         "Determina se o bot enviará notícias de mortes de players ou não",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
-			return "Apenas o dono do servidor pode usar esse comando.", nil
+		if util.IsExecedByCC(data) {
+			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
 		out, err := tibia.ToggleDeaths(data.GS.ID)
@@ -133,13 +128,14 @@ var TibiaToggleDeaths = &commands.TIDCommand{
 }
 
 var TibiaToggleUpdates = &commands.TIDCommand{
-	CmdCategory: commands.CategoryTibia,
-	Name:        "TibiaToggleUpdates",
-	Aliases:     []string{"ttu", "sendupdates", "su"},
-	Description: "Determina se o bot enviará notícias de players ou não",
+	CmdCategory:         commands.CategoryTibia,
+	Name:                "TibiaToggleUpdates",
+	Aliases:             []string{"ttu", "sendupdates", "su"},
+	Description:         "Determina se o bot enviará notícias de players ou não",
+	RequireDiscordPerms: []int64{discordgo.PermissionManageServer},
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		if data.Msg.Author.ID != data.GS.Guild.OwnerID {
-			return "Apenas o dono do servidor pode usar esse comando.", nil
+		if util.IsExecedByCC(data) {
+			return "", errors.New("Esse comando não pode ser executado através de um Custom Command.")
 		}
 
 		out, err := tibia.ToggleUpdates(data.GS.ID)
@@ -193,7 +189,12 @@ var TibiaCreateNewsFeed = &commands.TIDCommand{
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		cID := data.Msg.ChannelID
 		if data.Args[0].Value != nil {
-			cID = data.Args[0].Value.(*dstate.ChannelState).ID
+			cast, ok := data.Args[0].Value.(*dstate.ChannelState)
+			if !ok || cast == nil {
+				return "Invalid channel provided", nil
+			}
+
+			cID = cast.ID
 		}
 
 		out, err := tibia.CreateNewsFeed(data.GS.ID, cID)
@@ -249,7 +250,12 @@ var TibiaChangeNewsFeedChannel = &commands.TIDCommand{
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		cID := data.Msg.ChannelID
 		if data.Args[0].Value != nil {
-			cID = data.Args[0].Value.(*dstate.ChannelState).ID
+			cast, ok := data.Args[0].Value.(*dstate.ChannelState)
+			if !ok || cast == nil {
+				return "Invalid channel provided", nil
+			}
+
+			cID = cast.ID
 		}
 
 		out, err := tibia.ChangeNewsFeedChannel(data.GS.ID, cID)

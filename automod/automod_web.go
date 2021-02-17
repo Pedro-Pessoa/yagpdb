@@ -195,7 +195,7 @@ func (p *Plugin) handlePostAutomodCreateList(w http.ResponseWriter, r *http.Requ
 	}
 
 	if totalLists >= int64(GuildMaxLists(g.ID)) {
-		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Reached max number of lists, %d for normal servers and %d for premium servers", MaxLists, MaxListsPremium)))
+		tmpl.AddAlerts(web.ErrorAlert("Reached max number of lists, " + MaxListsString + " for normal servers and " + MaxListsPremiumString + " for premium servers"))
 		return tmpl, nil
 	}
 
@@ -310,7 +310,7 @@ func (p *Plugin) handlePostAutomodCreateRule(w http.ResponseWriter, r *http.Requ
 	}
 
 	if totalRules >= int64(GuildMaxTotalRules(g.ID)) {
-		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Reached max number of rules, %d for normal servers and %d for premium servers", MaxTotalRules, MaxTotalRulesPremium)))
+		tmpl.AddAlerts(web.ErrorAlert("Reached max number of rules, " + MaxTotalRulesString + " for normal servers and " + MaxTotalRulesPremiumString + " for premium servers"))
 		return tmpl, nil
 	}
 
@@ -592,12 +592,12 @@ func CheckLimits(exec boil.ContextExecutor, rule *models.AutomodRule, tmpl web.T
 
 	ok = true
 	if numMessageTriggers > maxTotalMT {
-		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Max message based triggers reached (%d for normal and %d for premium)", MaxMessageTriggers, MaxMessageTriggersPremium)))
+		tmpl.AddAlerts(web.ErrorAlert("Max message based triggers reached (" + MaxMessageTriggersString + " for normal and " + MaxMessageTriggersPremiumString + " for premium)"))
 		ok = false
 	}
 
 	if numViolationTriggers > maxTotalVT {
-		tmpl.AddAlerts(web.ErrorAlert(fmt.Sprintf("Max violation based triggers reached (%d for normal and %d for premium)", MaxViolationTriggers, MaxViolationTriggersPremium)))
+		tmpl.AddAlerts(web.ErrorAlert("Max violation based triggers reached (" + MaxViolationTriggersString + " for normal and " + MaxViolationTriggersPremiumString + " for premium)"))
 		ok = false
 	}
 
@@ -669,7 +669,8 @@ OUTER:
 			}
 		}
 
-		dupes := []interface{}{parsedPart.ParsedSettings}
+		dupes := make([]interface{}, 0, len(parsedSettings)+1)
+		dupes = append(dupes, parsedPart.ParsedSettings)
 		// find duplicate types
 		for _, v := range parsedSettings {
 			if v.Part == parsedPart.Part && v != parsedPart {
@@ -809,12 +810,12 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	const format = `<ul>
     <li>Active and enabled Rulesets: <code>%d</code></li>
     <li>Total rules: <code>%d</code></li>
-</ul>`
+	</ul>`
 
 	const formatPT = `<ul>
-<li>Regras ativadas: <code>%d</code></li>
-<li>Quantidade de regas total: <code>%d</code></li>
-</ul>`
+	<li>Regras ativadas: <code>%d</code></li>
+	<li>Quantidade de regas total: <code>%d</code></li>
+	</ul>`
 
 	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, rulesets, rules))
 	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, rulesets, rules))

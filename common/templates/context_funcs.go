@@ -1106,6 +1106,10 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 		uID := targetUserID(args[2].Interface())
 
 		for _, reaction := range args[3:] {
+			if c.IncreaseCheckGenericAPICall() {
+				return reflect.Value{}, ErrTooManyAPICalls
+			}
+
 			if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
 				return reflect.Value{}, ErrTooManyCalls
 			}
@@ -1184,12 +1188,12 @@ func (c *Context) tmplGetMessage(channel, msgID interface{}) (*discordgo.Message
 }
 
 func (c *Context) tmplGetMessageReactors(channel, msg interface{}, emoji string, limit int, before, after interface{}) ([]*discordgo.User, error) {
-	if c.IncreaseCheckCallCounterPremium("msg_reactors", 2, 5) {
-		return nil, ErrTooManyCalls
-	}
-
 	if c.IncreaseCheckGenericAPICall() {
 		return nil, ErrTooManyAPICalls
+	}
+
+	if c.IncreaseCheckCallCounterPremium("msg_reactors", 2, 5) {
+		return nil, ErrTooManyCalls
 	}
 
 	channelID := c.ChannelArgNoDM(channel)
@@ -2312,7 +2316,7 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 		return "", errors.New("Length of slice passed was > 250 (Discord role limit)")
 	}
 
-	roles := make([]int64, 0)
+	roles := make([]int64, 0, rSlice.Len()+len(targetMember.Roles))
 	for i := 0; i < rSlice.Len(); i++ {
 		switch v := rSlice.Index(i).Interface().(type) {
 		case string:
@@ -2340,5 +2344,6 @@ func (c *Context) tmplSetRoles(target interface{}, roleSlice interface{}) (strin
 	if err != nil {
 		return "", err
 	}
+
 	return "", nil
 }

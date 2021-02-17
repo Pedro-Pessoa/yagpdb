@@ -13,7 +13,7 @@ var (
 	ErrInvalidName = errors.New("O nome fornecido é inválido")
 	NameRegex      = regexp.MustCompile(`[^\s'a-zA-Z\-\.]`)
 
-	TibiaWorlds = []string{
+	TibiaWorlds = [92]string{
 		"Adra",
 		"Antica",
 		"Assombra",
@@ -53,6 +53,7 @@ var (
 		"Javibra",
 		"Jonera",
 		"Kalibra",
+		"Karna",
 		"Kenora",
 		"Libertabra",
 		"Lobera",
@@ -62,11 +63,13 @@ var (
 		"Menera",
 		"Mitigera",
 		"Monza",
+		"Mudabra",
 		"Nefera",
 		"Noctera",
 		"Nossobra",
 		"Olera",
 		"Ombra",
+		"Optera",
 		"Pacembra",
 		"Pacera",
 		"Peloria",
@@ -76,6 +79,7 @@ var (
 		"Quintera",
 		"Ragna",
 		"Refugia",
+		"Reinobra",
 		"Relania",
 		"Relembra",
 		"Secura",

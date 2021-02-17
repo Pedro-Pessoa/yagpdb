@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -224,7 +225,7 @@ func (ds *DataStore) trackRoutine(input TibiaTracking) {
 		msgswg.Wait()
 		close(channel)
 
-		var output []InternalChar
+		output := make([]InternalChar, 0, len(channel))
 		for e := range channel {
 			output = append(output, e)
 		}
@@ -254,7 +255,7 @@ func (ds *DataStore) trackRoutine(input TibiaTracking) {
 		msgshuntedwg.Wait()
 		close(channel)
 
-		var output []InternalChar
+		output := make([]InternalChar, 0, len(channel))
 		for e := range channel {
 			output = append(output, e)
 		}
@@ -284,7 +285,7 @@ func (ds *DataStore) trackRoutine(input TibiaTracking) {
 		guildwg.Wait()
 		close(channel)
 
-		var output []InternalChar
+		output := make([]InternalChar, 0, len(channel))
 		for e := range channel {
 			output = append(output, e)
 		}
@@ -308,10 +309,10 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	defer msgsCleanUp(areHunteds, isGuild)
 	trackpool <- struct{}{}
 	defer func() { <-trackpool }()
-	var output, deathsoutput string
+	var output, deathsoutput strings.Builder
 	var char InternalChar
 	found := false
-	ds.total += 1
+	ds.total++
 	currentChar := ds.get(input.Name)
 
 	if currentChar != nil {
@@ -321,7 +322,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if !found {
 		income, err := GetTibiaChar(input.Name, true)
-		ds.counter += 1
+		ds.counter++
 		if err != nil || income == nil {
 			return
 		}
@@ -330,43 +331,43 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	}
 
 	if char.Name != input.Name {
-		output += "\nParece que ele estava insatisfeito com o nome e agora se chama **" + char.Name + "**!!"
+		output.WriteString("\nParece que ele estava insatisfeito com o nome e agora se chama **" + char.Name + "**!!")
 		input.Name = char.Name
 	}
 
 	if char.Level != input.Level {
 		if char.Level > input.Level {
-			output += "\nUPOOUU! Agora está no level: **" + strconv.Itoa(char.Level) + "**!"
+			output.WriteString("\nUPOOUU! Agora está no level: **" + strconv.Itoa(char.Level) + "**!")
 		}
 
 		input.Level = char.Level
 	}
 
 	if char.World != input.World {
-		output = "\nDesertor ou auxiliar de guerra? Ele fez uma viagem longa e atracou em **" + char.World + "**!!"
+		output.WriteString("\nDesertor ou auxiliar de guerra? Ele fez uma viagem longa e atracou em **" + char.World + "**!!")
 		input.World = char.World
 	}
 
 	if char.Residence != input.Residence {
-		output += "\nNão estava gostando da cidade natal né? O que você está achando de **" + char.Residence + "**?"
+		output.WriteString("\nNão estava gostando da cidade natal né? O que você está achando de **" + char.Residence + "**?")
 		input.Residence = char.Residence
 	}
 
 	if char.AchievementPoints > input.AchievementPoints {
-		output += "\nOlha o char lover ai!! Upando achievement, mano!! Agora tá com **" + strconv.Itoa(char.AchievementPoints) + "** pontos!"
+		output.WriteString("\nOlha o char lover ai!! Upando achievement, mano!! Agora tá com **" + strconv.Itoa(char.AchievementPoints) + "** pontos!")
 		input.AchievementPoints = char.AchievementPoints
 	}
 
 	if char.Sex != input.Sex {
-		output += "\nMomento de inclusão! Esse char agora é **" + char.Sex + "!**"
+		output.WriteString("\nMomento de inclusão! Esse char agora é **" + char.Sex + "!**")
 		input.Sex = char.Sex
 	}
 
 	if char.Married != input.Married {
 		if char.Married != "Ninguém" {
-			output += "\nSe casou com **" + char.Married + "!!**"
+			output.WriteString("\nSe casou com **" + char.Married + "!!**")
 		} else {
-			output += "\nSe divorciou!!!"
+			output.WriteString("\nSe divorciou!!!")
 		}
 
 		input.Married = char.Married
@@ -374,9 +375,9 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if char.Guild != input.Guild {
 		if char.Guild != "Sem guild" {
-			output += "\nAbre o olho ae em!! Mudou de guild e agora está na **" + char.Guild + "**"
+			output.WriteString("\nAbre o olho ae em!! Mudou de guild e agora está na **" + char.Guild + "**")
 		} else {
-			output += "\nNão faz mais parte de guild nenhuma!"
+			output.WriteString("\nNão faz mais parte de guild nenhuma!")
 		}
 
 		input.Guild = char.Guild
@@ -384,7 +385,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if char.Rank != input.Rank {
 		if char.Rank != "Sem guild" {
-			output += "\nMudou de cargo na guild e agora é um **" + char.Rank + "**!!"
+			output.WriteString("\nMudou de cargo na guild e agora é um **" + char.Rank + "**!!")
 		}
 
 		input.Rank = char.Rank
@@ -394,10 +395,10 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		if len(char.Deaths) > 0 {
 			if len(input.Deaths) > 0 {
 				if char.Deaths[0] != input.Deaths[0] {
-					deathsoutput = "Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**"
+					deathsoutput.WriteString("Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**")
 				}
 			} else {
-				deathsoutput = "Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**"
+				deathsoutput.WriteString("Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**")
 			}
 		}
 
@@ -407,7 +408,8 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	channel <- input
 
 	var title string
-	if flags.SendUpdates && len(output) > 0 {
+	out := output.String()
+	if flags.SendUpdates && len(out) > 0 {
 		if areHunteds {
 			title = "Tem novidade sobre " + input.Name + " (HUNTED)"
 		} else {
@@ -416,7 +418,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 		embed := &discordgo.MessageEmbed{
 			Title:       title,
-			Description: output,
+			Description: out,
 			Color:       int(rand.Int63n(16777215)),
 		}
 
@@ -431,7 +433,8 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		})
 	}
 
-	if flags.SendDeaths && len(deathsoutput) > 0 {
+	outDeath := deathsoutput.String()
+	if flags.SendDeaths && len(outDeath) > 0 {
 		if areHunteds {
 			title = "ENEMY MORTO: " + input.Name
 		} else {
@@ -440,7 +443,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 		embed := &discordgo.MessageEmbed{
 			Title:       title,
-			Description: deathsoutput,
+			Description: outDeath,
 			Color:       int(rand.Int63n(16777215)),
 		}
 
@@ -512,7 +515,7 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 	updatepool = make(chan struct{}, 100)
 
 	for _, k := range guild.Members {
-		ds.total += 1
+		ds.total++
 		if !alreadyTracked(deserialized, k) {
 			updatewg.Add(1)
 			go func() {
@@ -523,7 +526,7 @@ func updateGuild(g TibiaFlags, ds *DataStore) {
 				var err error
 				if a := ds.get(k.Name); a == nil {
 					char, err = GetTibiaChar(k.Name, true)
-					ds.counter += 1
+					ds.counter++
 					if err != nil || char == nil {
 						logger.Errorf("Error on update: %#v", err)
 						return

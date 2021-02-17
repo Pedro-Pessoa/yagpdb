@@ -2,7 +2,7 @@ package automod
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -773,7 +773,7 @@ func (send *SendChannelMessageEffect) Apply(ctxData *TriggeredRuleData, settings
 	var reason string
 
 	if settingsCast.PingUser {
-		reason = fmt.Sprintf("<@%d>\n", ctxData.MS.ID)
+		reason = "<@" + strconv.FormatInt(ctxData.MS.ID, 10) + ">\n"
 	}
 
 	reason += "Moderador automático:\n"

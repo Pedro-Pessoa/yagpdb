@@ -75,21 +75,19 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 		criado = (t.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT")
 	}
 
-	mortes := []InternalDeaths{}
-	if len(tibia.Characters.Deaths) > 0 {
-		for _, v := range tibia.Characters.Deaths {
-			t2, err := dateparse.ParseLocal(v.Date.Date)
-			if err != nil {
-				return nil, err
-			}
-
-			mortes = append(mortes, InternalDeaths{
-				Name:   tibia.Characters.Data.Name,
-				Level:  v.Level,
-				Reason: v.Reason,
-				Date:   (t2.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT"),
-			})
+	mortes := make([]InternalDeaths, 0, len(tibia.Characters.Deaths))
+	for _, v := range tibia.Characters.Deaths {
+		t2, err := dateparse.ParseLocal(v.Date.Date)
+		if err != nil {
+			return nil, err
 		}
+
+		mortes = append(mortes, InternalDeaths{
+			Name:   tibia.Characters.Data.Name,
+			Level:  v.Level,
+			Reason: v.Reason,
+			Date:   (t2.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT"),
+		})
 	}
 
 	output := InternalChar{
@@ -145,16 +143,16 @@ func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
 		guerra = "Sim."
 	}
 
-	var membros []GuildMember
+	membros := make([]GuildMember, 0, len(guild.Guild.Members))
 	for _, tipo := range guild.Guild.Members {
 		for _, v := range tipo.Characters {
-			var insert GuildMember
-			insert.Name = v.Name
-			insert.Nick = v.Nick
-			insert.Level = v.Level
-			insert.Vocation = v.Vocation
-			insert.Status = v.Status
-			membros = append(membros, insert)
+			membros = append(membros, GuildMember{
+				Name:     v.Name,
+				Nick:     v.Nick,
+				Level:    v.Level,
+				Vocation: v.Vocation,
+				Status:   v.Status,
+			})
 		}
 	}
 
@@ -187,9 +185,9 @@ func CheckOnline(mundo string) ([]OnlineChar, string, error) {
 		return nil, "", errors.New("Esse mundo não existe.")
 	}
 
-	var output []OnlineChar
-	for _, v := range world.World.PlayersOnline {
-		output = append(output, OnlineChar(v))
+	output := make([]OnlineChar, len(world.World.PlayersOnline))
+	for i, v := range world.World.PlayersOnline {
+		output[i] = OnlineChar(v)
 	}
 
 	return output, world.World.WorldInformation.Name, nil
@@ -260,26 +258,26 @@ func formatNews(tibiaInside *TibiaSpecificNews, url string) (*InternalNews, erro
 
 	re := regexp.MustCompile(`<(.*?)>`)
 	desc := re.ReplaceAllString(tibiaInside.News.Content, "")
-	var shortdesc string
+	var shortdesc strings.Builder
 
 	if len(desc) > 1600 {
 		split := strings.Split(desc, " ")
 		for i := range split {
-			if len(shortdesc) < 1600 {
-				shortdesc += " " + split[i]
+			if len(shortdesc.String()) < 1600 {
+				shortdesc.WriteString(" " + split[i])
 			} else {
-				shortdesc += "..."
+				shortdesc.WriteString("...")
 				break
 			}
 		}
 	} else {
-		shortdesc = desc
+		shortdesc.WriteString(desc)
 	}
 
 	output := InternalNews{
 		Title:            tibiaInside.News.Title,
 		Description:      desc,
-		ShortDescription: shortdesc,
+		ShortDescription: shortdesc.String(),
 		URL:              url,
 		Date:             t.Format("02/01/2006"),
 		ID:               tibiaInside.News.ID,

@@ -32,15 +32,16 @@ func SetServerDeathChannel(server int64, channel int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "SetServerDeathChannel Error 1")
 	}
 
+	flags.ServerID = server
 	flags.SendDeaths = true
 	flags.ChannelDeaths = channel
 
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", errors.WithMessage(err, "Algo deu errado ao definir o canal.")
+		return "", errors.WithMessage(err, "SetServerDeathChannel Error 2")
 	}
 
 	return "Tudo certo! As notificações de mortes serão enviadas neste canal agora! <#" + strconv.FormatInt(channel, 10) + ">", nil
@@ -50,15 +51,16 @@ func SetServerUpdatesChannel(server int64, channel int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "SetServerUpdateChannel Error 1")
 	}
 
+	flags.ServerID = server
 	flags.SendUpdates = true
 	flags.ChannelUpdates = channel
 
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", errors.WithMessage(err, "Algo deu errado ao definir o canal.")
+		return "", errors.WithMessage(err, "SetServerUpdateChannel Error 2")
 	}
 
 	return "Tudo certo! As notificações de players serão enviadas neste canal agora! <#" + strconv.FormatInt(channel, 10) + ">", nil
@@ -68,8 +70,8 @@ func ToggleDeaths(server int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", errors.WithMessage(err, "ToggleDeaths Error 1")
 	}
 
 	if !alreadySet {
@@ -80,7 +82,7 @@ func ToggleDeaths(server int64) (interface{}, error) {
 		flags.SendDeaths = false
 		err = common.GORM.Save(&flags).Error
 		if err != nil {
-			return "", err
+			return "", errors.WithMessage(err, "ToggleDeaths Error 2")
 		}
 
 		return "Tudo certo! Não irei mais enviar notificações de mortes de players.", nil
@@ -89,7 +91,7 @@ func ToggleDeaths(server int64) (interface{}, error) {
 	flags.SendDeaths = true
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "ToggleDeaths Error 3")
 	}
 
 	return "Beleza! Se algum dos players acompanhados morrerem eu irei avisar!", nil
@@ -99,8 +101,8 @@ func ToggleUpdates(server int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", errors.WithMessage(err, "ToggleUpdates Error 1")
 	}
 
 	if !alreadySet {
@@ -111,7 +113,7 @@ func ToggleUpdates(server int64) (interface{}, error) {
 		flags.SendUpdates = false
 		err = common.GORM.Save(&flags).Error
 		if err != nil {
-			return "", err
+			return "", errors.WithMessage(err, "ToggleUpdates Error 2")
 		}
 
 		return "Tudo certo! Não irei mais enviar notificações de players.", nil
@@ -120,7 +122,7 @@ func ToggleUpdates(server int64) (interface{}, error) {
 	flags.SendUpdates = true
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "ToggleUpdates Error 3")
 	}
 
 	return "Beleza! Agora irei enviar notícias dos players acompanhados!", nil
@@ -130,8 +132,8 @@ func GetServerWorld(server int64, nameOnly bool) (string, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{WorldIsSet: true, ServerID: server}).First(&flags).Error
 	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", err
 	}
 
 	if alreadySet {
@@ -153,8 +155,8 @@ func GetServerGuild(server int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{GuildIsSet: true, ServerID: server}).First(&flags).Error
 	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", err
 	}
 
 	if alreadySet {
@@ -168,7 +170,7 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "SetServerWorld Error 1")
 	}
 
 	if flags.WorldIsSet && !isAdmin {
@@ -177,7 +179,7 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 
 	mundo, err := GetWorld(world)
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "SetServerWorld Error 2")
 	}
 
 	if len(mundo.World.WorldInformation.CreationDate) == 0 {
@@ -187,12 +189,15 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 	tracking := TibiaTracking{}
 	err = common.GORM.Where(&TibiaTracking{ServerID: server}).First(&tracking).Error
 	hasTracks := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && hasTracks {
+		return "", errors.WithMessage(err, "SetServerWorld Error 3")
 	}
 
 	if hasTracks {
-		common.GORM.Delete(&tracking)
+		err = common.GORM.Delete(&tracking).Error
+		if err != nil {
+			return "", errors.WithMessage(err, "SetServerWorld Error 4")
+		}
 	}
 
 	flags.World = mundo.World.WorldInformation.Name
@@ -201,7 +206,7 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", errors.WithMessage(err, "Algo deu errado ao definir o mundo.")
+		return "", errors.WithMessage(err, "SetServerWorld Error 5")
 	}
 
 	return "Tudo certo! O mundo deste servidor agora é: **" + mundo.World.WorldInformation.Name + "**", nil
@@ -216,8 +221,8 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	alreadySet := err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", errors.WithMessage(err, "SetServerGuild Error 1")
 	}
 
 	if !alreadySet {
@@ -231,8 +236,8 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 	tracking := TibiaTracking{}
 	err = common.GORM.Where(&TibiaTracking{ServerID: server}).First(&tracking).Error
 	alreadySet = err != gorm.ErrRecordNotFound
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+	if err != nil && alreadySet {
+		return "", errors.WithMessage(err, "SetServerGuild Error 2")
 	}
 
 	if !alreadySet {
@@ -250,12 +255,12 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 
 	tracks, err := deserializeValue(tracking.Tracks)
 	if err != nil {
-		return "", errors.WithMessage(err, "Erro ao desserializar os tracks")
+		return "", errors.WithMessage(err, "SetServerGuild Error 3")
 	}
 
 	hunteds, err := deserializeValue(tracking.Hunteds)
 	if err != nil {
-		return "", errors.WithMessage(err, "Erro ao desserializar os hunteds")
+		return "", errors.WithMessage(err, "SetServerGuild Error 4")
 	}
 
 	isPremium, _ := premium.IsGuildPremium(server)
@@ -267,12 +272,12 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 
 	serverWorld, err := GetServerWorld(server, true)
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "SetServerGuild Error 5")
 	}
 
 	cla, err := GetTibiaSpecificGuild(guild)
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "SetServerGuild Error 6")
 	}
 
 	if serverWorld != "" {
@@ -289,11 +294,12 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 
 	fila := make(chan InternalChar, len(cla.Members))
 	pool = make(chan struct{}, 120)
-	counterOut := 0
+	var counterOut int
+
 	for _, k := range cla.Members {
 		flagwg.Add(1)
 		go charFromMember(k.Name, fila, deserialized)
-		counterOut += 1
+		counterOut++
 	}
 
 	flagwg.Wait()
@@ -301,12 +307,12 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 	close(pool)
 	logger.Infof("Counter: %d", counterOut)
 
-	counter := 0
-	broke := false
+	var counter int
+	var broke bool
 	for e := range fila {
 		if counter < loopCap {
 			deserialized = append(deserialized, e)
-			counter += 1
+			counter++
 		} else {
 			broke = true
 			break
@@ -315,7 +321,7 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 
 	goback, err := serializeValue(deserialized)
 	if err != nil {
-		return "", err
+		return "", errors.WithMessage(err, "SetServerGuild Error 7")
 	}
 
 	tracking.Guild = goback
@@ -341,43 +347,43 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 }
 
 func charFromMember(member string, channel chan InternalChar, tracks []InternalChar) {
-	defer flagCleanUp()
+	defer flagwg.Done()
+
 	pool <- struct{}{}
 	defer func() { <-pool }()
+
 	char, err := GetTibiaChar(member, false)
 	if err != nil || char == nil {
-		logger.Errorf("error 1 happened: %#v", err)
+		logger.Errorf("error 1 on charFromMember happened: %#v || string err: %s", err, err)
 		return
 	}
+
 	for _, k := range tracks {
 		if k.Name == char.Name {
 			return
 		}
 	}
-	channel <- *char
-}
 
-func flagCleanUp() {
-	if r := recover(); r != nil {
-		logger.Infof("Recovered at: %v", r)
-	}
-	defer flagwg.Done()
+	channel <- *char
 }
 
 func DeleteServerWorld(server int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "Delete Server World Error 1")
 	}
 
 	tracking := TibiaTracking{}
 	err = common.GORM.Where(&TibiaTracking{ServerID: server}).First(&tracking).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "Delete Server World Error 2")
 	}
 
-	common.GORM.Delete(&tracking)
+	err = common.GORM.Delete(&tracking).Error
+	if err != nil {
+		return "", errors.WithMessage(err, "Delete Server World Error 3")
+	}
 
 	flags.World = ""
 	flags.WorldIsSet = false
@@ -385,7 +391,7 @@ func DeleteServerWorld(server int64) (interface{}, error) {
 
 	err = common.GORM.Save(&flags).Error
 	if err != nil {
-		return "", errors.WithMessage(err, "Algo deu errado ao apagar o mundo deste server.")
+		return "", errors.WithMessage(err, "Delete Server World Error 4")
 	}
 
 	return "Tudo certo! O mundo do server **" + strconv.FormatInt(server, 10) + "** foi removido!", nil
@@ -395,7 +401,7 @@ func DeleteServerGuild(server int64) (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&TibiaFlags{ServerID: server}).First(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteServerGuild Error 1")
 	}
 
 	flags.Guild = ""
@@ -414,40 +420,38 @@ func DeleteAll() (interface{}, error) {
 	flags := TibiaFlags{}
 	err := common.GORM.Where(&flags).Delete(&flags).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteAll Error 1")
 	}
 
 	tracks := TibiaTracking{}
 	err = common.GORM.Where(&tracks).Delete(&tracks).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteAll Error 2")
 	}
 
 	table := ScanTable{}
 	err = common.GORM.Where(&table).Delete(&table).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteAll Error 3")
 	}
 
 	news := NewsTable{}
 	err = common.GORM.Where(&news).Delete(&news).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteAll Error 4")
 	}
 
 	inner := InnerNewsStruct{}
 	err = common.GORM.Where(&inner).Delete(&inner).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return "", common.ErrWithCaller(err)
+		return "", errors.WithMessage(err, "DeleteAll Error 5")
 	}
 
 	var i int
 	err = common.RedisPool.Do(radix.Cmd(&i, "DEL", "news_guilds"))
 	if err != nil {
-		return "", common.ErrWithCaller(err)
-	} else {
-		logger.Infof("Deleted %d entries", i)
+		return "", errors.WithMessage(err, "DeleteAll Error 6")
 	}
 
-	return "Todas as databases foram apagadas!", nil
+	return "Todas as databases foram apagadas!\n" + strconv.Itoa(i) + " entries no redis deletadas", nil
 }

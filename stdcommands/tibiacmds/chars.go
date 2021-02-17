@@ -35,30 +35,30 @@ var MainCharCommand = &commands.TIDCommand{
 		}
 
 		comentario := char.Comment
-		comentarioOut := ""
+		var comentarioOut strings.Builder
 		if len(comentario) > 1700 {
 			split := strings.Split(comentario, " ")
 			for i := range split {
-				if len(comentarioOut) < 1700 {
-					comentarioOut += fmt.Sprintf("%s, ", split[i])
+				if len(comentarioOut.String()) < 1700 {
+					comentarioOut.WriteString(split[i] + ", ")
 				} else {
-					comentarioOut += "..."
+					comentarioOut.WriteString("...")
 					break
 				}
 			}
 		} else {
-			comentarioOut = comentario
+			comentarioOut.WriteString(comentario)
 		}
 
 		re := regexp.MustCompile(` `)
 		linkname := re.ReplaceAllString(char.Name, `\+`)
-		link := fmt.Sprintf("https://www.tibia.com/community/?subtopic=characters&name=%s", linkname)
-		comentarioOut = fmt.Sprintf("%s\n\n[Perfil do char](%s)", comentarioOut, link)
+		link := "https://www.tibia.com/community/?subtopic=characters&name=" + linkname
+		comentarioOut.WriteString("\n\n[Perfil do char](" + link + ")")
 
 		embed := &discordgo.MessageEmbed{
 			Title:       char.Name,
 			Color:       int(rand.Int63n(16777215)),
-			Description: comentarioOut,
+			Description: comentarioOut.String(),
 			Fields: []*discordgo.MessageEmbedField{
 				{
 					Name:   "Level",
@@ -168,43 +168,46 @@ var DeathsCommand = &commands.TIDCommand{
 		}
 
 		mortes := char.Deaths
-		deaths := "\n"
-		motivo := ""
+		var deaths strings.Builder
 
-		if len(mortes) >= 1 {
-			re := regexp.MustCompile(`Died by a`)
-			for _, v := range mortes {
-				if len(deaths) < 1800 {
-					checkKillByMonster := re.MatchString(v.Reason)
-					if checkKillByMonster {
-						deaths += fmt.Sprintf("**Data**: %s\n**Level**: %d\n**Motivo**: %s\n\n", v.Date, v.Level, v.Reason)
-					} else {
-						split := strings.Split(v.Reason, ",")
-						for i := range split {
-							if len(motivo) < 150 {
-								motivo += fmt.Sprintf("%s, ", split[i])
-							} else {
-								motivo += "e outros."
-								break
-							}
-						}
-						re := regexp.MustCompile(`,\s*\z`)
-						motivo = re.ReplaceAllString(motivo, ".")
-						deaths += fmt.Sprintf("**Data**: %s\n**Level**: %d\n**Motivo**: %s\n\n", v.Date, v.Level, motivo)
-						motivo = ""
-					}
-				} else {
-					deaths += "... entre outras ..."
-					break
+		for _, v := range mortes {
+			if len(deaths.String()) < 1800 {
+				if strings.Contains(v.Reason, "Died by a") { // check if the char was killed by a monster
+					deaths.WriteString("**Data**: " + v.Date + "\n**Level**: " + strconv.Itoa(v.Level) + "\n**Motivo**: " + v.Reason + "\n\n")
+
+					continue
 				}
+
+				split := strings.Split(v.Reason, ",")
+				var motivo strings.Builder
+				for i, s := range split {
+					if i == 0 {
+						motivo.WriteString(s)
+						continue
+					}
+
+					if len(motivo.String()) < 150 {
+						motivo.WriteString(", " + s)
+					} else {
+						motivo.WriteString(" e outros...")
+						break
+					}
+				}
+
+				deaths.WriteString("**Data**: " + v.Date + "\n**Level**: " + strconv.Itoa(v.Level) + "\n**Motivo**: " + motivo.String() + "\n\n")
+			} else {
+				deaths.WriteString("... entre outras ...")
+				break
 			}
-		} else {
-			deaths = "Sem mortes recentes."
+		}
+
+		if len(mortes) == 0 {
+			deaths.WriteString("Sem mortes recentes.")
 		}
 
 		embed := &discordgo.MessageEmbed{
-			Title:       fmt.Sprintf("Mortes recentes de %s", char.Name),
-			Description: deaths,
+			Title:       "Mortes recentes de " + char.Name,
+			Description: deaths.String(),
 			Color:       int(rand.Int63n(16777215)),
 		}
 
@@ -231,31 +234,31 @@ var CheckOnlineCommand = &commands.TIDCommand{
 			return fmt.Sprintln(err), err
 		}
 
-		var desc string
+		var desc strings.Builder
 		if len(mundo) > 0 {
-			for _, v := range mundo {
-				if desc == "" {
-					desc = v.Name
+			for i, v := range mundo {
+				if i == 0 {
+					desc.WriteString(v.Name)
 					continue
 				}
 
-				if len(desc) < 1700 {
-					desc += ", " + v.Name
+				if len(desc.String()) < 1700 {
+					desc.WriteString(", " + v.Name)
 				} else {
-					desc += " e outros..."
+					desc.WriteString(" e outros...")
 					break
 				}
 			}
 
 			url := "https://www.tibia.com/community/?subtopic=worlds&world=" + name
-			desc += "\n\n[Veja todos os players online](" + url + ")"
+			desc.WriteString("\n\n[Veja todos os players online](" + url + ")")
 		} else {
-			desc = "Nenhum player online."
+			desc.WriteString("Nenhum player online.")
 		}
 
 		embed := &discordgo.MessageEmbed{
 			Title:       "Players online em " + name,
-			Description: desc,
+			Description: desc.String(),
 			Color:       int(rand.Int63n(16777215)),
 		}
 

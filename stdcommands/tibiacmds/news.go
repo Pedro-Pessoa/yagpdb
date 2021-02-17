@@ -3,6 +3,7 @@ package tibiacmds
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 
 	"emperror.dev/errors"
 
@@ -42,16 +43,7 @@ var NewsCommand = &commands.TIDCommand{
 			}
 		}
 
-		embed := &discordgo.MessageEmbed{
-			Title:       news.Title,
-			Color:       int(rand.Int63n(16777215)),
-			Description: fmt.Sprintf("%s\n[Clique para ver mais](%s)", news.ShortDescription, news.URL),
-			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("ID: %d\nData: %s", news.ID, news.Date),
-			},
-		}
-
-		return embed, nil
+		return embedBuilder(news), nil
 
 	},
 }
@@ -71,16 +63,17 @@ var NewsTickerCommand = &commands.TIDCommand{
 			return fmt.Sprintln(err), err
 		}
 
-		embed := &discordgo.MessageEmbed{
-			Title:       news.Title,
-			Color:       int(rand.Int63n(16777215)),
-			Description: fmt.Sprintf("%s\n[Clique para ver mais](%s)", news.ShortDescription, news.URL),
-			Footer: &discordgo.MessageEmbedFooter{
-				Text: fmt.Sprintf("Notícia mais recente do Tibia. | ID: %d\nData: %s", news.ID, news.Date),
-			},
-		}
-
-		return embed, nil
-
+		return embedBuilder(news), nil
 	},
+}
+
+func embedBuilder(news *tibia.InternalNews) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       news.Title,
+		Color:       int(rand.Int63n(16777215)),
+		Description: news.ShortDescription + "\n[Clique aqui para ver mais](" + news.URL + ")",
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: "ID: " + strconv.Itoa(news.ID) + "\nData: " + news.Date,
+		},
+	}
 }

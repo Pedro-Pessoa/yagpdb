@@ -1123,7 +1123,7 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, che
 		return 0, err
 	}
 
-	toDelete := make([]int64, 0)
+	toDelete := make([]int64, 0, len(msgs))
 	now := time.Now()
 	for i := len(msgs) - 1; i >= 0; i-- {
 		if filterUser != 0 && msgs[i].Author.ID != filterUser {

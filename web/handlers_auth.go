@@ -52,8 +52,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		_ = common.RedisPool.Do(radix.Cmd(nil, "SET", "csrf_redir:"+csrfToken, redir, "EX", "500"))
 	}
 
-	url := OauthConf.AuthCodeURL(csrfToken, oauth2.AccessTypeOnline)
-	url += "&prompt=none"
+	url := OauthConf.AuthCodeURL(csrfToken, oauth2.AccessTypeOnline) + "&prompt=none"
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 

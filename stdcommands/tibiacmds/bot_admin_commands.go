@@ -332,6 +332,7 @@ var AdminDeleteTracksCommand = &commands.TIDCommand{
 		if data.Args[1].Value != nil {
 			server = data.Args[0].Int64()
 		}
+
 		switch data.Args[0].Str() {
 		case "all":
 			out, err := tibia.DeleteTracks(server, false, false, true)

@@ -190,20 +190,21 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 
 		if err != nil {
 			// Create a pretty name for the field by turing: "AnnounceMessage" into "Announce Message"
-			prettyField := ""
+			var prettyField strings.Builder
+
 			for _, r := range tField.Name {
 				if unicode.IsUpper(r) {
-					if prettyField != "" {
-						prettyField += " "
+					if prettyField.String() != "" {
+						prettyField.WriteString(" ")
 					}
 				}
 
-				prettyField += string(r)
+				prettyField.WriteString(string(r))
 			}
 
-			prettyField = strings.TrimSpace(prettyField)
+			prettyFieldStr := strings.TrimSpace(prettyField.String())
 
-			tmpl.AddAlerts(ErrorAlert(prettyField, ": ", err.Error()))
+			tmpl.AddAlerts(ErrorAlert(prettyFieldStr, ": ", err.Error()))
 			ok = false
 		}
 	}

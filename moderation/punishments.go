@@ -226,7 +226,7 @@ func DeleteMessages(channelID int64, filterUser int64, deleteNum, fetchNum int) 
 		return 0, err
 	}
 
-	toDelete := make([]int64, 0)
+	toDelete := make([]int64, 0, len(msgs))
 	now := time.Now()
 	for i := len(msgs) - 1; i >= 0; i-- {
 		if filterUser == 0 || msgs[i].Author.ID == filterUser {
@@ -672,7 +672,7 @@ func RemoveMemberMuteRole(config *Config, id int64, currentRoles []int64, mute M
 }
 
 func decideUnmuteRoles(config *Config, currentRoles []int64, mute MuteModel) []int64 {
-	newMemberRoles := make([]int64, 0)
+	newMemberRoles := make([]int64, 0, len(currentRoles)+len(mute.RemovedRoles))
 
 	gs := bot.State.Guild(true, config.GuildID)
 	botState, err := bot.GetMember(gs.ID, common.BotUser.ID)

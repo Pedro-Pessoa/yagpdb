@@ -5,6 +5,7 @@
 package bot
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -47,16 +48,17 @@ func mergedMessageSender() {
 }
 
 func sendMergedBatch(channelID int64, messages []*QueuedMergedMessage) {
-	out := ""
+	var out strings.Builder
 	mergedAllowedMentions := &discordgo.MessageAllowedMentions{}
 	for _, v := range messages {
-		out += v.Content + "\n"
+		out.WriteString(v.Content + "\n")
 		mergedAllowedMentions = mergeAllowedMentions(mergedAllowedMentions, v.AllowedMentions)
 	}
 
+	outStr := out.String()
 	// Strip newline
-	out = out[:len(out)-1]
-	_, err := dcmd.SplitSendMessage(common.BotSession, channelID, out, mergedAllowedMentions)
+	outStr = outStr[:len(outStr)-1]
+	_, err := dcmd.SplitSendMessage(common.BotSession, channelID, outStr, mergedAllowedMentions)
 	if err != nil && !common.IsDiscordErr(err, discordgo.ErrCodeMissingAccess, discordgo.ErrCodeMissingPermissions) {
 		logger.WithError(err).WithField("message", out).Error("Error sending messages")
 	}

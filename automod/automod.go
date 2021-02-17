@@ -83,17 +83,25 @@ func ParseAllRulePartData(dataModels []*models.AutomodRuleDatum) ([]interface{},
 }
 
 const (
-	MaxMessageTriggers        = 20
-	MaxMessageTriggersPremium = 100
+	MaxMessageTriggers              = 20
+	MaxMessageTriggersPremium       = 100
+	MaxMessageTriggersString        = "20"
+	MaxMessageTriggersPremiumString = "100"
 
-	MaxViolationTriggers        = 20
-	MaxViolationTriggersPremium = 100
+	MaxViolationTriggers              = 20
+	MaxViolationTriggersPremium       = 100
+	MaxViolationTriggersString        = "20"
+	MaxViolationTriggersPremiumString = "100"
 
-	MaxTotalRules        = 25
-	MaxTotalRulesPremium = 150
+	MaxTotalRules              = 25
+	MaxTotalRulesPremium       = 150
+	MaxTotalRulesString        = "25"
+	MaxTotalRulesPremiumString = "150"
 
-	MaxLists        = 5
-	MaxListsPremium = 25
+	MaxLists              = 5
+	MaxListsPremium       = 25
+	MaxListsString        = "5"
+	MaxListsPremiumString = "25"
 
 	MaxRuleParts = 25
 
@@ -150,30 +158,31 @@ func PrepareMessageForWordCheck(input string) string {
 			out.WriteRune(' ')
 		}
 
-		// make 2 variants, 1 with all occurences replaced with space and 1 with all the occurences just removed
-		// this i imagine will solve a low of cases
-		w1 := ""
-		w2 := ""
+		// Make 2 variants: 1 with all occurences replaced with space and 1 with all the occurences just removed
+		// This, I imagine, will solve a lot of cases
+		var w1, w2 strings.Builder
 
 		for _, r := range w {
 			// we replace them with spaces instead to make for a more accurate version
 			// e.g "word1*word2" will become "word1 word2" instead of "word1word2"
 			if unicode.IsPunct(r) || unicode.IsSymbol(r) {
 				// replace with spaces for w1, and just remove for w2
-				w1 += " "
+				w1.WriteString(" ")
 			} else {
-				w1 += string(r)
-				w2 += string(r)
+				w1.WriteString(string(r))
+				w2.WriteString(string(r))
 			}
 		}
 
-		out.WriteString(w1)
+		w1String := w1.String()
+		w2String := w2.String()
+		out.WriteString(w1String)
 		switch {
-		case w1 != w2 && w1 != w:
-			out.WriteString(" " + w2 + " " + w)
-		case w1 != w2:
-			out.WriteString(" " + w2)
-		case w1 != w:
+		case w1String != w2String && w1String != w:
+			out.WriteString(" " + w2String + " " + w)
+		case w1String != w2String:
+			out.WriteString(" " + w2String)
+		case w1String != w:
 			out.WriteString(" " + w)
 		}
 	}
