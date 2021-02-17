@@ -553,7 +553,6 @@ func baseContextFuncs(c *Context) {
 	// Reactions
 	c.ContextFuncs["deleteMessageReaction"] = c.tmplDelMessageReaction
 	c.ContextFuncs["deleteAllMessageReactions"] = c.tmplDelAllMessageReactions
-	c.ContextFuncs["deleteMessageReactionEmoji"] = c.tmplDelMessageReactionEmoji
 	c.ContextFuncs["addReactions"] = c.tmplAddReactions
 	c.ContextFuncs["addResponseReactions"] = c.tmplAddResponseReactions
 	c.ContextFuncs["addMessageReactions"] = c.tmplAddMessageReactions

@@ -1110,7 +1110,7 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 				return reflect.Value{}, ErrTooManyCalls
 			}
 
-			if err := common.BotSession.MessageReactionRemove(cID, mID, reaction.String(), uID); err != nil {
+			if err := common.BotSession.MessageReactionRemove(cID, mID, emojiArg(reaction.String()), uID); err != nil {
 				return reflect.Value{}, err
 			}
 		}
@@ -1118,69 +1118,6 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 	}
 
 	return callVariadic(f, false, values...)
-}
-
-// Deletes all reactions on the specified emoji of the specified message.
-func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emojis ...interface{}) (string, error) {
-	channelID := c.ChannelArgNoDM(channel)
-	if channelID == 0 {
-		return "", errors.New("Invalid channel provided")
-	}
-
-	messageID := ToInt64(message)
-	if messageID == 0 {
-		return "", errors.New("Invalid message provided")
-	}
-
-	var slice Slice
-	var emojiSlice []string
-	var err error
-	switch l := len(emojis); l {
-	case 0:
-		return "", errors.New("At least one emoji needs to be provided")
-	case 1:
-		switch t := emojis[0].(type) {
-		case []interface{}:
-			slice = t
-		case Slice:
-			slice = t
-		case string:
-			emojiSlice = []string{emojiArg(t)}
-		default:
-			return "", errors.New("Invalid emoji value provided")
-		}
-	default:
-		slice, err = CreateSlice(emojis...)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	if len(emojiSlice) == 0 && len(slice) == 0 {
-		return "", errors.New("Invalid emojis provided")
-	}
-
-	for _, e := range slice {
-		cast, ok := e.(string)
-		if !ok {
-			return "", errors.New("Non string value found on slice")
-		}
-
-		emojiSlice = append(emojiSlice, cast)
-	}
-
-	for _, e := range emojiSlice {
-		if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-			return "", ErrTooManyCalls
-		}
-
-		err = common.BotSession.MessageReactionRemoveEmoji(channelID, messageID, e)
-		if err != nil {
-			return "", errors.WithMessage(err, "Failed deleting emoji **"+e+"**")
-		}
-	}
-
-	return "", nil
 }
 
 func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.Value, error) {
@@ -1203,14 +1140,19 @@ func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.V
 
 		if len(args) > 2 {
 			for _, emoji := range args[2:] {
+				if c.IncreaseCheckGenericAPICall() {
+					return reflect.Value{}, ErrTooManyAPICalls
+				}
+
 				if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
 					return reflect.Value{}, ErrTooManyCalls
 				}
 
-				if err := common.BotSession.MessageReactionRemoveEmoji(cID, mID, emoji.String()); err != nil {
+				if err := common.BotSession.MessageReactionRemoveEmoji(cID, mID, emojiArg(emoji.String())); err != nil {
 					return reflect.Value{}, err
 				}
 			}
+
 			return reflect.ValueOf(""), nil
 		}
 
