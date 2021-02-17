@@ -23,10 +23,10 @@ jobs: # basic units of work in a run
             - v1-pkg-cache
 
       - run:
-          name: main yagpdb binary build
+          name: main tidbot binary build
           command: |
             VERSION=$(git describe --tags)
-            cd cmd/yagpdb
+            cd cmd/tidbot
             go install -i -ldflags "-X github.com/Pedro-Pessoa/yagpdb/common.VERSION=${VERSION}"
             cd -
       - run: cd cmd/shardorchestrator && go install -i && cd -
@@ -42,10 +42,10 @@ jobs: # basic units of work in a run
       - run:
           name: Prepare arifacts
           command: |
-            mkdir -p cmd/yagpdb/templates/plugins
-            cp */assets/* cmd/yagpdb/templates/plugins/
+            mkdir -p cmd/tidbot/templates/plugins
+            cp */assets/* cmd/tidbot/templates/plugins/
 
-            tar -cvf misc_artifacts.tar cmd/yagpdb/templates/ cmd/yagpdb/static/
+            tar -cvf misc_artifacts.tar cmd/tidbot/templates/ cmd/tidbot/static/
 
       - store_artifacts:
           path: misc_artifacts.tar
