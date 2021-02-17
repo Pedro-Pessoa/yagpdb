@@ -18,18 +18,23 @@ func init() {
 		c.ContextFuncs["getChar"] = tmplGetTibiaChar(c)
 		c.ContextFuncs["getDeaths"] = tmplGetCharDeaths(c)
 		c.ContextFuncs["getDeath"] = tmplGetCharDeath(c)
+
 		//Guild
 		c.ContextFuncs["getGuild"] = tmplGetTibiaSpecificGuild(c)
 		c.ContextFuncs["getGuildMembers"] = tmplGetTibiaSpecificGuildMembers(c)
+
 		//Mundos
 		c.ContextFuncs["checkOnline"] = tmplCheckOnline(c)
+
 		//News
 		c.ContextFuncs["getNews"] = tmplGetTibiaNews(c)
 		c.ContextFuncs["getNewsticker"] = tmplGetTibiaNewsticker(c)
+
 		//Tracks
 		c.ContextFuncs["getTrackedHunteds"] = tmplGetTrackedHunteds(c)
 		c.ContextFuncs["getTargetServerTracks"] = tmplGetTargetServerTracks(c)
 		c.ContextFuncs["getTargetServerHunteds"] = tmplGetTargetServerHunteds(c)
+
 		//Goroutine
 		//Chars
 		c.ContextFuncs["getMultipleChars"] = tmplGetMultipleChars(c)
@@ -47,6 +52,7 @@ func structToMap(input interface{}) map[string]interface{} {
 		for i := 0; i < v.NumField(); i++ {
 			out[typeOfS.Field(i).Name] = v.Field(i).Interface()
 		}
+
 		return out
 	}
 
@@ -197,13 +203,14 @@ func tmplGetTibiaNewsticker(c *templates.Context) interface{} {
 
 func valueFree(c *templates.Context) int {
 	memberCount := c.GS.Guild.MemberCount
-	valueFree := 3
-	if memberCount < 30 {
-		valueFree = 1
-	} else if memberCount > 149 {
-		valueFree = 5
+	switch {
+	case memberCount < 30:
+		return 1
+	case memberCount > 149:
+		return 5
+	default:
+		return 3
 	}
-	return valueFree
 }
 
 func tmplGetTrackedHunteds(c *templates.Context) interface{} {
@@ -243,6 +250,7 @@ func tmplGetTargetServerTracks(c *templates.Context) interface{} {
 
 			return outslice, nil
 		}
+
 		return "", nil
 	}
 }
@@ -263,91 +271,122 @@ func tmplGetTargetServerHunteds(c *templates.Context) interface{} {
 
 			return outslice, nil
 		}
+
 		return "", nil
 	}
 }
 
-//////////// Go Routine Stuff ////////////
+// Concurrent funcs
 
 var wg sync.WaitGroup
 
 func tmplGetMultipleChars(c *templates.Context) interface{} {
 	return func(chars interface{}) ([]map[string]interface{}, error) {
-		output, err := GetTibiaMultiple(c, chars, false)
+		charsSlice, err := validateCharSlice(chars)
 		if err != nil {
 			return nil, err
 		}
 
-		switch t := output.(type) {
-		case []InternalChar:
-			if len(t) > 0 {
-				outslice := make([]map[string]interface{}, len(t))
-				for k, v := range t {
-					outslice[k] = structToMap(v)
-				}
-
-				return outslice, nil
-			}
+		output, err := GetTibiaMultiple(c, charsSlice, false)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, nil
+		cast, ok := output.([]InternalChar)
+		if !ok {
+			logger.Error("Weird bug on tmplGetMultipleChars")
+			return nil, nil
+		}
+
+		outslice := make([]map[string]interface{}, len(cast))
+
+		for k, v := range cast {
+			outslice[k] = structToMap(v)
+		}
+
+		return outslice, nil
 	}
 }
 
 func tmplGetMultipleCharsDeath(c *templates.Context) interface{} {
-	return func(chars interface{}) ([]map[string]interface{}, error) {
-		output, err := GetTibiaMultiple(c, chars, true)
+	return func(chars ...interface{}) ([]map[string]interface{}, error) {
+		charsSlice, err := validateCharSlice(chars)
 		if err != nil {
 			return nil, err
 		}
 
-		switch t := output.(type) {
-		case []InternalDeaths:
-			if len(t) > 0 {
-				outslice := make([]map[string]interface{}, len(t))
-				for k, v := range t {
-					outslice[k] = structToMap(v)
-				}
-
-				return outslice, nil
-			}
+		output, err := GetTibiaMultiple(c, charsSlice, true)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, nil
+		cast, ok := output.([]InternalDeaths)
+		if !ok {
+			logger.Error("Weird bug on tmplGetMultipleCharsDeath")
+			return nil, nil
+		}
+
+		outslice := make([]map[string]interface{}, len(cast))
+
+		for k, v := range cast {
+			outslice[k] = structToMap(v)
+		}
+
+		return outslice, nil
 	}
 }
 
-func GetTibiaMultiple(c *templates.Context, chars interface{}, deathsonly bool) (interface{}, error) {
+func validateCharSlice(input ...interface{}) ([]string, error) {
+	var slice templates.Slice
+	var err error
+
+	switch l := len(input); l {
+	case 0:
+		return nil, errors.New("No arguments provided")
+	case 1:
+		switch t := input[0].(type) {
+		case templates.Slice:
+			slice = t
+		case []interface{}:
+			slice = t
+		case string:
+			return []string{t}, nil
+		default:
+			return nil, errors.Errorf("Invalid argument provided of type %T", t)
+		}
+	default:
+		slice, err = templates.CreateSlice(input...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(slice) > 10 {
+		return nil, errors.Errorf("Você não pode solicitar mais do que 10 chars de uma vez")
+	}
+
+	out := make([]string, len(slice))
+	for i, v := range slice {
+		cast, ok := v.(string)
+		if !ok {
+			return nil, errors.Errorf("%v is not a string", v)
+		}
+
+		out[i] = cast
+	}
+
+	return out, nil
+}
+
+func GetTibiaMultiple(c *templates.Context, chars []string, deathsonly bool) (interface{}, error) {
 	if c.IncreaseCheckCallCounterPremium("tibiagoroutine", 0, 1) {
 		return nil, ErrTooManyCalls
 	}
 
-	v := reflect.ValueOf(chars)
-	var slice []interface{}
-	switch v.Kind() {
-	case reflect.Slice:
-		if v.Len() > 10 {
-			return nil, errors.New("você não pode solicitar mais do que 10 personagens de uma vez.")
-		}
-		switch t := chars.(type) {
-		case []interface{}:
-			slice = t
-		case templates.Slice:
-			slice = t
-		}
-	default:
-		return nil, errors.New("Essa função só aceita slices como argumento.")
-	}
-
-	fila := make(chan InternalChar, len(slice))
-	for _, v := range slice {
-		switch t := v.(type) {
-		case string:
-			wg.Add(1)
-			go charRoutine(fila, t)
-		default:
-			continue
-		}
+	fila := make(chan InternalChar, len(chars))
+	for _, v := range chars {
+		wg.Add(1)
+		go charRoutine(fila, v)
 	}
 
 	wg.Wait()
@@ -360,6 +399,7 @@ func GetTibiaMultiple(c *templates.Context, chars interface{}, deathsonly bool) 
 				output = append(output, e.Deaths[0])
 			}
 		}
+
 		return output, nil
 	}
 
@@ -367,21 +407,17 @@ func GetTibiaMultiple(c *templates.Context, chars interface{}, deathsonly bool) 
 	for e := range fila {
 		output = append(output, e)
 	}
+
 	return output, nil
 }
 
 func charRoutine(c chan InternalChar, char string) {
-	defer routineCleanUp()
+	defer wg.Done()
+
 	ichar, err := GetTibiaChar(char, true)
 	if err != nil || ichar == nil {
 		return
 	}
-	c <- *ichar
-}
 
-func routineCleanUp() {
-	if r := recover(); r != nil {
-		logger.Infof("Recovered at: %v", r)
-	}
-	defer wg.Done()
+	c <- *ichar
 }

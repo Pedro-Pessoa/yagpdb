@@ -1,8 +1,8 @@
 package tibia
 
 import (
-	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -10,26 +10,14 @@ import (
 	"github.com/araddon/dateparse"
 )
 
-var (
-	ErrInvalidName = errors.New("Você tem que especificar um char.")
-	ErrSmallName   = errors.New("O nome fornecido é inválido.")
-)
-
 func GetTibiaChar(char string, update bool) (*InternalChar, error) {
-	if len(char) <= 0 {
-		return nil, ErrInvalidName
-	} else if len(char) < 2 {
-		return nil, ErrSmallName
-	}
-
 	tibia, err := GetChar(char)
 	if err != nil {
 		return nil, err
 	}
 
-	matched, _ := regexp.MatchString(`Character does not exist.`, tibia.Characters.Error)
-	if matched {
-		return nil, errors.New("Esse char não existe.")
+	if tibia.Characters.Error != "" {
+		return nil, errors.New(tibia.Characters.Error)
 	}
 
 	level := tibia.Characters.Data.Level
@@ -44,6 +32,7 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 				if v.Level > tibia.Characters.Data.Level {
 					level = v.Level
 				}
+
 				break
 			}
 		}
@@ -82,6 +71,7 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		criado = (t.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT")
 	}
 
@@ -92,12 +82,13 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 			if err != nil {
 				return nil, err
 			}
-			var insert InternalDeaths
-			insert.Name = tibia.Characters.Data.Name
-			insert.Level = v.Level
-			insert.Reason = v.Reason
-			insert.Date = (t2.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT")
-			mortes = append(mortes, insert)
+
+			mortes = append(mortes, InternalDeaths{
+				Name:   tibia.Characters.Data.Name,
+				Level:  v.Level,
+				Reason: v.Reason,
+				Date:   (t2.Add(time.Hour * -5)).Format("02/01/2006 15:04:05 BRT"),
+			})
 		}
 	}
 
@@ -125,10 +116,9 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 }
 
 func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
-	if len(guildName) <= 0 {
-		return nil, errors.New("Você tem que especificar uma guild.")
-	} else if len(guildName) < 2 {
-		return nil, ErrSmallName
+	err := validateName(guildName)
+	if err != nil {
+		return nil, err
 	}
 
 	guild, err := GetSpecificGuild(strings.Title(guildName))
@@ -147,7 +137,7 @@ func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
 
 	guildHall := "Nenhuma."
 	if len(guild.Guild.Data.Guildhall.Name) > 1 {
-		guildHall = fmt.Sprintf("**%s** que fica em %s", guild.Guild.Data.Guildhall.Name, guild.Guild.Data.Guildhall.Town)
+		guildHall = "**" + guild.Guild.Data.Guildhall.Name + "** que fica em " + guild.Guild.Data.Guildhall.Town
 	}
 
 	guerra := "Não."
@@ -181,32 +171,28 @@ func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
 	return &output, nil
 }
 
-func CheckOnline(mundo string) ([]OnlineChar, *string, error) {
+func CheckOnline(mundo string) ([]OnlineChar, string, error) {
 	if len(mundo) <= 0 {
-		return nil, nil, errors.New("Você tem que especificar um mundo.")
+		return nil, "", errors.New("Você tem que especificar um mundo.")
 	} else if len(mundo) < 2 {
-		return nil, nil, ErrSmallName
+		return nil, "", ErrSmallName
 	}
 
 	world, err := GetWorld(mundo)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
 	if len(world.World.WorldInformation.CreationDate) == 0 {
-		return nil, nil, errors.New("Esse mundo não existe.")
+		return nil, "", errors.New("Esse mundo não existe.")
 	}
 
 	var output []OnlineChar
 	for _, v := range world.World.PlayersOnline {
-		var insert OnlineChar
-		insert.Name = v.Name
-		insert.Level = v.Level
-		insert.Vocation = v.Vocation
-		output = append(output, insert)
+		output = append(output, OnlineChar(v))
 	}
 
-	return output, &world.World.WorldInformation.Name, nil
+	return output, world.World.WorldInformation.Name, nil
 }
 
 func GetTibiaNews(news ...int) (*InternalNews, error) {
@@ -223,7 +209,7 @@ func GetTibiaNews(news ...int) (*InternalNews, error) {
 		url = tibia.Newslist.Data[0].Tibiaurl
 	case 1:
 		inside = news[0]
-		url = fmt.Sprintf("https://www.tibia.com/news/?subtopic=newsarchive&id=%d", inside)
+		url = "https://www.tibia.com/news/?subtopic=newsarchive&id=" + strconv.Itoa(inside)
 	default:
 		return nil, errors.New("getNews só aceita 1 argumento.")
 	}
@@ -274,13 +260,13 @@ func formatNews(tibiaInside *TibiaSpecificNews, url string) (*InternalNews, erro
 
 	re := regexp.MustCompile(`<(.*?)>`)
 	desc := re.ReplaceAllString(tibiaInside.News.Content, "")
-	shortdesc := ""
+	var shortdesc string
 
 	if len(desc) > 1600 {
 		split := strings.Split(desc, " ")
 		for i := range split {
 			if len(shortdesc) < 1600 {
-				shortdesc += fmt.Sprintf("%s ", split[i])
+				shortdesc += " " + split[i]
 			} else {
 				shortdesc += "..."
 				break

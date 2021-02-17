@@ -1,7 +1,7 @@
 package tibia
 
 import (
-	"fmt"
+	"strconv"
 	"sync"
 
 	"emperror.dev/errors"
@@ -43,7 +43,7 @@ func SetServerDeathChannel(server int64, channel int64) (interface{}, error) {
 		return "", errors.WithMessage(err, "Algo deu errado ao definir o canal.")
 	}
 
-	return fmt.Sprintf("Tudo certo! As notificações de mortes serão enviadas neste canal agora! <#%d>", channel), nil
+	return "Tudo certo! As notificações de mortes serão enviadas neste canal agora! <#" + strconv.FormatInt(channel, 10) + ">", nil
 }
 
 func SetServerUpdatesChannel(server int64, channel int64) (interface{}, error) {
@@ -61,7 +61,7 @@ func SetServerUpdatesChannel(server int64, channel int64) (interface{}, error) {
 		return "", errors.WithMessage(err, "Algo deu errado ao definir o canal.")
 	}
 
-	return fmt.Sprintf("Tudo certo! As notificações de players serão enviadas neste canal agora! <#%d>", channel), nil
+	return "Tudo certo! As notificações de players serão enviadas neste canal agora! <#" + strconv.FormatInt(channel, 10) + ">", nil
 }
 
 func ToggleDeaths(server int64) (interface{}, error) {
@@ -136,7 +136,7 @@ func GetServerWorld(server int64, nameOnly bool) (string, error) {
 
 	if alreadySet {
 		if !nameOnly {
-			return fmt.Sprintf("O mundo deste servidor é **%s**!", flags.World), nil
+			return "O mundo deste servidor é **" + flags.World + "**!", nil
 		}
 
 		return flags.World, nil
@@ -158,7 +158,7 @@ func GetServerGuild(server int64) (interface{}, error) {
 	}
 
 	if alreadySet {
-		return fmt.Sprintf("A guild deste servidor é **%s**!", flags.Guild), nil
+		return "A guild deste servidor é **" + flags.Guild + "**!", nil
 	}
 
 	return "A guild deste servidor ainda não foi definida!", nil
@@ -204,7 +204,7 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 		return "", errors.WithMessage(err, "Algo deu errado ao definir o mundo.")
 	}
 
-	return fmt.Sprintf("Tudo certo! O mundo deste servidor agora é: **%s**", mundo.World.WorldInformation.Name), nil
+	return "Tudo certo! O mundo deste servidor agora é: **" + mundo.World.WorldInformation.Name + "**", nil
 }
 
 var (
@@ -277,7 +277,7 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 
 	if serverWorld != "" {
 		if cla.World != serverWorld {
-			return fmt.Sprintf("Essa guild não pode ser definida como a guild do servidor porque ela não é do mundo **%s**!", serverWorld), nil
+			return "Essa guild não pode ser definida como a guild do servidor porque ela não é do mundo **" + serverWorld + "**!", nil
 		}
 	} else {
 		return "O mundo deste servidor ainda não foi definido", nil
@@ -334,10 +334,10 @@ func SetServerGuild(guild string, server int64, isAdmin bool, memberCount int) (
 	}
 
 	if broke {
-		return fmt.Sprintf("Tudo certo! A guild deste servidor agora é: **%s**\nDevido ao limite de chars que podem ser acompanhados neste servidor (%d), apenas %d membros da guild de %d estã sendo acompanhados!", cla.Name, limit, counter, len(cla.Members)), nil
+		return "Tudo certo! A guild deste servidor agora é: **" + cla.Name + "**\nDevido ao limite de chars que podem ser acompanhados neste servidor _**(" + strconv.Itoa(limit) + ")**_, apenas **" + strconv.Itoa(counter) + "** membros da guild de " + strconv.Itoa(len(cla.Members)) + " estã sendo acompanhados!", nil
 	}
 
-	return fmt.Sprintf("Tudo certo! A guild deste servidor agora é **%s** e todos os chars dela estão sendo acompanhados!", cla.Name), nil
+	return "Tudo certo! A guild deste servidor agora é **" + cla.Name + "** e todos os chars dela estão sendo acompanhados!", nil
 }
 
 func charFromMember(member string, channel chan InternalChar, tracks []InternalChar) {
@@ -388,7 +388,7 @@ func DeleteServerWorld(server int64) (interface{}, error) {
 		return "", errors.WithMessage(err, "Algo deu errado ao apagar o mundo deste server.")
 	}
 
-	return fmt.Sprintf("Tudo certo! O mundo do server **%d** foi removido!", server), nil
+	return "Tudo certo! O mundo do server **" + strconv.FormatInt(server, 10) + "** foi removido!", nil
 }
 
 func DeleteServerGuild(server int64) (interface{}, error) {
@@ -407,7 +407,7 @@ func DeleteServerGuild(server int64) (interface{}, error) {
 		return "", errors.WithMessage(err, "Algo deu errado ao apagar a guild deste server.")
 	}
 
-	return fmt.Sprintf("Tudo certo! A guild do server **%d** foi removida!", server), nil
+	return "Tudo certo! A guild do server **" + strconv.FormatInt(server, 10) + "** foi removida!", nil
 }
 
 func DeleteAll() (interface{}, error) {

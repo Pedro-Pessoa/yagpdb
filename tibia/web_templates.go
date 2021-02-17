@@ -1,8 +1,8 @@
 package tibia
 
 import (
-	"fmt"
 	"html/template"
+	"strconv"
 
 	"github.com/Pedro-Pessoa/tidbot/web"
 )
@@ -23,17 +23,11 @@ func insertTemplates() map[string]interface{} {
 }
 
 func tmplTibiaWorldDropDown() template.HTML {
-	out := ""
+	var out string
 
-	for i, w := range tibiaWorlds {
-		out += `<option value="` + fmt.Sprint(i) + `">` + w + "</option>\n"
+	for i, w := range TibiaWorlds {
+		out += `<option value="` + strconv.Itoa(i) + `">` + w + "</option>\n"
 	}
 
 	return template.HTML(out)
-}
-
-var tibiaWorlds = []string{
-	"Antica",
-	"Ferobra",
-	"Serdebra",
 }

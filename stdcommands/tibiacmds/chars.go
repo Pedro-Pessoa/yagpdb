@@ -209,7 +209,6 @@ var DeathsCommand = &commands.TIDCommand{
 		}
 
 		return embed, nil
-
 	},
 }
 
@@ -232,30 +231,34 @@ var CheckOnlineCommand = &commands.TIDCommand{
 			return fmt.Sprintln(err), err
 		}
 
-		desc := ""
+		var desc string
 		if len(mundo) > 0 {
 			for _, v := range mundo {
+				if desc == "" {
+					desc = v.Name
+					continue
+				}
+
 				if len(desc) < 1700 {
-					desc += fmt.Sprintf("%s, ", v.Name)
+					desc += ", " + v.Name
 				} else {
-					desc += "e outros."
+					desc += " e outros..."
 					break
 				}
 			}
-			re := regexp.MustCompile(`,\s*\z`)
-			url := fmt.Sprintf("https://www.tibia.com/community/?subtopic=worlds&world=%s", *name)
-			desc = fmt.Sprintf("%s\n\n[Veja todas os players online](%s)", re.ReplaceAllString(desc, "."), url)
+
+			url := "https://www.tibia.com/community/?subtopic=worlds&world=" + name
+			desc += "\n\n[Veja todas os players online](" + url + ")"
 		} else {
 			desc = "Nenhum player online."
 		}
 
 		embed := &discordgo.MessageEmbed{
-			Title:       fmt.Sprintf("Players online em %s", *name),
+			Title:       "Players online em " + name,
 			Description: desc,
 			Color:       int(rand.Int63n(16777215)),
 		}
 
 		return embed, nil
-
 	},
 }

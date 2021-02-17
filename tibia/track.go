@@ -2,7 +2,6 @@ package tibia
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 
 	"emperror.dev/errors"
@@ -86,7 +85,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 	}
 
 	if getWorld != insideChar.World {
-		return fmt.Sprintf("Você só pode fazer track de chars do mundo **%s**", getWorld), nil
+		return "Você só pode fazer track de chars do mundo **" + getWorld + "**", nil
 	}
 
 	already := "Esse char já está sendo acompanhado!"
@@ -132,7 +131,7 @@ func TrackChar(char string, server int64, memberCount int, isPremium bool, isHun
 		return "", errors.WithMessage(err, "Algo deu errado ao salvar este char.")
 	}
 
-	return fmt.Sprintf("Tudo certo! Agora o char **%s** está sendo acompanhado!", insideChar.Name), nil
+	return "Tudo certo! Agora o char **" + insideChar.Name + "** está sendo acompanhado!", nil
 }
 
 func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{}, error) {
@@ -171,7 +170,7 @@ func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{
 		return "Esse char não está sendo acompanhado.", nil
 	}
 
-	found := false
+	var found bool
 	var index int
 	for k, v := range deserialized {
 		if strings.EqualFold(v.Name, char) {
@@ -206,7 +205,7 @@ func UnTrackChar(char string, server int64, hunted bool, guild bool) (interface{
 		return "", errors.WithMessage(err, "Algo deu errado ao apagar este char.")
 	}
 
-	return fmt.Sprintf("Tudo certo!! O char **%s** não está mais sendo acompanhado!", char), nil
+	return "Tudo certo!! O char **" + char + "** não está mais sendo acompanhado!", nil
 }
 
 func serializeValue(v []InternalChar) ([]byte, error) {

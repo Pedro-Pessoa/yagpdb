@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -120,9 +121,9 @@ func scanNews() {
 
 	embed := &discordgo.MessageEmbed{
 		Title:       news.Title,
-		Description: fmt.Sprintf("%s\n[Clique para ver mais](%s)", news.ShortDescription, news.URL),
+		Description: news.ShortDescription + "\n[Clique para ver mais](" + news.URL + ")",
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("ID: %d\nData: %s", news.ID, news.Date),
+			Text: "ID: " + strconv.Itoa(news.ID) + "\nData: " + news.Date,
 		},
 	}
 
@@ -162,7 +163,7 @@ func NewsLoop(news *discordgo.MessageEmbed) error {
 	goBack := make([]string, len(outputChan)+1)
 	var i int
 	for v := range outputChan {
-		goBack[i+1] = fmt.Sprint(v)
+		goBack[i+1] = strconv.FormatInt(v, 10)
 		i++
 	}
 
@@ -174,7 +175,6 @@ func NewsLoop(news *discordgo.MessageEmbed) error {
 			return errors.WithMessage(err, "Error setting table data for news loop. (trying to add)")
 		}
 	} else {
-		logger.Info("else triggered")
 		err = common.RedisPool.Do(radix.Cmd(nil, "DEL", "news_guilds"))
 		if err != nil {
 			return errors.WithMessage(err, "Error setting table data for news loop. (trying to delete)")
@@ -310,7 +310,7 @@ func CreateNewsFeed(g, c int64) (string, error) {
 
 	channel, err := common.BotSession.Channel(c)
 	if err != nil {
-		return fmt.Sprintf("O canal especificado não foi encontrado.\nError: %v", err), err
+		return "", err
 	} else if channel == nil {
 		return "O canal especificado não foi encontrado", nil
 	}
@@ -338,7 +338,7 @@ func CreateNewsFeed(g, c int64) (string, error) {
 		return "", errors.WithMessage(err, "ERROR 3:")
 	}
 
-	return fmt.Sprintf("Tudo certo! O feed de notícias será feito no canal <#%d>", c), nil
+	return "Tudo certo! O feed de notícias será feito no canal <#" + strconv.FormatInt(c, 10) + ">", nil
 }
 
 func EnableNewsFeed(g int64) (string, error) {
@@ -433,7 +433,7 @@ func ChangeNewsFeedChannel(g, c int64) (string, error) {
 
 	channel, err := common.BotSession.Channel(c)
 	if err != nil {
-		return fmt.Sprintf("O canal especificado não foi encontrado.\nError: %v", err), err
+		return "", err
 	} else if channel == nil {
 		return "O canal especificado não foi encontrado.", nil
 	}
@@ -446,7 +446,7 @@ func ChangeNewsFeedChannel(g, c int64) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("Tudo certo! O canal do feed de notícias foi alterado para <#%d>!", c), nil
+	return "Tudo certo! O canal do feed de notícias foi alterado para <#" + strconv.FormatInt(c, 10) + ">!", nil
 }
 
 func DebugNews(c int64) (string, error) {

@@ -553,6 +553,7 @@ func baseContextFuncs(c *Context) {
 	// Reactions
 	c.ContextFuncs["deleteMessageReaction"] = c.tmplDelMessageReaction
 	c.ContextFuncs["deleteAllMessageReactions"] = c.tmplDelAllMessageReactions
+	c.ContextFuncs["deleteMessageReactionEmoji"] = c.tmplDelMessageReactionEmoji
 	c.ContextFuncs["addReactions"] = c.tmplAddReactions
 	c.ContextFuncs["addResponseReactions"] = c.tmplAddResponseReactions
 	c.ContextFuncs["addMessageReactions"] = c.tmplAddMessageReactions
@@ -649,7 +650,7 @@ func (c *cyclicValueDetector) check(v reflect.Value) error {
 		if c.ptrLevel++; c.ptrLevel > startDetectingCyclesAfter {
 			ptr := v.Pointer()
 			if _, ok := c.ptrSeen[ptr]; ok {
-				return fmt.Errorf("encountered a cycle via %s", v.Type())
+				return errors.Errorf("encountered a cycle via %s", v.Type())
 			}
 			c.ptrSeen[ptr] = struct{}{}
 		}
@@ -671,7 +672,7 @@ func (c *cyclicValueDetector) check(v reflect.Value) error {
 			}{v.Pointer(), v.Len()}
 
 			if _, ok := c.ptrSeen[ptr]; ok {
-				return fmt.Errorf("encountered a cycle via %s", v.Type())
+				return errors.Errorf("encountered a cycle via %s", v.Type())
 			}
 
 			c.ptrSeen[ptr] = struct{}{}

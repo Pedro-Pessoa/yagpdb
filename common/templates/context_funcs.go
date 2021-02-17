@@ -3,7 +3,6 @@ package templates
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"emperror.dev/errors"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/common"
@@ -446,7 +447,7 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 					return "", err
 				}
 			default:
-				return "", fmt.Errorf("Invalid argument for ReplyData of type %s. Must be a map", val.Type().Name())
+				return "", errors.Errorf("Invalid argument for ReplyData of type %s. Must be a map", val.Type().Name())
 			}
 		default:
 			dict, err = StringKeyDictionary(replyData...)
@@ -1119,6 +1120,69 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 	return callVariadic(f, false, values...)
 }
 
+// Deletes all reactions on the specified emoji of the specified message.
+func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emojis ...interface{}) error {
+	channelID := c.ChannelArgNoDM(channel)
+	if channelID == 0 {
+		return errors.New("Invalid channel provided")
+	}
+
+	messageID := ToInt64(message)
+	if messageID == 0 {
+		return errors.New("Invalid message provided")
+	}
+
+	var slice Slice
+	var emojiSlice []string
+	var err error
+	switch l := len(emojis); l {
+	case 0:
+		return errors.New("At least one emoji needs to be provided")
+	case 1:
+		switch t := emojis[0].(type) {
+		case []interface{}:
+			slice = t
+		case Slice:
+			slice = t
+		case string:
+			emojiSlice = []string{emojiArg(t)}
+		default:
+			return errors.New("Invalid emoji value provided")
+		}
+	default:
+		slice, err = CreateSlice(emojis...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(emojiSlice) == 0 && len(slice) == 0 {
+		return errors.New("Invalid emojis provided")
+	}
+
+	for _, e := range slice {
+		cast, ok := e.(string)
+		if !ok {
+			return errors.New("Non string value found on slice")
+		}
+
+		emojiSlice = append(emojiSlice, cast)
+	}
+
+	for _, e := range emojiSlice {
+		if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
+			return ErrTooManyCalls
+		}
+
+		err = common.BotSession.MessageReactionRemoveEmoji(channelID, messageID, e)
+		if err != nil {
+			return errors.WithMessage(err, "Failed deleting emoji **"+e+"**")
+		}
+	}
+
+	return nil
+}
+
 func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.Value, error) {
 	f := func(args []reflect.Value) (reflect.Value, error) {
 		if len(args) < 2 {
@@ -1324,7 +1388,7 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 		case "parent_id":
 			value, valid := channelValueValidation(v)
 			if !valid {
-				return nil, fmt.Errorf("parent_id %v is not valid", v)
+				return nil, errors.Errorf("parent_id %v is not valid", v)
 			}
 
 			m["parent_id"] = value
@@ -1338,7 +1402,7 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 					case reflect.Map:
 						innerMap, err := StringKeyDictionary(val.Index(i).Interface())
 						if err != nil {
-							return nil, fmt.Errorf("Could not convert value to a map. Invalid permission_overwrites field value provided of type %s", innerVal.Type())
+							return nil, errors.Errorf("Could not convert value to a map. Invalid permission_overwrites field value provided of type %s", innerVal.Type())
 						}
 
 						for key, value := range innerMap {
@@ -1346,7 +1410,7 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 							case "id", "allow", "deny":
 								newValue, valid := channelValueValidation(value)
 								if !valid {
-									return nil, fmt.Errorf("Invalid id or perm provided for permission_overwrites: %s", value)
+									return nil, errors.Errorf("Invalid id or perm provided for permission_overwrites: %s", value)
 								}
 
 								_, err = innerMap.Set(key, newValue)
@@ -1368,12 +1432,12 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 											return nil, err
 										}
 									default:
-										return nil, fmt.Errorf("Unknown overwrite type %s", mapT)
+										return nil, errors.Errorf("Unknown overwrite type %s", mapT)
 									}
 								case int, int64, float64:
 									number := tmplToInt(mapT)
 									if number != 0 && number != 1 {
-										return nil, fmt.Errorf("Invalid type value: %v", mapT)
+										return nil, errors.Errorf("Invalid type value: %v", mapT)
 									}
 
 									_, err = innerMap.Set("type", number)
@@ -1381,18 +1445,18 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 										return nil, err
 									}
 								default:
-									return nil, fmt.Errorf("Type %v is not valid.", mapT)
+									return nil, errors.Errorf("Type %v is not valid.", mapT)
 								}
 							default:
-								return nil, fmt.Errorf("Key %s is not a valid key for permission_overwrites", key)
+								return nil, errors.Errorf("Key %s is not a valid key for permission_overwrites", key)
 							}
 						}
 					default:
-						return nil, fmt.Errorf("Invalid permission_overwrites field value provided of type %s", innerVal.Type())
+						return nil, errors.Errorf("Invalid permission_overwrites field value provided of type %s", innerVal.Type())
 					}
 				}
 			default:
-				return nil, fmt.Errorf("Invalid permission_overwrites value provided of type %s", val.Type())
+				return nil, errors.Errorf("Invalid permission_overwrites value provided of type %s", val.Type())
 			}
 		}
 	}
@@ -1414,7 +1478,7 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 
 	switch channelData.Type {
 	case 1, 3, 5, 6:
-		return nil, fmt.Errorf("Can not create a channel of type %d", channelData.Type)
+		return nil, errors.Errorf("Can not create a channel of type %d", channelData.Type)
 	}
 
 	dChannel, err := common.BotSession.GuildChannelCreateComplex(c.GS.ID, *channelData)
@@ -2003,7 +2067,7 @@ func (c *Context) tmplTryCall(name string, args ...reflect.Value) ([]interface{}
 		// try looking up the name from StandardFuncMap
 		fun, ok = StandardFuncMap[name]
 		if !ok {
-			return nil, fmt.Errorf("function %q not found", name)
+			return nil, errors.Errorf("function %q not found", name)
 		}
 	}
 
@@ -2015,14 +2079,14 @@ func (c *Context) tmplTryCall(name string, args ...reflect.Value) ([]interface{}
 	if typ.IsVariadic() {
 		numFixed = typ.NumIn() - 1 // last arg is the variadic one.
 		if numIn < numFixed {
-			return nil, fmt.Errorf("wrong number of args for %s: want at least %d got %d", name, typ.NumIn()-1, len(args))
+			return nil, errors.Errorf("wrong number of args for %s: want at least %d got %d", name, typ.NumIn()-1, len(args))
 		}
 	} else if numIn != typ.NumIn() {
-		return nil, fmt.Errorf("wrong number of args for %s: want %d got %d", name, typ.NumIn(), numIn)
+		return nil, errors.Errorf("wrong number of args for %s: want %d got %d", name, typ.NumIn(), numIn)
 	}
 
 	if !goodFunc(typ) {
-		return nil, fmt.Errorf("can't call function %q with %d results", name, typ.NumOut())
+		return nil, errors.Errorf("can't call function %q with %d results", name, typ.NumOut())
 	}
 
 	argv := make([]reflect.Value, numIn)
@@ -2068,7 +2132,7 @@ func safeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err e
 			if e, ok := r.(error); ok {
 				err = e
 			} else {
-				err = fmt.Errorf("%#v", r)
+				err = errors.Errorf("%#v", r)
 			}
 		}
 	}()
@@ -2116,7 +2180,7 @@ func validateType(value reflect.Value, typ reflect.Type) (reflect.Value, error) 
 			// Like above, but use the zero value of the non-nil type.
 			return reflect.Zero(typ), nil
 		}
-		return reflect.Value{}, fmt.Errorf("invalid value; expected %s", typ)
+		return reflect.Value{}, errors.Errorf("invalid value; expected %s", typ)
 	}
 	if typ == reflectValueType && value.Type() != typ {
 		return reflect.ValueOf(value), nil
@@ -2137,12 +2201,12 @@ func validateType(value reflect.Value, typ reflect.Type) (reflect.Value, error) 
 		case value.Kind() == reflect.Ptr && value.Type().Elem().AssignableTo(typ):
 			value = value.Elem()
 			if !value.IsValid() {
-				return reflect.Value{}, fmt.Errorf("dereference of nil pointer of type %s", typ)
+				return reflect.Value{}, errors.Errorf("dereference of nil pointer of type %s", typ)
 			}
 		case reflect.PtrTo(value.Type()).AssignableTo(typ) && value.CanAddr():
 			value = value.Addr()
 		default:
-			return reflect.Value{}, fmt.Errorf("wrong type for value; expected %s; got %s", typ, value.Type())
+			return reflect.Value{}, errors.Errorf("wrong type for value; expected %s; got %s", typ, value.Type())
 		}
 	}
 	return value, nil

@@ -1,19 +1,19 @@
 package tibia
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
+	"strconv"
 
 	"emperror.dev/errors"
 	"github.com/mailru/easyjson"
 )
 
 func GetChar(name string) (*Tibia, error) {
-	if invalidName(name) {
-		return nil, errors.New("O nome fornecido é inválido")
+	err := validateName(name)
+	if err != nil {
+		return nil, err
 	}
-	tibia := Tibia{}
+
 	resp, err := MakeRequest(name, "char")
 	if err != nil {
 		return nil, err
@@ -21,6 +21,7 @@ func GetChar(name string) (*Tibia, error) {
 
 	defer resp.Body.Close()
 
+	tibia := Tibia{}
 	err = easyjson.UnmarshalFromReader(resp.Body, &tibia)
 	if err != nil {
 		return nil, err
@@ -30,10 +31,16 @@ func GetChar(name string) (*Tibia, error) {
 }
 
 func GetWorld(name string) (*TibiaWorld, error) {
-	if invalidName(name) {
-		return nil, errors.New("O nome fornecido é inválido")
+	err := validateName(name)
+	if err != nil {
+		return nil, err
 	}
-	world := TibiaWorld{}
+
+	valid := validWorld(name)
+	if !valid {
+		return nil, errors.New("O mundo " + name + " não existe")
+	}
+
 	resp, err := MakeRequest(name, "world")
 	if err != nil {
 		return nil, err
@@ -41,6 +48,7 @@ func GetWorld(name string) (*TibiaWorld, error) {
 
 	defer resp.Body.Close()
 
+	world := TibiaWorld{}
 	err = easyjson.UnmarshalFromReader(resp.Body, &world)
 	if err != nil {
 		return nil, err
@@ -50,10 +58,11 @@ func GetWorld(name string) (*TibiaWorld, error) {
 }
 
 func GetSpecificGuild(name string) (*SpecificGuild, error) {
-	if invalidName(name) {
-		return nil, errors.New("O nome fornecido é inválido")
+	err := validateName(name)
+	if err != nil {
+		return nil, err
 	}
-	specificGuild := SpecificGuild{}
+
 	resp, err := MakeRequest(name, "specificguild")
 	if err != nil {
 		return nil, err
@@ -61,6 +70,7 @@ func GetSpecificGuild(name string) (*SpecificGuild, error) {
 
 	defer resp.Body.Close()
 
+	specificGuild := SpecificGuild{}
 	err = easyjson.UnmarshalFromReader(resp.Body, &specificGuild)
 	if err != nil {
 		return nil, err
@@ -70,7 +80,6 @@ func GetSpecificGuild(name string) (*SpecificGuild, error) {
 }
 
 func GetNews(url string) (*TibiaNews, error) {
-	tibia := TibiaNews{}
 	resp, err := MakeRequest("news", url)
 	if err != nil {
 		return nil, err
@@ -78,6 +87,7 @@ func GetNews(url string) (*TibiaNews, error) {
 
 	defer resp.Body.Close()
 
+	tibia := TibiaNews{}
 	err = easyjson.UnmarshalFromReader(resp.Body, &tibia)
 	if err != nil {
 		return nil, err
@@ -87,7 +97,6 @@ func GetNews(url string) (*TibiaNews, error) {
 }
 
 func InsideNews(number int) (*TibiaSpecificNews, error) {
-	tibiaInside := TibiaSpecificNews{}
 	resp, err := MakeRequest(number, "")
 	if err != nil {
 		return nil, err
@@ -95,6 +104,7 @@ func InsideNews(number int) (*TibiaSpecificNews, error) {
 
 	defer resp.Body.Close()
 
+	tibiaInside := TibiaSpecificNews{}
 	err = easyjson.UnmarshalFromReader(resp.Body, &tibiaInside)
 	if err != nil {
 		return nil, err
@@ -103,31 +113,28 @@ func InsideNews(number int) (*TibiaSpecificNews, error) {
 	return &tibiaInside, nil
 }
 
-func invalidName(name string) bool {
-	matched, _ := regexp.MatchString(`[^\s'a-zA-Z\-\.]`, name)
-	return matched
-}
-
 func MakeRequest(name interface{}, url string) (*http.Response, error) {
 	var queryUrl string
-	switch name.(type) {
+	switch t := name.(type) {
 	case string:
 		switch url {
 		case "specificguild":
-			queryUrl = fmt.Sprintf("https://api.tibiadata.com/v2/guild/%s.json", name)
+			queryUrl = "https://api.tibiadata.com/v2/guild/" + t + ".json"
 		case "news":
 			queryUrl = "https://api.tibiadata.com/v2/latestnews.json"
 		case "ticker":
 			queryUrl = "https://api.tibiadata.com/v2/newstickers.json"
 		case "world":
-			queryUrl = fmt.Sprintf("https://api.tibiadata.com/v2/world/%s.json", name)
+			queryUrl = "https://api.tibiadata.com/v2/world/" + t + ".json"
 		default:
-			queryUrl = fmt.Sprintf("https://api.tibiadata.com/v2/characters/%s.json", name)
+			queryUrl = "https://api.tibiadata.com/v2/characters/" + t + ".json"
 		}
-	case int, int64:
-		queryUrl = fmt.Sprintf("https://api.tibiadata.com/v2/news/%d.json", name)
+	case int:
+		queryUrl = "https://api.tibiadata.com/v2/news/" + strconv.Itoa(t) + ".json"
+	case int64:
+		queryUrl = "https://api.tibiadata.com/v2/news/" + strconv.FormatInt(t, 10) + ".json"
 	default:
-		return nil, nil
+		return nil, errors.New("Invalid name provided")
 	}
 
 	resp, err := http.DefaultClient.Get(queryUrl)

@@ -26,8 +26,6 @@ package web
 // if the struct also implements CustomValidator then that will also be ran
 import (
 	"database/sql"
-	"errors"
-	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -35,6 +33,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"emperror.dev/errors"
 	"github.com/lib/pq"
 
 	"github.com/Pedro-Pessoa/tidbot/common"
@@ -285,7 +284,7 @@ func ValidateIntField(i int64, tags *ValidationTag, guild *discordgo.Guild, forc
 
 func ValidateIntMinMaxField(i int64, min, max int64) error {
 	if min != max && (i < min || i > max) {
-		return fmt.Errorf("Out of range (%d - %d)", min, max)
+		return errors.Errorf("Out of range (%d - %d)", min, max)
 	}
 
 	return nil
@@ -293,7 +292,7 @@ func ValidateIntMinMaxField(i int64, min, max int64) error {
 
 func ValidateFloatField(f float64, min, max float64) error {
 	if min != max && (f < min || f > max) {
-		return fmt.Errorf("Out of range (%f - %f)", min, max)
+		return errors.Errorf("Out of range (%f - %f)", min, max)
 	}
 
 	return nil
@@ -301,7 +300,7 @@ func ValidateFloatField(f float64, min, max float64) error {
 
 func ValidateRegexField(s string, max int) error {
 	if utf8.RuneCountInString(s) > max {
-		return fmt.Errorf("Too long (max %d)", max)
+		return errors.Errorf("Too long (max %d)", max)
 	}
 
 	_, err := regexp.Compile(s)
@@ -382,11 +381,11 @@ func ValidateStringField(s string, tags *ValidationTag, guild *discordgo.Guild) 
 func ValidateNormalStringField(s string, min, max int) error {
 	rCount := utf8.RuneCountInString(s)
 	if rCount > max {
-		return fmt.Errorf("Too long (max %d)", max)
+		return errors.Errorf("Too long (max %d)", max)
 	}
 
 	if rCount < min {
-		return fmt.Errorf("Too short (min %d)", min)
+		return errors.Errorf("Too short (min %d)", min)
 	}
 
 	return nil
@@ -394,7 +393,7 @@ func ValidateNormalStringField(s string, min, max int) error {
 
 func ValidateTemplateField(s string, max int) error {
 	if utf8.RuneCountInString(s) > max {
-		return fmt.Errorf("Too long (max %d)", max)
+		return errors.Errorf("Too long (max %d)", max)
 	}
 
 	_, err := templates.NewContext(nil, nil, nil).Parse(s)

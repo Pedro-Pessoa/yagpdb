@@ -2,13 +2,13 @@ package youtube
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 
+	"emperror.dev/errors"
 	"google.golang.org/api/youtube/v3"
 
 	"github.com/Pedro-Pessoa/tidbot/common"
@@ -119,7 +119,7 @@ func (p *Plugin) WebSubSubscribe(ytChannelID string) error {
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("Go bad status code: %d (%s) %s", resp.StatusCode, resp.Status, string(body))
+		return errors.Errorf("Go bad status code: %d (%s) %s", resp.StatusCode, resp.Status, string(body))
 	}
 
 	logger.Info("Websub: Subscribed to channel ", ytChannelID)
@@ -150,7 +150,7 @@ func (p *Plugin) WebSubUnsubscribe(ytChannelID string) error {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("Go bad status code: %d (%s)", resp.StatusCode, resp.Status)
+		return errors.Errorf("Go bad status code: %d (%s)", resp.StatusCode, resp.Status)
 	}
 
 	logger.Info("Websub: UnSubscribed to channel ", ytChannelID)

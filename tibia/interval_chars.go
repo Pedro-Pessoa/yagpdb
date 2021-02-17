@@ -1,9 +1,9 @@
 package tibia
 
 import (
-	"fmt"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"sync"
 	"time"
 
@@ -330,46 +330,43 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	}
 
 	if char.Name != input.Name {
-		output = fmt.Sprintf("%s\nParece que ele tava insatisfeito com o nome e agora se chama **%s**!!", output, char.Name)
+		output += "\nParece que ele estava insatisfeito com o nome e agora se chama **" + char.Name + "**!!"
 		input.Name = char.Name
 	}
 
 	if char.Level != input.Level {
 		if char.Level > input.Level {
-			output = fmt.Sprintf("%s\nUPOOUU! Agora tá no level: **%d**!", output, char.Level)
+			output += "\nUPOOUU! Agora está no level: **" + strconv.Itoa(char.Level) + "**!"
 		}
 
 		input.Level = char.Level
 	}
 
 	if char.World != input.World {
-		output = fmt.Sprintf("%s\nDesertor ou auxiliar de guerra? Ele fez uma viagem longa e atracou em **%s**!!", output, char.World)
+		output = "\nDesertor ou auxiliar de guerra? Ele fez uma viagem longa e atracou em **" + char.World + "**!!"
 		input.World = char.World
 	}
 
 	if char.Residence != input.Residence {
-		output = fmt.Sprintf("%s\nNão tava gostando da cidade natal né? O que você tá achando de **%s**?", output, char.Residence)
+		output += "\nNão estava gostando da cidade natal né? O que você está achando de **" + char.Residence + "**?"
 		input.Residence = char.Residence
 	}
 
-	if char.AchievementPoints != input.AchievementPoints {
-		if char.AchievementPoints > input.AchievementPoints {
-			output = fmt.Sprintf("%s\nOlha o char lover ai!! Upando achievement, mano!! Agora tá com **%d** pontos!", output, char.AchievementPoints)
-		}
-
+	if char.AchievementPoints > input.AchievementPoints {
+		output += "\nOlha o char lover ai!! Upando achievement, mano!! Agora tá com **" + strconv.Itoa(char.AchievementPoints) + "** pontos!"
 		input.AchievementPoints = char.AchievementPoints
 	}
 
 	if char.Sex != input.Sex {
-		output = fmt.Sprintf("%s\nMomento de inclusão! Esse char agora é **%s**!", output, char.Sex)
+		output += "\nMomento de inclusão! Esse char agora é **" + char.Sex + "!**"
 		input.Sex = char.Sex
 	}
 
 	if char.Married != input.Married {
 		if char.Married != "Ninguém" {
-			output = fmt.Sprintf("%s\nSe casou com **%s**!!", output, char.Married)
+			output += "\nSe casou com **" + char.Married + "!!**"
 		} else {
-			output = fmt.Sprintf("%s\nSe divorciou!!!", output)
+			output += "\nSe divorciou!!!"
 		}
 
 		input.Married = char.Married
@@ -377,9 +374,9 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if char.Guild != input.Guild {
 		if char.Guild != "Sem guild" {
-			output = fmt.Sprintf("%s\nAbre o olho ae em!! Mudou de guild e agora está na **%s**", output, char.Guild)
+			output += "\nAbre o olho ae em!! Mudou de guild e agora está na **" + char.Guild + "**"
 		} else {
-			output = fmt.Sprintf("%s\nNão faz mais parte de guild nenhuma!", output)
+			output += "\nNão faz mais parte de guild nenhuma!"
 		}
 
 		input.Guild = char.Guild
@@ -387,7 +384,7 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if char.Rank != input.Rank {
 		if char.Rank != "Sem guild" {
-			output = fmt.Sprintf("%s\nMudou de cargo na guild e agora é um **%s**!!", output, char.Rank)
+			output += "\nMudou de cargo na guild e agora é um **" + char.Rank + "**!!"
 		}
 
 		input.Rank = char.Rank
@@ -397,10 +394,10 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 		if len(char.Deaths) > 0 {
 			if len(input.Deaths) > 0 {
 				if char.Deaths[0] != input.Deaths[0] {
-					deathsoutput = fmt.Sprintf("Level: **%d**\nMotivo: **%s**\nData: **%s**", char.Deaths[0].Level, char.Deaths[0].Reason, char.Deaths[0].Date)
+					deathsoutput = "Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**"
 				}
 			} else {
-				deathsoutput = fmt.Sprintf("Level: **%d**\nMotivo: **%s**\nData: **%s**", char.Deaths[0].Level, char.Deaths[0].Reason, char.Deaths[0].Date)
+				deathsoutput = "Level: **" + strconv.Itoa(char.Deaths[0].Level) + "**\nMotivo: **" + char.Deaths[0].Reason + "**\nData: **" + char.Deaths[0].Date + "**"
 			}
 		}
 
@@ -412,9 +409,9 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 	var title string
 	if flags.SendUpdates && len(output) > 0 {
 		if areHunteds {
-			title = fmt.Sprintf("Tem novidade sobre %s (HUNTED)", input.Name)
+			title = "Tem novidade sobre " + input.Name + " (HUNTED)"
 		} else {
-			title = fmt.Sprintf("Tem novidade sobre %s (FRIEND)", input.Name)
+			title = "Tem novidade sobre " + input.Name + " (FRIEND)"
 		}
 
 		embed := &discordgo.MessageEmbed{
@@ -436,9 +433,9 @@ func (ds *DataStore) msgsRoutine(input InternalChar, k int, channel chan Interna
 
 	if flags.SendDeaths && len(deathsoutput) > 0 {
 		if areHunteds {
-			title = fmt.Sprintf("ENEMY MORTO: %s", input.Name)
+			title = "ENEMY MORTO: " + input.Name
 		} else {
-			title = fmt.Sprintf("FRIEND MORTO: %s", input.Name)
+			title = "FRIEND MORTO: " + input.Name
 		}
 
 		embed := &discordgo.MessageEmbed{
