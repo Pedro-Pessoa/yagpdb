@@ -1121,15 +1121,15 @@ func (c *Context) tmplDelMessageReaction(values ...reflect.Value) (reflect.Value
 }
 
 // Deletes all reactions on the specified emoji of the specified message.
-func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emojis ...interface{}) error {
+func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emojis ...interface{}) (string, error) {
 	channelID := c.ChannelArgNoDM(channel)
 	if channelID == 0 {
-		return errors.New("Invalid channel provided")
+		return "", errors.New("Invalid channel provided")
 	}
 
 	messageID := ToInt64(message)
 	if messageID == 0 {
-		return errors.New("Invalid message provided")
+		return "", errors.New("Invalid message provided")
 	}
 
 	var slice Slice
@@ -1137,7 +1137,7 @@ func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emoj
 	var err error
 	switch l := len(emojis); l {
 	case 0:
-		return errors.New("At least one emoji needs to be provided")
+		return "", errors.New("At least one emoji needs to be provided")
 	case 1:
 		switch t := emojis[0].(type) {
 		case []interface{}:
@@ -1147,23 +1147,23 @@ func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emoj
 		case string:
 			emojiSlice = []string{emojiArg(t)}
 		default:
-			return errors.New("Invalid emoji value provided")
+			return "", errors.New("Invalid emoji value provided")
 		}
 	default:
 		slice, err = CreateSlice(emojis...)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	if len(emojiSlice) == 0 && len(slice) == 0 {
-		return errors.New("Invalid emojis provided")
+		return "", errors.New("Invalid emojis provided")
 	}
 
 	for _, e := range slice {
 		cast, ok := e.(string)
 		if !ok {
-			return errors.New("Non string value found on slice")
+			return "", errors.New("Non string value found on slice")
 		}
 
 		emojiSlice = append(emojiSlice, cast)
@@ -1171,16 +1171,16 @@ func (c *Context) tmplDelMessageReactionEmoji(channel, message interface{}, emoj
 
 	for _, e := range emojiSlice {
 		if c.IncreaseCheckCallCounter("del_reaction_message", 10) {
-			return ErrTooManyCalls
+			return "", ErrTooManyCalls
 		}
 
 		err = common.BotSession.MessageReactionRemoveEmoji(channelID, messageID, e)
 		if err != nil {
-			return errors.WithMessage(err, "Failed deleting emoji **"+e+"**")
+			return "", errors.WithMessage(err, "Failed deleting emoji **"+e+"**")
 		}
 	}
 
-	return nil
+	return "", nil
 }
 
 func (c *Context) tmplDelAllMessageReactions(values ...reflect.Value) (reflect.Value, error) {

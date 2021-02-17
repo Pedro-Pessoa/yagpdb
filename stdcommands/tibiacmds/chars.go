@@ -248,7 +248,7 @@ var CheckOnlineCommand = &commands.TIDCommand{
 			}
 
 			url := "https://www.tibia.com/community/?subtopic=worlds&world=" + name
-			desc += "\n\n[Veja todas os players online](" + url + ")"
+			desc += "\n\n[Veja todos os players online](" + url + ")"
 		} else {
 			desc = "Nenhum player online."
 		}
