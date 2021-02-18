@@ -27,6 +27,7 @@ func ParseDuration(str string) (time.Duration, error) {
 				if currentNumBuf == "" {
 					currentNumBuf = "1"
 				}
+
 				d, err := parseDurationComponent(currentNumBuf, currentModifierBuf)
 				if err != nil {
 					return 0, err

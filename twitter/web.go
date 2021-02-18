@@ -20,12 +20,6 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
-type CtxKey int
-
-const (
-	CurrentConfig CtxKey = iota
-)
-
 type Form struct {
 	TwitterUser    string `valid:",1,256"`
 	DiscordChannel int64  `valid:"channel,false"`

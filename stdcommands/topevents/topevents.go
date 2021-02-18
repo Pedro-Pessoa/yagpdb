@@ -3,6 +3,8 @@ package topevents
 import (
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/bot/eventsystem"
@@ -45,24 +47,28 @@ func cmdFuncTopEvents(data *dcmd.Data) (interface{}, error) {
 
 	sort.Sort(DiscordEvtEntrySortable(sortable))
 
-	out := "Total event stats across all shards:\n"
+	var out strings.Builder
+	out.WriteString("Total event stats across all shards:\n")
+
 	if data.Args[0].Value != nil {
-		out = fmt.Sprintf("Stats for shard %d:\n", data.Args[0].Int())
+		out.WriteString("Stats for shard " + strconv.Itoa(data.Args[0].Int()) + ":\n")
 	}
 
-	out += "```\n#     Total  -   /s  - Event\n"
-	sum := int64(0)
-	sumPerSecond := float64(0)
+	out.WriteString("```\n#     Total  -   /s  - Event\n")
+
+	var sum int64
+	var sumPerSecond float64
+
 	for k, entry := range sortable {
-		out += fmt.Sprintf("#%-2d: %7d - %5.1f - %s\n", k+1, entry.Total, entry.PerSecond, entry.Name)
+		out.WriteString(fmt.Sprintf("#%-2s: %7s - %5.1f - %s\n", strconv.Itoa(k+1), strconv.FormatInt(entry.Total, 10), entry.PerSecond, entry.Name))
 		sum += entry.Total
 		sumPerSecond += entry.PerSecond
 	}
 
-	out += fmt.Sprintf("\nTotal: %d, Events per second: %.1f", sum, sumPerSecond)
-	out += "\n```"
+	out.WriteString(fmt.Sprintf("\nTotal: %s, Events per second: %.1f", strconv.FormatInt(sum, 10), sumPerSecond))
+	out.WriteString("\n```")
 
-	return out, nil
+	return out.String(), nil
 }
 
 type DiscordEvtEntry struct {

@@ -1,7 +1,6 @@
 package weather
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -52,9 +51,8 @@ var Command = &commands.TIDCommand{
 				continue
 			}
 
-			tmpFrom := 0
-			tmpTo := 0
-			isRange := false
+			var tmpFrom, tmpTo int
+			var isRange bool
 
 			submatches := TempRangeRegex.FindStringSubmatch(v)
 			if len(submatches) < 2 {
@@ -74,22 +72,25 @@ var Command = &commands.TIDCommand{
 
 			v = strings.TrimRight(v, " ")
 			if isRange {
-				split[i] = v + fmt.Sprintf(" (%d-%d °F)", tmpFrom, tmpTo)
+				split[i] = v + " (" + strconv.Itoa(tmpFrom) + "-" + strconv.Itoa(tmpTo) + " °F)"
 			} else {
-				split[i] = v + fmt.Sprintf(" (%d °F)", tmpFrom)
+				split[i] = v + " (" + strconv.Itoa(tmpFrom) + " °F)"
 			}
 		}
 
-		out := "```\n"
+		var out strings.Builder
+		out.WriteString("```\n")
+
 		for i := 0; i < 7; i++ {
 			if i >= len(split) {
 				break
 			}
 
-			out += strings.TrimRight(split[i], " ") + "\n"
+			out.WriteString(strings.TrimRight(split[i], " ") + "\n")
 		}
-		out += "\n```"
 
-		return out, nil
+		out.WriteString("\n```")
+
+		return out.String(), nil
 	},
 }

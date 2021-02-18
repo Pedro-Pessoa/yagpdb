@@ -145,18 +145,13 @@ var ErrNotLoggedIn = errors.New("Not logged in")
 
 // AuthTokenFromB64 Retrives an oauth2 token from the base64 string
 // Returns an error if expired
-func discordAuthTokenFromYag(yagToken string) (t *oauth2.Token, err error) {
-	if yagToken == "none" {
+func discordAuthTokenFromTid(tidToken string) (t *oauth2.Token, err error) {
+	if tidToken == "none" {
 		return nil, ErrNotLoggedIn
 	}
 
-	// decodedB64, err := base64.URLEncoding.DecodeString(b64)
-	// if err != nil {
-	// 	return nil, common.ErrWithCaller(err)
-	// }
-
 	var b64 string
-	err = common.RedisPool.Do(radix.Cmd(&b64, "HGET", "web_sessions", yagToken))
+	err = common.RedisPool.Do(radix.Cmd(&b64, "HGET", "web_sessions", tidToken))
 	if err != nil {
 		return nil, err
 	}

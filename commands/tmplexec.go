@@ -125,7 +125,8 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 	fakeMsg := *m.Message
 	fakeMsg.Mentions = make([]*discordgo.User, 0)
 
-	cmdLine := cmd + " "
+	var cmdLine strings.Builder
+	cmdLine.WriteString(cmd + " ")
 
 	for _, arg := range args {
 		if arg == nil {
@@ -134,55 +135,57 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 
 		switch t := arg.(type) {
 		case string:
-			if strings.HasPrefix(t, "-") {
+			switch {
+			case strings.HasPrefix(t, "-"):
 				// Don't put quotes around switches
-				cmdLine += t
-			} else if strings.HasPrefix(t, "\\-") {
+				cmdLine.WriteString(t)
+			case strings.HasPrefix(t, "\\-"):
 				// Escaped -
-				cmdLine += "\"" + t[1:] + "\""
-			} else {
-				cmdLine += "\"" + t + "\""
+				cmdLine.WriteString("\"" + t[1:] + "\"")
+			default:
+				cmdLine.WriteString("\"" + t + "\"")
 			}
 		case int:
-			cmdLine += strconv.FormatInt(int64(t), 10)
+			cmdLine.WriteString(strconv.FormatInt(int64(t), 10))
 		case int32:
-			cmdLine += strconv.FormatInt(int64(t), 10)
+			cmdLine.WriteString(strconv.FormatInt(int64(t), 10))
 		case int64:
-			cmdLine += strconv.FormatInt(t, 10)
+			cmdLine.WriteString(strconv.FormatInt(t, 10))
 		case uint:
-			cmdLine += strconv.FormatUint(uint64(t), 10)
+			cmdLine.WriteString(strconv.FormatUint(uint64(t), 10))
 		case uint8:
-			cmdLine += strconv.FormatUint(uint64(t), 10)
+			cmdLine.WriteString(strconv.FormatUint(uint64(t), 10))
 		case uint16:
-			cmdLine += strconv.FormatUint(uint64(t), 10)
+			cmdLine.WriteString(strconv.FormatUint(uint64(t), 10))
 		case uint32:
-			cmdLine += strconv.FormatUint(uint64(t), 10)
+			cmdLine.WriteString(strconv.FormatUint(uint64(t), 10))
 		case uint64:
-			cmdLine += strconv.FormatUint(t, 10)
+			cmdLine.WriteString(strconv.FormatUint(t, 10))
 		case float32:
-			cmdLine += strconv.FormatFloat(float64(t), 'E', -1, 32)
+			cmdLine.WriteString(strconv.FormatFloat(float64(t), 'E', -1, 32))
 		case float64:
-			cmdLine += strconv.FormatFloat(t, 'E', -1, 64)
+			cmdLine.WriteString(strconv.FormatFloat(t, 'E', -1, 64))
 		case *discordgo.User:
-			cmdLine += "<@" + strconv.FormatInt(t.ID, 10) + ">"
+			cmdLine.WriteString("<@" + strconv.FormatInt(t.ID, 10) + ">")
 			fakeMsg.Mentions = append(fakeMsg.Mentions, t)
 		case []string:
 			for i, str := range t {
 				if i != 0 {
-					cmdLine += " "
+					cmdLine.WriteString(" ")
 				}
-				cmdLine += str
+
+				cmdLine.WriteString(str)
 			}
 		default:
 			return "", errors.New("Unknown type in exec, only strings, numbers, users and string slices are supported")
 		}
 
-		cmdLine += " "
+		cmdLine.WriteString(" ")
 	}
 
 	logger.Info("Custom template is executing a command:", cmdLine)
 
-	fakeMsg.Content = cmdLine
+	fakeMsg.Content = cmdLine.String()
 
 	data, err := CommandSystem.FillData(common.BotSession, &fakeMsg)
 	if err != nil {
@@ -190,7 +193,7 @@ func execCmd(tmplCtx *templates.Context, dryRun bool, m *discordgo.MessageCreate
 	}
 
 	data.MsgStrippedPrefix = fakeMsg.Content
-	foundCmd, foundContainer, rest := CommandSystem.Root.AbsFindCommandWithRest(cmdLine)
+	foundCmd, foundContainer, rest := CommandSystem.Root.AbsFindCommandWithRest(cmdLine.String())
 	if foundCmd == nil {
 		return "Unknown command", nil
 	}

@@ -34,7 +34,7 @@ type DataStore struct {
 	total   int
 }
 
-func New() *DataStore {
+func newDS() *DataStore {
 	return &DataStore{
 		counter: 0,
 		total:   0,
@@ -76,7 +76,7 @@ func (ds *DataStore) scanTracks() {
 	trackpool = make(chan struct{}, 500)
 	logger.Infof("Tracking starting... %v", start)
 
-	guilds, err := FindAllGuilds()
+	guilds, err := findAllGuilds()
 	if err != nil || len(guilds) == 0 {
 		logger.Info("As guilds não foram encontradas!")
 	} else {
@@ -91,7 +91,7 @@ func (ds *DataStore) scanTracks() {
 		logger.Infof("Guilds atualizadas em %vs... Continuando...", time.Since(guildTimer).Seconds())
 	}
 
-	tracks, err := FindAll()
+	tracks, err := findAll()
 	if err != nil || len(tracks) == 0 {
 		logger.Infof("Nothing to scan. Scan concluido em %vs", time.Since(start).Seconds())
 		return
@@ -162,7 +162,7 @@ func StartLoop() (string, error) {
 		return "", err
 	}
 
-	store := New()
+	store := newDS()
 	store.trackingController()
 
 	return "Tudo certo! O tracking está rolando", nil

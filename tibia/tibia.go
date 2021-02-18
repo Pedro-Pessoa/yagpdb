@@ -8,13 +8,13 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-func GetChar(name string) (*Tibia, error) {
+func getChar(name string) (*Tibia, error) {
 	err := validateName(name)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := MakeRequest(name, "char")
+	resp, err := makeRequest(name, "char")
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func GetChar(name string) (*Tibia, error) {
 	return &tibia, nil
 }
 
-func GetWorld(name string) (*TibiaWorld, error) {
+func getWorld(name string) (*TibiaWorld, error) {
 	err := validateName(name)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func GetWorld(name string) (*TibiaWorld, error) {
 		return nil, errors.New("O mundo " + name + " não existe")
 	}
 
-	resp, err := MakeRequest(name, "world")
+	resp, err := makeRequest(name, "world")
 	if err != nil {
 		return nil, err
 	}
@@ -57,13 +57,13 @@ func GetWorld(name string) (*TibiaWorld, error) {
 	return &world, nil
 }
 
-func GetSpecificGuild(name string) (*SpecificGuild, error) {
+func getSpecificGuild(name string) (*SpecificGuild, error) {
 	err := validateName(name)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := MakeRequest(name, "specificguild")
+	resp, err := makeRequest(name, "specificguild")
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +79,8 @@ func GetSpecificGuild(name string) (*SpecificGuild, error) {
 	return &specificGuild, nil
 }
 
-func GetNews(url string) (*TibiaNews, error) {
-	resp, err := MakeRequest("news", url)
+func getNews(url string) (*TibiaNews, error) {
+	resp, err := makeRequest("news", url)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +96,8 @@ func GetNews(url string) (*TibiaNews, error) {
 	return &tibia, nil
 }
 
-func InsideNews(number int) (*TibiaSpecificNews, error) {
-	resp, err := MakeRequest(number, "")
+func insideNews(number int) (*TibiaSpecificNews, error) {
+	resp, err := makeRequest(number, "")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func InsideNews(number int) (*TibiaSpecificNews, error) {
 	return &tibiaInside, nil
 }
 
-func MakeRequest(name interface{}, url string) (*http.Response, error) {
+func makeRequest(name interface{}, url string) (*http.Response, error) {
 	var queryUrl string
 	switch t := name.(type) {
 	case string:
@@ -139,7 +139,7 @@ func MakeRequest(name interface{}, url string) (*http.Response, error) {
 
 	resp, err := http.DefaultClient.Get(queryUrl)
 	if err != nil {
-		return nil, errors.WithMessage(err, "Erro no HTTP Get - MakeRequest Function")
+		return nil, errors.WithMessage(err, "Erro no HTTP Get - makeRequest Function")
 	}
 
 	return resp, nil

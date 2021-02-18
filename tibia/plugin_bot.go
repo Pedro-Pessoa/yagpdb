@@ -30,7 +30,7 @@ func RegisterPlugin() {
 	err := common.GORM.Where(&table).First(&table).Error
 	if err == nil {
 		if table.RunScan {
-			store := New()
+			store := newDS()
 			store.trackingController()
 		}
 	}

@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"goji.io/pattern"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/common"
@@ -165,6 +164,8 @@ func GetBaseCPContextData(ctx context.Context) (*discordgo.Guild, TemplateData) 
 
 	templateData := ctx.Value(common.ContextKeyTemplateData).(TemplateData)
 
+	logger.Infof("%#v", templateData)
+
 	return guild, templateData
 }
 
@@ -274,10 +275,6 @@ func HasPermissionCTX(ctx context.Context, aperms int64) bool {
 	return false
 }
 
-type APIError struct {
-	Message string
-}
-
 // CtxLogger Returns an always non nil entry either from the context or standard logger
 func CtxLogger(ctx context.Context) *logrus.Entry {
 	if inter := ctx.Value(common.ContextKeyLogger); inter != nil {
@@ -296,14 +293,6 @@ func WriteErrorResponse(w http.ResponseWriter, r *http.Request, err string, stat
 
 	http.Redirect(w, r, "/?error="+url.QueryEscape(err), http.StatusTemporaryRedirect)
 
-}
-
-func IsRequestPartial(ctx context.Context) bool {
-	if v := ctx.Value(common.ContextKeyIsPartial); v != nil {
-		return v.(bool)
-	}
-
-	return false
 }
 
 func ContextUser(ctx context.Context) *discordgo.User {
@@ -326,15 +315,6 @@ func ContextMemberPerms(ctx context.Context) int64 {
 	}
 
 	return i.(int64)
-}
-
-func ParamOrEmpty(r *http.Request, key string) string {
-	s := r.Context().Value(pattern.Variable(key))
-	if s != nil {
-		return s.(string)
-	}
-
-	return ""
 }
 
 func Indicator(enabled bool) string {

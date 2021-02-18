@@ -11,7 +11,7 @@ import (
 )
 
 func GetTibiaChar(char string, update bool) (*InternalChar, error) {
-	tibia, err := GetChar(char)
+	tibia, err := getChar(char)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func GetTibiaChar(char string, update bool) (*InternalChar, error) {
 
 	level := tibia.Characters.Data.Level
 	if update {
-		world, err := GetWorld(tibia.Characters.Data.World)
+		world, err := getWorld(tibia.Characters.Data.World)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func GetTibiaSpecificGuild(guildName string) (*InternalGuild, error) {
 		return nil, err
 	}
 
-	guild, err := GetSpecificGuild(strings.Title(guildName))
+	guild, err := getSpecificGuild(strings.Title(guildName))
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func CheckOnline(mundo string) ([]OnlineChar, string, error) {
 		return nil, "", ErrSmallName
 	}
 
-	world, err := GetWorld(mundo)
+	world, err := getWorld(mundo)
 	if err != nil {
 		return nil, "", err
 	}
@@ -199,7 +199,7 @@ func GetTibiaNews(news ...int) (*InternalNews, error) {
 
 	switch len(news) {
 	case 0:
-		tibia, err := GetNews("news")
+		tibia, err := getNews("news")
 		if err != nil {
 			return nil, err
 		}
@@ -212,7 +212,7 @@ func GetTibiaNews(news ...int) (*InternalNews, error) {
 		return nil, errors.New("getNews só aceita 1 argumento.")
 	}
 
-	tibiaInside, err := InsideNews(inside)
+	tibiaInside, err := insideNews(inside)
 	if err != nil {
 		return nil, err
 	}
@@ -226,14 +226,14 @@ func GetTibiaNews(news ...int) (*InternalNews, error) {
 }
 
 func GetTibiaNewsticker() (*InternalNews, error) {
-	tibia, err := GetNews("ticker")
+	tibia, err := getNews("ticker")
 	if err != nil {
 		return nil, err
 	}
 
 	url := tibia.Newslist.Data[0].Tibiaurl
 
-	tibiaInside, err := InsideNews(tibia.Newslist.Data[0].ID)
+	tibiaInside, err := insideNews(tibia.Newslist.Data[0].ID)
 	if err != nil {
 		return nil, err
 	}

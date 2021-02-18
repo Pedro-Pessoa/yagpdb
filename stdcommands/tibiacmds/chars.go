@@ -3,7 +3,6 @@ package tibiacmds
 import (
 	"fmt"
 	"math/rand"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -50,8 +49,7 @@ var MainCharCommand = &commands.TIDCommand{
 			comentarioOut.WriteString(comentario)
 		}
 
-		re := regexp.MustCompile(` `)
-		linkname := re.ReplaceAllString(char.Name, `\+`)
+		linkname := strings.ReplaceAll(char.Name, " ", "+")
 		link := "https://www.tibia.com/community/?subtopic=characters&name=" + linkname
 		comentarioOut.WriteString("\n\n[Perfil do char](" + link + ")")
 
@@ -174,7 +172,6 @@ var DeathsCommand = &commands.TIDCommand{
 			if len(deaths.String()) < 1800 {
 				if strings.Contains(v.Reason, "Died by a") { // check if the char was killed by a monster
 					deaths.WriteString("**Data**: " + v.Date + "\n**Level**: " + strconv.Itoa(v.Level) + "\n**Motivo**: " + v.Reason + "\n\n")
-
 					continue
 				}
 

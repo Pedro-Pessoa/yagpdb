@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -51,28 +52,6 @@ func GetGuildsWithConnected(in []*discordgo.UserGuild) ([]*GuildWithConnected, e
 	}
 
 	return out, nil
-}
-
-// DelayedMessageDelete Deletes a message after delay
-func DelayedMessageDelete(session *discordgo.Session, delay time.Duration, cID, mID int64) {
-	time.Sleep(delay)
-	err := session.ChannelMessageDelete(cID, mID)
-	if err != nil {
-		logger.WithError(err).Error("Failed deleting message")
-	}
-}
-
-// SendTempMessage sends a message that gets deleted after duration
-func SendTempMessage(session *discordgo.Session, duration time.Duration, cID int64, msg string) {
-	m, err := BotSession.ChannelMessageSendComplex(cID, &discordgo.MessageSend{
-		Content:         msg,
-		AllowedMentions: AllowedMentionsParseUsers,
-	})
-	if err != nil {
-		return
-	}
-
-	DelayedMessageDelete(session, duration, cID, m.ID)
 }
 
 func RandomAdjective() string {
@@ -161,23 +140,23 @@ func HumanizeDuration(precision DurationFormatPrecision, in time.Duration) strin
 		}
 	}
 
-	var outStr string
+	var outStr strings.Builder
 
 	for i := len(out) - 1; i >= 0; i-- {
 		if i == 0 && i != len(out)-1 {
-			outStr += " e "
+			outStr.WriteString(" e ")
 		} else if i != len(out)-1 {
-			outStr += " "
+			outStr.WriteString(" ")
 		}
 
-		outStr += out[i]
+		outStr.WriteString(out[i])
 	}
 
-	if outStr == "" {
-		outStr = "menos de 1 " + precision.String()
+	if outStr.String() == "" {
+		outStr.WriteString("menos de 1 " + precision.String())
 	}
 
-	return outStr
+	return outStr.String()
 }
 
 func HumanizeTime(precision DurationFormatPrecision, in time.Time) string {
@@ -189,27 +168,6 @@ func HumanizeTime(precision DurationFormatPrecision, in time.Time) string {
 		duration := in.Sub(now)
 		return "in " + HumanizeDuration(precision, duration)
 	}
-}
-
-func FallbackEmbed(embed *discordgo.MessageEmbed) string {
-	var body string
-	if embed.Title != "" {
-		body += embed.Title + "\n"
-	}
-
-	if embed.Description != "" {
-		body += embed.Description + "\n"
-	}
-
-	if body != "" {
-		body += "\n"
-	}
-
-	for _, v := range embed.Fields {
-		body += fmt.Sprintf("**%s**\n%s\n\n", v.Name, v.Value)
-	}
-
-	return body + "**I have no 'embed links' permissions here, this is a fallback. it looks prettier if i have that perm :)**"
 }
 
 // CutStringShort stops a strinng at "l"-3 if it's longer than "l" and adds "..."
@@ -240,26 +198,6 @@ type SmallModel struct {
 	UpdatedAt time.Time
 }
 
-func MustParseInt(s string) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		panic("Failed parsing int: " + err.Error())
-	}
-
-	return i
-}
-
-func AddRole(member *discordgo.Member, role int64, guildID int64) error {
-	for _, v := range member.Roles {
-		if v == role {
-			// Already has the role
-			return nil
-		}
-	}
-
-	return BotSession.GuildMemberRoleAdd(guildID, member.User.ID, role)
-}
-
 func AddRoleDS(ms *dstate.MemberState, role int64) error {
 	for _, v := range ms.Roles {
 		if v == role {
@@ -269,17 +207,6 @@ func AddRoleDS(ms *dstate.MemberState, role int64) error {
 	}
 
 	return BotSession.GuildMemberRoleAdd(ms.Guild.ID, ms.ID, role)
-}
-
-func RemoveRole(member *discordgo.Member, role int64, guildID int64) error {
-	for _, r := range member.Roles {
-		if r == role {
-			return BotSession.GuildMemberRoleRemove(guildID, member.User.ID, r)
-		}
-	}
-
-	// Never had the role in the first place if we got here
-	return nil
 }
 
 func RemoveRoleDS(ms *dstate.MemberState, role int64) error {
@@ -558,20 +485,6 @@ func SqlTX(f func(tx *sql.Tx) error) error {
 	return tx.Commit()
 }
 
-func SendOwnerAlert(msgf string, args ...interface{}) {
-	mainOwner := int64(0)
-	if len(BotOwners) > 0 {
-		mainOwner = BotOwners[0]
-	}
-
-	ch, err := BotSession.UserChannelCreate(int64(mainOwner))
-	if err != nil {
-		return
-	}
-
-	_, _ = BotSession.ChannelMessageSend(ch.ID, fmt.Sprintf(msgf, args...))
-}
-
 func IsOwner(userID int64) bool {
 	for _, v := range BotOwners {
 		if v == userID {
@@ -580,10 +493,6 @@ func IsOwner(userID int64) bool {
 	}
 
 	return false
-}
-
-var AllowedMentionsParseUsers = &discordgo.MessageAllowedMentions{
-	Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
 }
 
 func LogLongCallTime(treshold time.Duration, isErr bool, logMsg string, extraData logrus.Fields, f func()) {

@@ -101,6 +101,7 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 		tField := t.Field(i)
 		tag := tField.Tag
 		validationStr := tag.Get("valid")
+
 		if validationStr == "" {
 			continue
 		}
@@ -153,6 +154,7 @@ func ValidateForm(guild *discordgo.Guild, tmpl TemplateData, form interface{}) b
 					newSlice = append(newSlice, newS)
 				}
 			}
+
 			vField.Set(reflect.ValueOf(newSlice))
 		case []int64:
 			newSlice, e := ValidateIntSliceField(cv, validationTag, guild)

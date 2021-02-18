@@ -2,6 +2,7 @@ package undelete
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
@@ -33,8 +34,9 @@ var Command = &commands.TIDCommand{
 			}
 		}
 
-		resp := "Up to 10 last deleted messages (last hour or 12 hours for premium): \n\n"
-		numFound := 0
+		var resp strings.Builder
+		resp.WriteString("Up to 10 last deleted messages (last hour or 12 hours for premium): \n\n")
+		var numFound int
 
 		data.GS.RLock()
 		defer data.GS.RUnlock()
@@ -50,25 +52,29 @@ var Command = &commands.TIDCommand{
 				continue
 			}
 
-			precision := common.DurationPrecisionHours
-			if time.Since(msg.ParsedCreated) < time.Hour {
+			var precision common.DurationFormatPrecision
+			since := time.Since(msg.ParsedCreated)
+
+			switch {
+			case since < time.Minute:
+				precision = common.DurationPrecisionSeconds
+			case since < time.Hour:
 				precision = common.DurationPrecisionMinutes
-				if time.Since(msg.ParsedCreated) < time.Minute {
-					precision = common.DurationPrecisionSeconds
-				}
+			default:
+				precision = common.DurationPrecisionHours
 			}
 
 			// Match found!
-			timeSince := common.HumanizeDuration(precision, time.Since(msg.ParsedCreated))
+			timeSince := common.HumanizeDuration(precision, since)
 
-			resp += fmt.Sprintf("`%s ago (%s)` **%s**#%s: %s\n\n", timeSince, msg.ParsedCreated.UTC().Format(time.ANSIC), msg.Author.Username, msg.Author.Discriminator, msg.ContentWithMentionsReplaced())
+			resp.WriteString(fmt.Sprintf("`%s ago (%s)` **%s**#%s: %s\n\n", timeSince, msg.ParsedCreated.UTC().Format(time.ANSIC), msg.Author.Username, msg.Author.Discriminator, msg.ContentWithMentionsReplaced()))
 			numFound++
 		}
 
 		if numFound == 0 {
-			resp += "none..."
+			resp.WriteString("none...")
 		}
 
-		return resp, nil
+		return resp.String(), nil
 	},
 }

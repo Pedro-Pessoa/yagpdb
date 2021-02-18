@@ -80,33 +80,33 @@ func (p *Plugin) customUsernameSearchFunc(gs *dstate.GuildState, query string) (
 	}
 
 	// Show some help output
-	out := ""
+	var out strings.Builder
 
 	if len(fullMatches)+len(partialMatches) < 10 {
-		for _, v := range fullMatches {
-			if out != "" {
-				out += ", "
+		for i, v := range fullMatches {
+			if i != 0 {
+				out.WriteString(", ")
 			}
 
-			out += "`" + v.User.Username + "`"
+			out.WriteString("`" + v.User.Username + "`")
 		}
 
-		for _, v := range partialMatches {
-			if out != "" {
-				out += ", "
+		for i, v := range partialMatches {
+			if i != 0 {
+				out.WriteString(", ")
 			}
 
-			out += "`" + v.User.Username + "`"
+			out.WriteString("`" + v.User.Username + "`")
 		}
 	} else {
 		return nil, &dcmd.UserNotFound{Part: query}
 	}
 
 	if len(fullMatches) > 1 {
-		return nil, dcmd.NewSimpleUserError("Too many users with the name: (" + out + ") Please re-run the command with a narrower search, mention or ID.")
+		return nil, dcmd.NewSimpleUserError("Too many users with the name: (" + out.String() + ") Please re-run the command with a narrower search, mention or ID.")
 	}
 
-	return nil, dcmd.NewSimpleUserError("Did you mean one of these? (" + out + ") Please re-run the command with a narrower search, mention or ID")
+	return nil, dcmd.NewSimpleUserError("Did you mean one of these? (" + out.String() + ") Please re-run the command with a narrower search, mention or ID")
 }
 
 func (p *Plugin) StopBot(wg *sync.WaitGroup) {
@@ -197,14 +197,14 @@ func TIDCommandMiddleware(inner dcmd.RunFunc) dcmd.RunFunc {
 		err = dcmd.ParseCmdArgs(data)
 		if err != nil {
 			if dcmd.IsUserError(err) {
-
 				args := helpFormatter.ArgDefs(data.Cmd, data)
 				switches := helpFormatter.Switches(data.Cmd.Command)
 
-				resp := ""
+				var resp string
 				if args != "" {
 					resp += "```\n" + args + "\n```"
 				}
+
 				if switches != "" {
 					resp += "```\n" + switches + "\n```"
 				}

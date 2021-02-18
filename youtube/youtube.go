@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"emperror.dev/errors"
 	"google.golang.org/api/youtube/v3"
@@ -49,7 +48,7 @@ func (p *Plugin) PluginInfo() *common.PluginInfo {
 func RegisterPlugin() {
 	p := &Plugin{}
 
-	common.GORM.AutoMigrate(ChannelSubscription{}, YoutubePlaylistID{})
+	common.GORM.AutoMigrate(ChannelSubscription{})
 
 	mqueue.RegisterSource("youtube", p)
 
@@ -75,12 +74,6 @@ func (c *ChannelSubscription) TableName() string {
 	return "youtube_channel_subscriptions"
 }
 
-type YoutubePlaylistID struct {
-	ChannelID  string `gorm:"primary_key"`
-	CreatedAt  time.Time
-	PlaylistID string
-}
-
 var _ mqueue.PluginWithSourceDisabler = (*Plugin)(nil)
 
 // Remove feeds if they don't point to a proper channel
@@ -95,14 +88,6 @@ func (p *Plugin) DisableFeed(elem *mqueue.QueuedElement, PlaceHolder error) {
 }
 
 func (p *Plugin) WebSubSubscribe(ytChannelID string) error {
-	// hub.callback:https://testing.yagpdb.xyz/yt_new_upload
-	// hub.topic:https://www.youtube.com/xml/feeds/videos.xml?channel_id=UCt-ERbX-2yA6cAqfdKOlUwQ
-	// hub.verify:sync
-	// hub.mode:subscribe
-	// hub.verify_token:hmmmmmmmmwhatsthis
-	// hub.secret:
-	// hub.lease_seconds:
-
 	values := url.Values{
 		"hub.callback":     {"https://" + common.ConfHost.GetString() + "/yt_new_upload/" + confWebsubVerifytoken.GetString()},
 		"hub.topic":        {"https://www.youtube.com/xml/feeds/videos.xml?channel_id=" + ytChannelID},
@@ -128,14 +113,6 @@ func (p *Plugin) WebSubSubscribe(ytChannelID string) error {
 }
 
 func (p *Plugin) WebSubUnsubscribe(ytChannelID string) error {
-	// hub.callback:https://testing.yagpdb.xyz/yt_new_upload
-	// hub.topic:https://www.youtube.com/xml/feeds/videos.xml?channel_id=UCt-ERbX-2yA6cAqfdKOlUwQ
-	// hub.verify:sync
-	// hub.mode:subscribe
-	// hub.verify_token:hmmmmmmmmwhatsthis
-	// hub.secret:
-	// hub.lease_seconds:
-
 	values := url.Values{
 		"hub.callback":     {"https://" + common.ConfHost.GetString() + "/yt_new_upload/" + confWebsubVerifytoken.GetString()},
 		"hub.topic":        {"https://www.youtube.com/xml/feeds/videos.xml?channel_id=" + ytChannelID},
@@ -176,10 +153,6 @@ type XMLFeed struct {
 }
 
 type Link struct {
-	Href string `xml:"href,attr"`
-	Rel  string `xml:"rel,attr"`
-}
-type LinkEntry struct {
 	Href string `xml:"href,attr"`
 	Rel  string `xml:"rel,attr"`
 }

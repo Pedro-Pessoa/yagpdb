@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// const countrycsv = "generate/country.csv"
 const zonecsv = "generate/zone.csv"
 
 func main() {
@@ -17,12 +16,6 @@ func main() {
 	}
 
 	defer fzone.Close()
-
-	// fcountries, err := os.Open(countrycsv)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer fcountries.Close()
 
 	zones := ReadZones(fzone)
 

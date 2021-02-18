@@ -24,12 +24,6 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
-type CtxKey int
-
-const (
-	CurrentConfig CtxKey = iota
-)
-
 var (
 	panelLogKeyAddedFeed   = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "youtube_added_feed", FormatString: "Added youtube feed from %s"})
 	panelLogKeyRemovedFeed = cplogs.RegisterActionFormat(&cplogs.ActionFormat{Key: "youtube_removed_feed", FormatString: "Removed youtube feed from %s"})
@@ -39,8 +33,7 @@ var (
 type Form struct {
 	YoutubeChannelID   string
 	YoutubeChannelUser string
-	DiscordChannel     int64 `valid:"channel,false"`
-	ID                 uint
+	DiscordChannel     int64  `valid:"channel,false"`
 	YoutubeMsg         string `json:"youtube_msg" schema:"youtube_msg" valid:"template,1000"`
 }
 

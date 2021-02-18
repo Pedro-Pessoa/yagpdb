@@ -177,7 +177,7 @@ func SetServerWorld(world string, server int64, isAdmin bool) (interface{}, erro
 		return "O mundo deste servidor já foi definido.", nil
 	}
 
-	mundo, err := GetWorld(world)
+	mundo, err := getWorld(world)
 	if err != nil {
 		return "", errors.WithMessage(err, "SetServerWorld Error 2")
 	}

@@ -286,7 +286,7 @@ func GetHuntedList(server int64) ([]InternalChar, error) {
 	return deserialized, nil
 }
 
-func FindAll() ([]TibiaTracking, error) {
+func findAll() ([]TibiaTracking, error) {
 	flags := []TibiaTracking{}
 	err := common.GORM.Find(&flags).Error
 	if err != nil {
@@ -296,7 +296,7 @@ func FindAll() ([]TibiaTracking, error) {
 	return flags, nil
 }
 
-func FindAllGuilds() ([]TibiaFlags, error) {
+func findAllGuilds() ([]TibiaFlags, error) {
 	guilds := []TibiaFlags{}
 	err := common.GORM.Find(&guilds).Error
 	if err != nil {

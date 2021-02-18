@@ -28,7 +28,6 @@ var (
 	// Core template files
 	Templates *template.Template
 
-	Debug              = true // Turns on debug mode
 	ListenAddressHTTP  = ":5000"
 	ListenAddressHTTPS = ":5001"
 
@@ -37,7 +36,6 @@ var (
 	CPMux              *goji.Mux
 	ServerPublicMux    *goji.Mux
 	ServerPublicAPIMux *goji.Mux
-	Error404Mux        *goji.Mux
 
 	properAddresses bool
 

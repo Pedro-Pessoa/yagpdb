@@ -3,6 +3,8 @@ package topgames
 import (
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/commands"
@@ -63,16 +65,17 @@ func cmdFuncTopCommands(data *dcmd.Data) (interface{}, error) {
 	})
 
 	// display it
-	out := "```\nTop games being played currently\n#    Count -  Game\n"
+	var out strings.Builder
+	out.WriteString("```\nTop games being played currently\n#    Count -  Game\n")
 	for k, result := range fullResult {
-		out += fmt.Sprintf("#%02d: %5d - %s\n", k+1, result.Count, result.Game)
+		out.WriteString(fmt.Sprintf("#%02s: %5s - %s\n", strconv.Itoa(k+1), strconv.Itoa(result.Count), result.Game))
 		if k >= 20 {
 			break
 		}
 	}
-	out += "\n```"
+	out.WriteString("\n```")
 
-	return out, nil
+	return out.String(), nil
 }
 
 func checkGuild(dst map[string]int, gs *dstate.GuildState) {

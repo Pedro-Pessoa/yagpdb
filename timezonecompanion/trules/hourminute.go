@@ -9,25 +9,6 @@ import (
 	"github.com/jonas747/when/rules"
 )
 
-/*
-	{"5:30pm", 0, "5:30pm", 0},
-	{"5:30 pm", 0, "5:30 pm", 0},
-	{"7-10pm", 0, "7-10pm", 0},
-	{"5-30", 0, "5-30", 0},
-	{"05:30pm", 0, "05:30pm", 0},
-	{"05:30 pm", 0, "05:30 pm", 0},
-	{"05:30", 0, "05:30", 0},
-	{"05-30", 0, "05-30", 0},
-	{"7-10 pm", 0, "7-10 pm", 0},
-	{"11.10 pm", 0, "11.10 pm", 0},
-
-	https://play.golang.org/p/hXl7C8MWNr
-*/
-
-// 1. - int
-// 2. - int
-// 3. - ext?
-
 func HourMinute(s rules.Strategy) rules.Rule {
 	return &rules.F{
 		RegExp: regexp.MustCompile(`(?i)(?:\W|^)((?:[0-1]{0,1}[0-9])|(?:2[0-3]))(?:\:|：)((?:[0-5][0-9]))(?:\s*(A\.M\.|P\.M\.|AM|PM))?(?:\W|$)`),

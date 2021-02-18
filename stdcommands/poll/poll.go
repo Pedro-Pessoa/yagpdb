@@ -1,6 +1,8 @@
 package poll
 
 import (
+	"strings"
+
 	"emperror.dev/errors"
 
 	"github.com/Pedro-Pessoa/tidbot/commands"
@@ -43,12 +45,14 @@ func createPoll(data *dcmd.Data) (interface{}, error) {
 		}
 	}
 
-	var description string
+	var description strings.Builder
+
 	for i, option := range options {
 		if i != 0 {
-			description += "\n"
+			description.WriteString("\n")
 		}
-		description += pollReactions[i] + " " + option.Str()
+
+		description.WriteString(pollReactions[i] + " " + option.Str())
 	}
 
 	authorName := data.MS.Nick
@@ -58,7 +62,7 @@ func createPoll(data *dcmd.Data) (interface{}, error) {
 
 	response := discordgo.MessageEmbed{
 		Title:       topic,
-		Description: description,
+		Description: description.String(),
 		Color:       0x65f442,
 		Author: &discordgo.MessageEmbedAuthor{
 			Name:    authorName,

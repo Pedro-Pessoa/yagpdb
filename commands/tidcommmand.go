@@ -851,22 +851,22 @@ func removeRunningCommand(guildID, channelID, authorID int64, cmd *TIDCommand) {
 }
 
 func (tc *TIDCommand) FindNameFromContainerChain(cc []*dcmd.Container) string {
-	name := ""
+	var name strings.Builder
 	for _, v := range cc {
 		if len(v.Names) < 1 {
 			continue
 		}
 
-		if name != "" {
-			name += " "
+		if name.String() != "" {
+			name.WriteString(" ")
 		}
 
-		name += v.Names[0]
+		name.WriteString(v.Names[0])
 	}
 
-	if name != "" {
-		name += " "
+	if name.String() != "" {
+		name.WriteString(" ")
 	}
 
-	return name + tc.Name
+	return name.String() + tc.Name
 }

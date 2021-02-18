@@ -1,8 +1,8 @@
 package serverinfo
 
 import (
-	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -81,44 +81,28 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 		i++
 	}
 
-	title := fmt.Sprintf("Info for %s", guild.Name)
+	title := "Info for " + guild.Name
 	ownerID := guild.OwnerID
 	description := guild.Description
 
-	var features, feat string
-
-	featMap := map[string]string{
-		"INVITE_SPLASH":                    "Invite background",
-		"VIP_REGIONS":                      "Upgraded voice bitrate",
-		"VANITY_URL":                       "Vanity URL",
-		"VERIFIED":                         "Verified",
-		"PARTNERED":                        "Partnered",
-		"COMMUNITY":                        "Community server",
-		"COMMERCE":                         "Commerce",
-		"NEWS":                             "News channel",
-		"DISCOVERABLE":                     "Discoverable",
-		"FEATURABLE":                       "Featurable",
-		"ANIMATED_ICON":                    "Animated icon",
-		"BANNER":                           "Banner image",
-		"WELCOME_SCREEN_ENABLED":           "Welcome screen",
-		"MEMBER_VERIFICATION_GATE_ENABLED": "Member screening",
-		"PREVIEW_ENABLED":                  "Previewable",
-	}
+	var features strings.Builder
+	var feat string
 
 	for _, f := range guild.Features {
-		features += "<:green:806413632912490507> " + featMap[f] + "\n"
+		features.WriteString("<:green:806413632912490507> " + featMap[f] + "\n")
 	}
 
-	if features == "" {
+	if features.String() == "" {
 		feat = "<:red:806413641078407188> No Features"
 	} else {
-		feat = features
+		feat = features.String()
 	}
 
-	var channelOutput string
+	var channelOutput strings.Builder
 	var textCount, textLockedCount, categoryCount, newsCount, voiceCount, voiceLockedCount, storeCount, total int
 	var everyoneID int64
-	var inviteSet, inviteErr bool
+	var inviteSet, inviteErrored bool
+	var inviteErr error
 	var invite *discordgo.Invite
 	var err error
 
@@ -157,8 +141,8 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 					Unique:    true,
 				})
 				if err != nil {
-					inviteErr = true
-					fmt.Printf("INVITE ERROR: %#v", err)
+					inviteErrored = true
+					inviteErr = err
 				}
 			}
 		case discordgo.ChannelTypeGuildVoice:
@@ -173,32 +157,33 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	}
 
 	if total == 0 {
-		channelOutput = "<:red:806413641078407188> No channels"
+		channelOutput.WriteString("<:red:806413641078407188> No channels")
 	} else {
 		if categoryCount != 0 {
-			channelOutput += fmt.Sprintf("<:list:806420411767586826> %d categories\n", categoryCount)
+			channelOutput.WriteString("<:list:806420411767586826> " + strconv.Itoa(categoryCount) + " categories\n")
 		}
 
 		if textCount != 0 {
-			channelOutput += fmt.Sprintf("<:hashtag:806376515364847626> %d (%d locked)\n", textCount, textLockedCount)
+			channelOutput.WriteString("<:hashtag:806376515364847626> " + strconv.Itoa(textCount) + " (" + strconv.Itoa(textLockedCount) + " locked)\n")
 		}
 
 		if voiceCount != 0 {
-			channelOutput += fmt.Sprintf("<:mic:806376545936998440> %d (%d locked)\n", voiceCount, voiceLockedCount)
+			channelOutput.WriteString("<:mic:806376545936998440> " + strconv.Itoa(voiceCount) + "(" + strconv.Itoa(voiceLockedCount) + " locked)\n")
 		}
 
 		if newsCount != 0 {
-			channelOutput += fmt.Sprintf("<:megaphone:806420565526446100> %d\n", newsCount)
+			channelOutput.WriteString("<:megaphone:806420565526446100> " + strconv.Itoa(newsCount) + "\n")
 		}
 
 		if storeCount != 0 {
-			channelOutput += fmt.Sprintf("<:shop1:806377785823330325>  %d\n", storeCount)
+			channelOutput.WriteString("<:shop1:806377785823330325> " + strconv.Itoa(storeCount) + "\n")
 		}
 	}
 
 	emojiCount := len(guild.Emojis)
 	var animatedEmojiCount int
-	var emojiOut string
+	var emojiOut strings.Builder
+
 	for _, e := range guild.Emojis {
 		if e.Animated {
 			animatedEmojiCount++
@@ -206,20 +191,20 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	}
 
 	if emojiCount == 0 {
-		emojiOut = "<:red:806413641078407188> No custom emojis"
+		emojiOut.WriteString("<:red:806413641078407188> No custom emojis")
 	} else {
-		emojiOut = fmt.Sprintf("%d non-animated emojis", emojiCount-animatedEmojiCount)
+		emojiOut.WriteString(strconv.Itoa(emojiCount-animatedEmojiCount) + " non-animated emojis")
 
 		if animatedEmojiCount != 0 {
-			emojiOut += fmt.Sprintf("\n%d animated emojis", animatedEmojiCount)
+			emojiOut.WriteString("\n" + strconv.Itoa(animatedEmojiCount) + " animated emojis")
 		}
 	}
 
-	var extras string
+	var extras strings.Builder
 	if guild.IconURL() != "" {
-		extras = fmt.Sprintf("Guild Region: %s\n[Guild Icon](%s)", strings.Title(guild.Region), guild.IconURL())
+		extras.WriteString("Guild Region: " + strings.Title(guild.Region) + "\n[Guild Icon](" + guild.IconURL() + ")")
 	} else {
-		extras = fmt.Sprintf("Guild Region: %s", strings.Title(guild.Region))
+		extras.WriteString("Guild Region: " + strings.Title(guild.Region))
 	}
 
 	verificationLevel := [5]string{"None", "Low", "Medium", "High", "Very High"}
@@ -254,7 +239,7 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 		}
 	}
 
-	memberOut := fmt.Sprintf("Total: %d\nHumans: %d\nBots: %d", memberCount, memberCount-botCount, botCount)
+	memberOut := "Total " + strconv.Itoa(memberCount) + "\nHumans: " + strconv.Itoa(memberCount-botCount) + "\nBots: " + strconv.Itoa(botCount)
 
 	var mfaOut string
 	if guild.MfaLevel != 0 {
@@ -274,7 +259,7 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	if isPremium {
 		premium = "<:green:806413632912490507> Premium enabled"
 	} else {
-		premium = fmt.Sprintf("<:red:806413641078407188> [click here](https://%s/premium)", common.ConfHost.GetString())
+		premium = "<:red:806413641078407188> [click here](" + common.ConfHost.GetString() + ")"
 	}
 
 	var ownerString string
@@ -284,13 +269,12 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	}
 
 	if owner == nil {
-		ownerString = fmt.Sprintf("ID: %d", ownerID)
+		ownerString = "ID: " + strconv.FormatInt(ownerID, 10)
 	} else {
 		ownerString = owner.DGoUser().String()
 	}
 
-	prefix := common.BotUser.Mention()
-	prefix += fmt.Sprintf("\n%s", prfx.GetPrefixIgnoreError(guild.ID))
+	prefix := common.BotUser.Mention() + "\n" + prfx.GetPrefixIgnoreError(guild.ID)
 
 	created := discordgo.SnowflakeTimestamp(guild.ID)
 
@@ -321,7 +305,7 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 			},
 			{
 				Name:   "Custom emojis",
-				Value:  emojiOut,
+				Value:  emojiOut.String(),
 				Inline: true,
 			},
 			{
@@ -336,12 +320,12 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 			},
 			{
 				Name:   "Roles",
-				Value:  fmt.Sprintf("%d roles", roleCount),
+				Value:  strconv.Itoa(roleCount) + " roles",
 				Inline: true,
 			},
 			{
 				Name:   "Channels",
-				Value:  channelOutput,
+				Value:  channelOutput.String(),
 				Inline: true,
 			},
 			{
@@ -351,7 +335,7 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 			},
 			{
 				Name:   "Extras",
-				Value:  extras,
+				Value:  extras.String(),
 				Inline: true,
 			},
 			{
@@ -361,12 +345,12 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 			},
 			{
 				Name:   "Premium Tier",
-				Value:  fmt.Sprint(dPremiumTier),
+				Value:  strconv.Itoa(int(dPremiumTier)),
 				Inline: true,
 			},
 			{
 				Name:   "Nitro Boosters",
-				Value:  fmt.Sprintf("%d boosters", dPremiumCount),
+				Value:  strconv.Itoa(dPremiumCount) + " boosters",
 				Inline: true,
 			},
 			{
@@ -376,22 +360,22 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 			},
 			{
 				Name:   "Desktop Connections",
-				Value:  fmt.Sprint(deskptopCount),
+				Value:  strconv.Itoa(deskptopCount),
 				Inline: true,
 			},
 			{
 				Name:   "Mobile Connections",
-				Value:  fmt.Sprint(mobileCount),
+				Value:  strconv.Itoa(mobileCount),
 				Inline: true,
 			},
 			{
 				Name:   "Web Connections",
-				Value:  fmt.Sprint(webCount),
+				Value:  strconv.Itoa(webCount),
 				Inline: true,
 			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("ID: %d, Created", guild.ID),
+			Text: "ID: " + strconv.FormatInt(guild.ID, 10) + ", Created",
 		},
 		Timestamp: created.Format(time.RFC3339),
 	}
@@ -403,12 +387,30 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	}
 
 	if createInvite {
-		if !inviteErr && invite != nil {
+		if !inviteErrored && invite != nil {
 			embed.Description += "\n\n**Invite link**: https://discord.gg/" + invite.Code
 		} else {
-			embed.Description += "\nSomething went wrong while creating the invite link, check console."
+			embed.Description += "\n\nSomething went wrong while creating the invite link:\n" + inviteErr.Error()
 		}
 	}
 
 	return embed
+}
+
+var featMap = map[string]string{
+	"INVITE_SPLASH":                    "Invite background",
+	"VIP_REGIONS":                      "Upgraded voice bitrate",
+	"VANITY_URL":                       "Vanity URL",
+	"VERIFIED":                         "Verified",
+	"PARTNERED":                        "Partnered",
+	"COMMUNITY":                        "Community server",
+	"COMMERCE":                         "Commerce",
+	"NEWS":                             "News channel",
+	"DISCOVERABLE":                     "Discoverable",
+	"FEATURABLE":                       "Featurable",
+	"ANIMATED_ICON":                    "Animated icon",
+	"BANNER":                           "Banner image",
+	"WELCOME_SCREEN_ENABLED":           "Welcome screen",
+	"MEMBER_VERIFICATION_GATE_ENABLED": "Member screening",
+	"PREVIEW_ENABLED":                  "Previewable",
 }

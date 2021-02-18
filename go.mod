@@ -49,7 +49,7 @@ require (
 	github.com/russross/blackfriday v1.6.0
 	github.com/shirou/gopsutil v3.21.1+incompatible
 	github.com/shurcooL/github_flavored_markdown v0.0.0-20181002035957-2122de532470
-	github.com/sirupsen/logrus v1.7.1
+	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/buntdb v1.2.0
 	github.com/tkuchiki/go-timezone v0.2.0
@@ -62,7 +62,7 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/image v0.0.0-20210216034530-4410531fe030
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/oauth2 v0.0.0-20210210192628-66670185b0cd
+	golang.org/x/oauth2 v0.0.0-20210216194517-16ff1888fd2e
 	golang.org/x/text v0.3.5
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
 	google.golang.org/api v0.40.0

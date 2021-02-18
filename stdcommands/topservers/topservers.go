@@ -2,6 +2,8 @@ package topservers
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
@@ -45,11 +47,13 @@ var Command = &commands.TIDCommand{
 			return nil, err
 		}
 
-		out := "```"
+		var out strings.Builder
+		out.WriteString("```")
+
 		for k, v := range results {
-			out += fmt.Sprintf("\n#%-2d: %-25s (%d members)", k+skip+1, v.Name, v.MemberCount)
+			out.WriteString(fmt.Sprintf("\n#%2s: %25s (%s members)", strconv.Itoa(k+skip+1), v.Name, strconv.FormatInt(v.MemberCount, 10)))
 		}
 
-		return "Top servers the bot is on:\n" + out + "\n```", nil
+		return "Top servers the bot is on:\n" + out.String() + "\n```", nil
 	},
 }

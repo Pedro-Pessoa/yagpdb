@@ -2,6 +2,8 @@ package topcommands
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Pedro-Pessoa/tidbot/commands"
@@ -31,19 +33,20 @@ func cmdFuncTopCommands(data *dcmd.Data) (interface{}, error) {
 		return nil, err
 	}
 
-	out := fmt.Sprintf("```\nCommand stats from now to %d hour(s) ago\n#    Total -  Command\n", hours)
-	total := 0
+	var out strings.Builder
+	out.WriteString("```\nCommand stats from now to " + strconv.Itoa(hours) + "hour(s) ago\n#    Total -  Command\n")
+	var total int
+
 	for k, result := range results {
-		out += fmt.Sprintf("#%02d: %5d - %s\n", k+1, result.Count, result.Command)
+		out.WriteString(fmt.Sprintf("#%02s: %5s - %s\n", strconv.Itoa(k+1), strconv.Itoa(result.Count), result.Command))
 		total += result.Count
 	}
 
 	cpm := float64(total) / float64(hours) / 60
 
-	out += fmt.Sprintf("\nTotal: %d, Commands per minute: %.1f", total, cpm)
-	out += "\n```"
+	out.WriteString(fmt.Sprintf("\nTotal: %s, Commands per minute: %.1f\n```", strconv.Itoa(total), cpm))
 
-	return out, nil
+	return out.String(), nil
 }
 
 type TopCommandsResult struct {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +58,7 @@ func (p *Plugin) AddCommands() {
 
 			humanizeOffset := fmt.Sprintf("%+d", userOffset/3600)
 			if (userOffset % 3600 / 60) != 0 {
-				humanizeOffset += fmt.Sprintf(":%d", int(math.Abs(float64(userOffset%3600/60))))
+				humanizeOffset += ":" + strconv.Itoa(int(math.Abs(float64(userOffset%3600/60))))
 			}
 
 			userTZ := fmt.Sprintf("Your current time zone is %s: `%s` %s (UTC%s)", tzState, localTZ, userZone, humanizeOffset)
@@ -89,7 +90,7 @@ func (p *Plugin) AddCommands() {
 			userInput := parsed.Args[0].Str()
 			zones := FindZone(userInput)
 			if len(zones) < 1 {
-				return fmt.Sprintf("Unknown timezone, enter a country or timezone (not abbreviation like CET). there's a timezone picker here: <http://kevalbhatt.github.io/timezone-picker> you can use, enter the `Area/City` result\n\n%s", userTZ), nil
+				return "Unknown timezone, enter a country or timezone (not abbreviation like CET). there's a timezone picker here: <http://kevalbhatt.github.io/timezone-picker> you can use, enter the `Area/City` result\n\n" + userTZ, nil
 			}
 
 			if len(zones) > 1 {
@@ -214,7 +215,7 @@ func (p *Plugin) AddCommands() {
 					}
 				}
 
-				resp = fmt.Sprintf("Automatic time conversion in this channel toggled `%s`", status)
+				resp = "Automatic time conversion in this channel toggled `" + status + "`"
 			}
 
 			if insert {
@@ -240,7 +241,7 @@ func StrZone(zone string) string {
 
 	name, _ := time.Now().In(loc).Zone()
 
-	return fmt.Sprintf("`%s`: %s", zone, name)
+	return "`" + zone + "`: " + name
 }
 
 func paginatedTimezones(timezones []string) func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {
@@ -367,6 +368,4 @@ func (p *Plugin) handleMessageCreate(evt *eventsystem.EventData) {
 			Text: "Above time (" + result.Time.Format("15:04 MST") + ") in your local time",
 		},
 	})
-
-	// common.BotSession.ChannelMessageSend(m.ChannelID, "Time: `"+result.Time.Format(time.RFC822)+"`")
 }

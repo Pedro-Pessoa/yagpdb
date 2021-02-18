@@ -28,8 +28,6 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
-const InTicketPerms = discordgo.PermissionSendMessages | discordgo.PermissionViewChannel
-
 var _ bot.BotInitHandler = (*Plugin)(nil)
 
 type VerificationEventData struct {

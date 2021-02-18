@@ -31,7 +31,7 @@ func (p *Plugin) BotInit() {
 	pubsub.AddHandler("update_streaming", HandleUpdateStreaming, nil)
 }
 
-// YAGPDB event
+// TIDBOT event
 func HandleUpdateStreaming(event *pubsub.Event) {
 	logger.Info("Received update streaming event ", event.TargetGuild)
 
@@ -380,13 +380,6 @@ func (config *Config) MeetsRequirements(roles []int64, activityState, activityDe
 func RemoveStreaming(client radix.Client, config *Config, guildID int64, memberID int64, currentRoles []int64) {
 	_ = client.Do(radix.FlatCmd(nil, "SREM", KeyCurrentlyStreaming(guildID), memberID))
 	go RemoveStreamingRole(guildID, memberID, config.GiveRole, currentRoles)
-
-	// Was not streaming before if we removed 0 elements
-	// var removed bool
-	// client.Do(radix.FlatCmd(&removed, "SREM", KeyCurrentlyStreaming(guildID), memberID))
-	// if removed && config.GiveRole != 0 {
-	// 	go common.BotSession.GuildMemberRoleRemove(guildID, memberID, config.GiveRole)
-	// }
 }
 
 func SendStreamingAnnouncement(config *Config, guild *dstate.GuildState, ms *dstate.MemberState) {
@@ -409,6 +402,7 @@ func SendStreamingAnnouncement(config *Config, guild *dstate.GuildState, ms *dst
 	for _, v := range guild.Channels {
 		if v.ID == config.AnnounceChannel {
 			foundChannel = true
+			break
 		}
 	}
 

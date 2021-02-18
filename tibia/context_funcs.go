@@ -287,7 +287,7 @@ func tmplGetMultipleChars(c *templates.Context) interface{} {
 			return nil, err
 		}
 
-		output, err := GetTibiaMultiple(c, charsSlice, false)
+		output, err := getTibiaMultiple(c, charsSlice, false)
 		if err != nil {
 			return nil, err
 		}
@@ -315,7 +315,7 @@ func tmplGetMultipleCharsDeath(c *templates.Context) interface{} {
 			return nil, err
 		}
 
-		output, err := GetTibiaMultiple(c, charsSlice, true)
+		output, err := getTibiaMultiple(c, charsSlice, true)
 		if err != nil {
 			return nil, err
 		}
@@ -378,7 +378,7 @@ func validateCharSlice(input ...interface{}) ([]string, error) {
 	return out, nil
 }
 
-func GetTibiaMultiple(c *templates.Context, chars []string, deathsonly bool) (interface{}, error) {
+func getTibiaMultiple(c *templates.Context, chars []string, deathsonly bool) (interface{}, error) {
 	if c.IncreaseCheckCallCounterPremium("tibiagoroutine", 0, 1) {
 		return nil, ErrTooManyCalls
 	}

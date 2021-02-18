@@ -9,17 +9,6 @@ import (
 	"github.com/jonas747/when/rules"
 )
 
-/*
-	"5pm"
-	"5 pm"
-	"5am"
-	"5pm"
-	"5A."
-	"5P."
-	"11 P.M."
-	https://play.golang.org/p/2Gh35Sl3KP
-*/
-
 func Hour(s rules.Strategy) rules.Rule {
 	return &rules.F{
 		RegExp: regexp.MustCompile("(?i)(?:\\W|^)" +

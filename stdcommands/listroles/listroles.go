@@ -3,6 +3,8 @@ package listroles
 import (
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/Pedro-Pessoa/tidbot/commands"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
@@ -25,7 +27,7 @@ var Command = &commands.TIDCommand{
 	},
 
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
-		var out, outFinal string
+		var out strings.Builder
 		var noMana bool
 		var member *dstate.MemberState
 
@@ -42,7 +44,7 @@ var Command = &commands.TIDCommand{
 
 		sort.Sort(dutil.Roles(data.GS.Guild.Roles))
 
-		counter := 0
+		var counter int
 		if member != nil {
 			if len(member.Roles) > 0 {
 				for _, roleID := range member.Roles {
@@ -50,7 +52,7 @@ var Command = &commands.TIDCommand{
 						if roleID == r.ID {
 							counter++
 							me := r.Permissions&discordgo.PermissionAdministrator != 0 || r.Permissions&discordgo.PermissionMentionEveryone != 0
-							out += fmt.Sprintf("`%-25s: %-19d #%-6x  ME:%5t`\n", r.Name, r.ID, r.Color, me)
+							out.WriteString(fmt.Sprintf("`%-25s: %-19s #%-6x  ME:%5t`\n", r.Name, strconv.FormatInt(r.ID, 10), r.Color, me))
 						}
 					}
 				}
@@ -64,15 +66,11 @@ var Command = &commands.TIDCommand{
 				} else {
 					counter++
 					me := r.Permissions&discordgo.PermissionAdministrator != 0 || r.Permissions&discordgo.PermissionMentionEveryone != 0
-					out += fmt.Sprintf("`%-25s: %-19d #%-6x  ME:%5t`\n", r.Name, r.ID, r.Color, me)
+					out.WriteString(fmt.Sprintf("`%-25s: %-19s #%-6x  ME:%5t`\n", r.Name, strconv.FormatInt(r.ID, 10), r.Color, me))
 				}
 			}
 		}
 
-		outFinal = fmt.Sprintf("Total role count: %d\n", counter)
-		outFinal += "(ME = mention everyone perms)\n"
-		outFinal += out
-
-		return outFinal, nil
+		return ("Total role count: " + strconv.Itoa(counter) + "\n(ME = mention everyone perms)\n" + out.String()), nil
 	},
 }

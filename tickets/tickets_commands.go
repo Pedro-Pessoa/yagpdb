@@ -499,8 +499,8 @@ func createLogs(gs *dstate.GuildState, conf *models.TicketConfig, ticket *models
 	channelID := ticket.ChannelID
 	attachments := make([][]*discordgo.MessageAttachment, 0)
 	msgs := make([]*discordgo.Message, 0, 100)
-	before := int64(0)
-	totalAttachmentSize := 0
+	var before int64
+	var totalAttachmentSize int
 
 	for {
 		m, err := common.BotSession.ChannelMessages(channelID, 100, int64(before), 0, 0)
@@ -511,7 +511,7 @@ func createLogs(gs *dstate.GuildState, conf *models.TicketConfig, ticket *models
 		for _, msg := range m { // download attachments
 		OUTER:
 			for _, att := range msg.Attachments {
-				msg.Content += fmt.Sprintf("(attatchment: %s)", att.Filename)
+				msg.Content += "(attatchment: " + att.Filename + ")"
 
 				totalAttachmentSize += att.Size
 				if totalAttachmentSize > 500000000 {

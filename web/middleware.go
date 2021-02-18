@@ -125,7 +125,7 @@ func SessionMiddleware(inner http.Handler) http.Handler {
 			return
 		}
 
-		session, err := discorddata.GetSession(cookie.Value, discordAuthTokenFromYag)
+		session, err := discorddata.GetSession(cookie.Value, discordAuthTokenFromTid)
 		if err != nil {
 			if errors.Cause(err) != ErrNotLoggedIn {
 				CtxLogger(r.Context()).WithError(err).Error("invalid session")
@@ -622,7 +622,6 @@ func NewPublicError(a ...interface{}) error {
 }
 
 type ControllerHandlerFunc func(w http.ResponseWriter, r *http.Request) (TemplateData, error)
-type ControllerHandlerFuncJson func(w http.ResponseWriter, r *http.Request) (interface{}, error)
 
 // Handlers can return templatedata and an erro.
 // If error is not nil and publicerror it will be added as an alert,

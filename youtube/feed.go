@@ -21,10 +21,7 @@ import (
 )
 
 const (
-	MaxChannelsPerPoll  = 30
-	PollInterval        = time.Second * 10
 	WebSubCheckInterval = time.Second * 10
-	// PollInterval = time.Second * 5 // <- used for debug purposes
 )
 
 func (p *Plugin) StartFeed() {
@@ -139,14 +136,6 @@ func (p *Plugin) syncWebSubs() {
 	}))
 }
 
-/* func (p *Plugin) removeAllSubsForChannel(channel string) {
-	err := common.GORM.Where("youtube_channel_id = ?", channel).Delete(ChannelSubscription{}).Error
-	if err != nil {
-		logger.WithError(err).WithField("yt_channel", channel).Error("failed removing channel")
-	}
-	go p.MaybeRemoveChannelWatch(channel)
-} */
-
 func (p *Plugin) sendNewVidMessage(guild, discordChannel, channelTitle, channelID, videoID, msg string) {
 	parsedChannel, _ := strconv.ParseInt(discordChannel, 10, 64)
 	parsedGuild, _ := strconv.ParseInt(guild, 10, 64)
@@ -191,18 +180,7 @@ func (p *Plugin) sendNewVidMessage(guild, discordChannel, channelTitle, channelI
 	})
 }
 
-var (
-	ErrIDNotFound = errors.New("ID not found")
-)
-
-func SubsForChannel(channel string) (result []*ChannelSubscription, err error) {
-	err = common.GORM.Where("youtube_channel_id = ?", channel).Find(&result).Error
-	return
-}
-
-var (
-	ErrNoChannel = errors.New("No channel with that id found")
-)
+var ErrNoChannel = errors.New("No channel with that id found")
 
 func (p *Plugin) AddFeed(guildID, discordChannelID int64, youtubeChannelID, youtubeUsername, msg string) (*ChannelSubscription, error) {
 	sub := &ChannelSubscription{

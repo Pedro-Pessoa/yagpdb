@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -127,7 +128,7 @@ func scanNews() {
 		},
 	}
 
-	err = NewsLoop(embed)
+	err = newsLoop(embed)
 	if err != nil {
 		logger.Errorf("Error on the News Loop: %v", err)
 	}
@@ -138,7 +139,7 @@ func scanNews() {
 	}
 }
 
-func NewsLoop(news *discordgo.MessageEmbed) error {
+func newsLoop(news *discordgo.MessageEmbed) error {
 	newsLocker.Add(1)
 	defer newsLocker.Done()
 
@@ -463,28 +464,29 @@ func DebugNews(c int64) (string, error) {
 		return "", errors.WithMessage(err, "Error: 2")
 	}
 
-	out := "NewsTable:\n"
+	var out strings.Builder
+	out.WriteString("NewsTable:\n")
 
 	if !alreadySet {
-		out += "`NewsTable not found`\n\n\n"
+		out.WriteString("`NewsTable not found`\n\n\n")
 	} else {
-		out += fmt.Sprintf("`%#v`\n\n\n", newsTable)
+		out.WriteString(fmt.Sprintf("`%#v`\n\n\n", newsTable))
 	}
 
-	out += fmt.Sprintf("**Redis**:\nLen: %d\n", len(table))
+	out.WriteString("**Redis**:\nLen: " + strconv.Itoa(len(table)) + "\n")
 
 	for i, v := range table {
-		out += fmt.Sprintf("**Index**: `%d` -- **Guild**: `%d`\n", i, v)
+		out.WriteString("**Index**: `" + strconv.Itoa(i) + "` -- **Guild**: `" + strconv.FormatInt(v, 10) + "`\n")
 	}
 
-	if len(out) <= 2000 {
-		return out, nil
+	if len(out.String()) <= 2000 {
+		return out.String(), nil
 	}
 
 	msg := &discordgo.MessageSend{}
 
 	var buf bytes.Buffer
-	buf.WriteString(out)
+	buf.WriteString(out.String())
 
 	msg.File = &discordgo.File{
 		Name:        "Attachment.txt",
