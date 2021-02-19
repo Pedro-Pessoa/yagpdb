@@ -125,6 +125,8 @@ func (s *Session) doRequestLockedBucket(method, urlStr, contentType string, b []
 		return nil, false, false, ErrTokenInvalid
 	}
 
+	s.APICalls++
+
 	req, err := http.NewRequest(method, urlStr, bytes.NewReader(b))
 	if err != nil {
 		_ = bucket.Release(nil)

@@ -241,16 +241,6 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
-	<li>Reputation is: %s</li>
-	<li>Reputation name: <code>%s</code></li>
-</ul>`
-
-	const formatPT = `<ul>
-	<li>Reputação está: %s</li>
-	<li>Nome da reputação: <code>%s</code></li>
-</ul>`
-
 	name := html.EscapeString(settings.PointsName)
 	if settings.Enabled {
 		templateData["WidgetEnabled"] = true
@@ -258,8 +248,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(settings.Enabled), name))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(settings.Enabled), name))
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Reputação está: %s</li>
+		<li>Nome da reputação: <code>%s</code></li>
+	</ul>`
+
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(settings.Enabled), name))
+	} else {
+		const format = `<ul>
+		<li>Reputation is: %s</li>
+		<li>Reputation name: <code>%s</code></li>
+	</ul>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(settings.Enabled), name))
+	}
 
 	return templateData, nil
 }

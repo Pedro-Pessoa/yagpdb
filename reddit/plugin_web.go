@@ -306,18 +306,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	const format = `<ul>
-	<li>Fast feeds: <code>%d</code></li>
-	<li>Slow feeds: <code>%d</code></li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Feeds rápidos: <code>%d</code></li>
+		<li>Feeds lentos: <code>%d</code></li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Feeds rápidos: <code>%d</code></li>
-	<li>Feeds lentos: <code>%d</code></li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, fast, slow))
+	} else {
+		const format = `<ul>
+		<li>Fast feeds: <code>%d</code></li>
+		<li>Slow feeds: <code>%d</code></li>
+	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, fast, slow))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, fast, slow))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, fast, slow))
+	}
 
 	return templateData, nil
 }

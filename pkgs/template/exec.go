@@ -6,12 +6,12 @@ package template
 
 import (
 	"fmt"
+	"internal/fmtsort"
 	"io"
 	"reflect"
 	"runtime"
 	"strings"
 
-	"github.com/Pedro-Pessoa/tidbot/pkgs/template/fmtsort"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/template/parse"
 )
 

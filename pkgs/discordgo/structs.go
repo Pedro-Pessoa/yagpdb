@@ -88,6 +88,9 @@ type Session struct {
 	handlersMu   sync.RWMutex
 	handlers     map[string][]*eventHandlerInstance
 	onceHandlers map[string][]*eventHandlerInstance
+
+	// Amount of API Calls done in this sessions
+	APICalls int
 }
 
 // UserConnection is a Connection returned from the UserConnections endpoint

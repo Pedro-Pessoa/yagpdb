@@ -126,16 +126,19 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	const format = `<ul>
-	<li>Tickets enabled: %s</li>
- </ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Tickets ativado: %s</li>
+	 </ul>`
 
-	const formatPT = `<ul>
-	<li>Tickets ativado: %s</li>
- </ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(enabled)))
+	} else {
+		const format = `<ul>
+		<li>Tickets enabled: %s</li>
+	 </ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(enabled)))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(enabled)))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(enabled)))
+	}
 
 	return templateData, nil
 }

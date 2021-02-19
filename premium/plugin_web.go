@@ -182,15 +182,23 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 			discrim = user.Discriminator
 		}
 
-		templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium active and provided by <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
-		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Premium ativada e provida por <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+		if templateData["IsPT"] == true {
+			templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Premium ativada e provida por <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+		} else {
+			templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium active and provided by <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+		}
+
 		templateData["WidgetEnabled"] = true
 
 		return templateData, err
 	} else {
 		templateData["WidgetDisabled"] = true
-		templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium not active on this server :(</p>\n\n%s", footer))
-		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Este servidor não é premium :(</p>\n\n%s", footer))
+
+		if templateData["IsPT"] == true {
+			templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium not active on this server :(</p>\n\n%s", footer))
+		} else {
+			templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Este servidor não é premium :(</p>\n\n%s", footer))
+		}
 	}
 
 	return templateData, nil

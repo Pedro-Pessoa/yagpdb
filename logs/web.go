@@ -402,24 +402,29 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		nBlacklistedChannels = len(split)
 	}
 
-	const format = `<ul>
-	<li>Username logging: %s</li>
-	<li>Nickname logging: %s</li>
-	<li>Blacklisted channels from creating message logs: <code>%d</code></li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Logging de nomes: %s</li>
+		<li>Logging de nicks: %s</li>
+		<li>Canais proíbidos de criar logs: <code>%d</code></li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Logging de nomes: %s</li>
-	<li>Logging de nicks: %s</li>
-	<li>Canais proíbidos de criar logs: <code>%d</code></li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.UsernameLoggingEnabled.Bool), web.EnabledDisabledSpanStatusPT(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
+	} else {
+		const format = `<ul>
+		<li>Username logging: %s</li>
+		<li>Nickname logging: %s</li>
+		<li>Blacklisted channels from creating message logs: <code>%d</code></li>
+	</ul>`
 
-	templateData["WidgetEnabled"] = true
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.UsernameLoggingEnabled.Bool), web.EnabledDisabledSpanStatus(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
+	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.UsernameLoggingEnabled.Bool),
-		web.EnabledDisabledSpanStatus(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.UsernameLoggingEnabled.Bool),
-		web.EnabledDisabledSpanStatusPT(config.NicknameLoggingEnabled.Bool), nBlacklistedChannels))
+	if config.UsernameLoggingEnabled.Bool || config.NicknameLoggingEnabled.Bool {
+		templateData["WidgetEnabled"] = true
+	} else {
+		templateData["WidgetDisabled"] = true
+	}
 
 	return templateData, nil
 }

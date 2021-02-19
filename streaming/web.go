@@ -117,50 +117,56 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
-	<li>Streaming status: %s</li>
-	<li>Streaming role: <code>%s</code>%s</li>
-	<li>Streaming message: <code>#%s</code>%s</li>
-</ul>`
-
-	const formatPT = `<ul>
-	<li>Status de streaming: %s</li>
-	<li>Cargo de streaming: <code>%s</code>%s</li>
-	<li>Mensagem de streaming: <code>#%s</code>%s</li>
-</ul>`
-
-	status := web.EnabledDisabledSpanStatus(config.Enabled)
-	statusPT := web.EnabledDisabledSpanStatusPT(config.Enabled)
-
-	if config.Enabled {
-		templateData["WidgetEnabled"] = true
-	} else {
-		templateData["WidgetDisabled"] = true
-	}
-
 	roleStr := "none / unknown"
-	indicatorRole := ""
+	roleStrPT := "nenhum / desconhecido"
+	var indicatorRole string
 	if role := ag.Role(config.GiveRole); role != nil {
 		roleStr = html.EscapeString(role.Name)
+		roleStrPT = roleStr
 		indicatorRole = web.Indicator(true)
 	} else {
 		indicatorRole = web.Indicator(false)
 	}
 
-	indicatorMessage := ""
+	var indicatorMessage string
 	channelStr := "none / unknown"
 	channelStrPT := "nenhum / desconhecido"
 
 	if channel := ag.Channel(config.AnnounceChannel); channel != nil {
 		indicatorMessage = web.Indicator(true)
 		channelStr = html.EscapeString(channel.Name)
-		channelStrPT = html.EscapeString(channel.Name)
+		channelStrPT = channelStr
 	} else {
 		indicatorMessage = web.Indicator(false)
 	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole, channelStr, indicatorMessage))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStr, indicatorRole, channelStrPT, indicatorMessage))
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Status de streaming: %s</li>
+		<li>Cargo de streaming: <code>%s</code>%s</li>
+		<li>Mensagem de streaming: <code>#%s</code>%s</li>
+	</ul>`
+
+		statusPT := web.EnabledDisabledSpanStatusPT(config.Enabled)
+
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStrPT, indicatorRole, channelStrPT, indicatorMessage))
+	} else {
+		const format = `<ul>
+		<li>Streaming status: %s</li>
+		<li>Streaming role: <code>%s</code>%s</li>
+		<li>Streaming message: <code>#%s</code>%s</li>
+	</ul>`
+
+		status := web.EnabledDisabledSpanStatus(config.Enabled)
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole, channelStr, indicatorMessage))
+	}
+
+	if config.Enabled {
+		templateData["WidgetEnabled"] = true
+	} else {
+		templateData["WidgetDisabled"] = true
+	}
 
 	return templateData, nil
 }

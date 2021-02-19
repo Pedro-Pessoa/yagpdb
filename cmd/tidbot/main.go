@@ -46,7 +46,6 @@ import (
 )
 
 func main() {
-
 	run.Init()
 
 	//BotSession.LogLevel = discordgo.LogInformational
@@ -87,6 +86,5 @@ func main() {
 	prom.RegisterPlugin()
 	featureflags.RegisterPlugin()
 	logger.RegisterPlugin()
-
 	run.Run()
 }

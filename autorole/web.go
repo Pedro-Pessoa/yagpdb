@@ -126,35 +126,45 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	enabledDisabled := ""
-	enabledDisabledPT := ""
-	autoroleRole := "none"
-	autoroleRolePT := "nenhum"
+	if templateData["IsPT"] == true {
+		var enabledDisabledPT string
+		autoroleRolePT := "nenhum"
 
-	if role := ag.Role(general.Role); role != nil {
-		templateData["WidgetEnabled"] = true
-		enabledDisabled = web.EnabledDisabledSpanStatus(true)
-		enabledDisabledPT = web.EnabledDisabledSpanStatusPT(true)
-		autoroleRole = html.EscapeString(role.Name)
-		autoroleRolePT = html.EscapeString(role.Name)
-	} else {
-		templateData["WidgetDisabled"] = true
-		enabledDisabled = web.EnabledDisabledSpanStatus(false)
-		enabledDisabledPT = web.EnabledDisabledSpanStatusPT(false)
-	}
+		if role := ag.Role(general.Role); role != nil {
+			templateData["WidgetEnabled"] = true
+			enabledDisabledPT = web.EnabledDisabledSpanStatusPT(true)
+			autoroleRolePT = html.EscapeString(role.Name)
+		} else {
+			templateData["WidgetDisabled"] = true
+			enabledDisabledPT = web.EnabledDisabledSpanStatusPT(false)
+		}
 
-	const format = `<ul>
-	<li>Autorole status: %s</li>
-	<li>Autorole role: <code>%s</code></li>
-</ul>`
-
-	const formatPT = `<ul>
+		const formatPT = `<ul>
 	<li>Status do cargo automático: %s</li>
 	<li>Cargo: <code>%s</code></li>
-</ul>`
+	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, enabledDisabled, autoroleRole))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, enabledDisabledPT, autoroleRolePT))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, enabledDisabledPT, autoroleRolePT))
+	} else {
+		var enabledDisabled string
+		autoroleRole := "none"
+
+		if role := ag.Role(general.Role); role != nil {
+			templateData["WidgetEnabled"] = true
+			enabledDisabled = web.EnabledDisabledSpanStatus(true)
+			autoroleRole = html.EscapeString(role.Name)
+		} else {
+			templateData["WidgetDisabled"] = true
+			enabledDisabled = web.EnabledDisabledSpanStatus(false)
+		}
+
+		const format = `<ul>
+	<li>Autorole status: %s</li>
+	<li>Autorole role: <code>%s</code></li>
+	</ul>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, enabledDisabled, autoroleRole))
+	}
 
 	return templateData, nil
 }

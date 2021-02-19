@@ -97,7 +97,9 @@
                             <p style="margin: 7px;line-height:1.25em;font-size: 2.2em!important" class="intro_headline">Bot multipropósito</p>
                             <span style="text-align: center;color:#c1c1c1!important">Atualmente estou em {{.JoinedServers}} servidores</span>
                             <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Comandos executados hoje: {{humanizeThousands .Commands}}</span>
-                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> CustomCommands executados hoje: {{humanizeThousands .CCs}}</span><br>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> CustomCommands executados hoje: {{humanizeThousands .CCs}}</span>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Calls à API do discord na sessão atual: {{humanizeThousands .APICalls}} <code>({{fdiv .APICalls .Uptime.Seconds | printf "%.1d"}} calls/s)</code></span>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Tempo Online: {{.Uptime}}</span><br>
                         </div>
                     </div>
                     </div>
@@ -201,7 +203,9 @@
                             <p style="margin: 7px;line-height:1.25em;font-size: 2.2em!important" class="intro_headline">Multipurpose bot</p>
                             <span style="text-align: center;color:#c1c1c1!important">I'm currently in {{.JoinedServers}} servers</span>
                             <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Commands executed today: {{humanizeThousands .Commands}}</span>
-                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> CustomCommands executed today: {{humanizeThousands .CCs}}</span><br>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> CustomCommands executed today: {{humanizeThousands .CCs}}</span>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Calls to Discord's API on the current session: {{humanizeThousands .APICalls}} <code>({{fdiv .APICalls .Uptime.Seconds | printf "%.1d"}} calls/s)</code></span>
+                            <span style="text-align: left;display:block; margin-left:15px;margin-top: 0px;margin-bottom: 0px;color:#c1c1c1!important">>> Uptime: {{.Uptime}}</span><br>
                         </div>
                     </div>
                     </div>

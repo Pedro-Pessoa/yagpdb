@@ -91,19 +91,29 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
-	<li>Join Server message: %s</li>
-	<li>Join DM message: %s</li>
-	<li>Leave message: %s</li>
-	<li>Topic change message: %s</li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Mensagem de entrada: %s</li>
+		<li>Mensagem de entrada (DM): %s</li>
+		<li>Mensagem de saída: %s</li>
+		<li>Mensagem de troca de tópico: %s</li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Mensagem de entrada: %s</li>
-	<li>Mensagem de entrada (DM): %s</li>
-	<li>Mensagem de saída: %s</li>
-	<li>Mensagem de troca de tópico: %s</li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT,
+			web.EnabledDisabledSpanStatusPT(config.JoinServerEnabled), web.EnabledDisabledSpanStatusPT(config.JoinDMEnabled),
+			web.EnabledDisabledSpanStatusPT(config.LeaveEnabled), web.EnabledDisabledSpanStatusPT(config.TopicEnabled)))
+	} else {
+		const format = `<ul>
+		<li>Join Server message: %s</li>
+		<li>Join DM message: %s</li>
+		<li>Leave message: %s</li>
+		<li>Topic change message: %s</li>
+	</ul>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format,
+			web.EnabledDisabledSpanStatus(config.JoinServerEnabled), web.EnabledDisabledSpanStatus(config.JoinDMEnabled),
+			web.EnabledDisabledSpanStatus(config.LeaveEnabled), web.EnabledDisabledSpanStatus(config.TopicEnabled)))
+	}
 
 	if config.JoinServerEnabled || config.JoinDMEnabled || config.LeaveEnabled || config.TopicEnabled {
 		templateData["WidgetEnabled"] = true
@@ -111,20 +121,5 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format,
-		web.EnabledDisabledSpanStatus(config.JoinServerEnabled), web.EnabledDisabledSpanStatus(config.JoinDMEnabled),
-		web.EnabledDisabledSpanStatus(config.LeaveEnabled), web.EnabledDisabledSpanStatus(config.TopicEnabled)))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT,
-		web.EnabledDisabledSpanStatusPT(config.JoinServerEnabled), web.EnabledDisabledSpanStatusPT(config.JoinDMEnabled),
-		web.EnabledDisabledSpanStatusPT(config.LeaveEnabled), web.EnabledDisabledSpanStatusPT(config.TopicEnabled)))
-
 	return templateData, nil
 }
-
-/* func enabledDisabled(b bool) string {
-	if b {
-		return "enabled"
-	}
-
-	return "disabled"
-} */

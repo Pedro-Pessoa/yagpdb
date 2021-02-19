@@ -605,18 +605,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	const format = `<ul>
-	<li>Active role commands: <code>%d</code></li>
-	<li>Active role groups: <code>%d</code></li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Comandos de cargo ativos: <code>%d</code></li>
+		<li>Grupos de cargo ativos: <code>%d</code></li>
+		</ul>`
 
-	const formatPT = `<ul>
-<li>Comandos de cargo ativos: <code>%d</code></li>
-<li>Grupos de cargo ativos: <code>%d</code></li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCommands, numGroups))
+	} else {
+		const format = `<ul>
+		<li>Active role commands: <code>%d</code></li>
+		<li>Active role groups: <code>%d</code></li>
+	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCommands, numGroups))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCommands, numGroups))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCommands, numGroups))
+	}
 
 	return templateData, err
 }

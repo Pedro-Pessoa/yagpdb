@@ -98,7 +98,7 @@ func HandleSaveStatsSettings(w http.ResponseWriter, r *http.Request) (web.Templa
 
 	formData := r.Context().Value(common.ContextKeyParsedForm).(*FormData)
 
-	stringedChannels := ""
+	var stringedChannels strings.Builder
 	alreadyAdded := make([]int64, 0, len(formData.IgnoreChannels))
 OUTER:
 	for i, v := range formData.IgnoreChannels {
@@ -123,17 +123,17 @@ OUTER:
 		}
 
 		if i != 0 {
-			stringedChannels += ","
+			stringedChannels.WriteString(",")
 		}
 
 		alreadyAdded = append(alreadyAdded, v)
-		stringedChannels += strconv.FormatInt(v, 10)
+		stringedChannels.WriteString(strconv.FormatInt(v, 10))
 	}
 
 	model := &models.ServerStatsConfig{
 		GuildID:        ag.ID,
 		Public:         null.BoolFrom(formData.Public),
-		IgnoreChannels: null.StringFrom(stringedChannels),
+		IgnoreChannels: null.StringFrom(stringedChannels.String()),
 		CreatedAt:      null.TimeFrom(time.Now()),
 	}
 
@@ -323,18 +323,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, common.ErrWithCaller(err)
 	}
 
-	const format = `<ul>
-	<li>Public stats: %s</li>
-	<li>Blacklisted channnels: <code>%d</code></li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Estatísticas publicas: %s</li>
+		<li>Canais bloqueados: <code>%d</code></li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Estatísticas publicas: %s</li>
-	<li>Canais bloqueados: <code>%d</code></li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.Public), len(config.ParsedChannels)))
+	} else {
+		const format = `<ul>
+		<li>Public stats: %s</li>
+		<li>Blacklisted channnels: <code>%d</code></li>
+	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.Public), len(config.ParsedChannels)))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.Public), len(config.ParsedChannels)))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.Public), len(config.ParsedChannels)))
+	}
 
 	return templateData, nil
 }

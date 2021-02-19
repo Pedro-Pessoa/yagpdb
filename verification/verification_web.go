@@ -308,36 +308,43 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		}
 	}
 
-	const format = `<ul>
-	<li>Status: %s</li>
-	<li>Role: <code>%s</code> %s</li>
-</ul>`
+	roleStr := "none / unknown"
+	roleStrPT := "nenhum / desconhecido"
+	var indicatorRole string
 
-	const formatPT = `<ul>
-	<li>Status: %s</li>
-	<li>Cargo: <code>%s</code> %s</li>
-</ul>`
+	if role := ag.Role(settings.VerifiedRole); role != nil {
+		roleStr = html.EscapeString(role.Name)
+		roleStrPT = roleStr
+		indicatorRole = web.Indicator(true)
+	} else {
+		indicatorRole = web.Indicator(false)
+	}
 
-	status := web.EnabledDisabledSpanStatus(settings.Enabled)
-	statusPT := web.EnabledDisabledSpanStatusPT(settings.Enabled)
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Status: %s</li>
+		<li>Cargo: <code>%s</code> %s</li>
+	</ul>`
+
+		statusPT := web.EnabledDisabledSpanStatusPT(settings.Enabled)
+
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStrPT, indicatorRole))
+	} else {
+		const format = `<ul>
+		<li>Status: %s</li>
+		<li>Role: <code>%s</code> %s</li>
+	</ul>`
+
+		status := web.EnabledDisabledSpanStatus(settings.Enabled)
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole))
+	}
 
 	if settings.Enabled {
 		templateData["WidgetEnabled"] = true
 	} else {
 		templateData["WidgetDisabled"] = true
 	}
-
-	roleStr := "none / unknown"
-	indicatorRole := ""
-	if role := ag.Role(settings.VerifiedRole); role != nil {
-		roleStr = html.EscapeString(role.Name)
-		indicatorRole = web.Indicator(true)
-	} else {
-		indicatorRole = web.Indicator(false)
-	}
-
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, status, roleStr, indicatorRole))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, statusPT, roleStr, indicatorRole))
 
 	return templateData, nil
 }

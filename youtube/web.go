@@ -299,11 +299,15 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	const format = `<p>Active Youtube feeds: <code>%d</code></p>`
-	const formatPT = `<p>Feeds do Youtube ativos: <code>%d</code></p>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<p>Feeds do Youtube ativos: <code>%d</code></p>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numFeeds))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numFeeds))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numFeeds))
+	} else {
+		const format = `<p>Active Youtube feeds: <code>%d</code></p>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numFeeds))
+	}
 
 	return templateData, result.Error
 }

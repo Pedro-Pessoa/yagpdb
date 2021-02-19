@@ -460,18 +460,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Prefixo de comando: <code>%s</code></li>
+		<li>Sobreposições de canais ativas: <code>%d</code></li>
+	</ul>`
+
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, html.EscapeString(prefix), count))
+	} else {
+		const format = `<ul>
 	<li>Command prefix: <code>%s</code></li>
 	<li>Active channel overrides: <code>%d</code></li>
-</ul>`
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Prefixo de comando: <code>%s</code></li>
-	<li>Sobreposições de canais ativas: <code>%d</code></li>
-</ul>`
-
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, html.EscapeString(prefix), count))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, html.EscapeString(prefix), count))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, html.EscapeString(prefix), count))
+	}
 
 	return templateData, nil
 }

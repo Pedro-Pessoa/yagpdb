@@ -1,7 +1,7 @@
 package findserver
 
 import (
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -57,14 +57,14 @@ var Command = &commands.TIDCommand{
 			return nil, err
 		}
 
-		resp := ""
+		var resp strings.Builder
 		for _, v := range results {
-			resp += fmt.Sprintf("`%d`: **%s**\n", v.ID, v.Name)
+			resp.WriteString("`" + strconv.FormatInt(v.ID, 10) + "`: **" + v.Name + "**\n")
 		}
 
-		resp += fmt.Sprintf("%d results", len(results))
+		resp.WriteString(strconv.Itoa(len(results)) + " results")
 
-		return resp, nil
+		return resp.String(), nil
 	}),
 }
 

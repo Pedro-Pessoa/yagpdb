@@ -164,8 +164,6 @@ func GetBaseCPContextData(ctx context.Context) (*discordgo.Guild, TemplateData) 
 
 	templateData := ctx.Value(common.ContextKeyTemplateData).(TemplateData)
 
-	logger.Infof("%#v", templateData)
-
 	return guild, templateData
 }
 

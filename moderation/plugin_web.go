@@ -119,29 +119,43 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
-	<li>Report command: %s</li>
-	<li>Clean command: %s</li>
-	<li>Giverole/Takerole commands: %s</li>
-	<li>Kick command: %s</li>
-	<li>Ban command: %s</li>
-	<li>Mute/Unmute commands: %s</li>
-	<li>Warning commands: %s</li>
-	<li>Lockdown commands: %s</li>
-	<li>Slowmode command: %s</li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Comando reportar: %s</li>
+		<li>Comando limpar: %s</li>
+		<li>Comando dar/tirar cargo: %s</li>
+		<li>Comando expulsar: %s</li>
+		<li>Comando banir: %s</li>
+		<li>Comando silenciar: %s</li>
+		<li>Comando avisar: %s</li>
+		<li>Comando lockdown: %s</li>
+		<li>Comando modo lento: %s</li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Comando reportar: %s</li>
-	<li>Comando limpar: %s</li>
-	<li>Comando dar/tirar cargo: %s</li>
-	<li>Comando expulsar: %s</li>
-	<li>Comando banir: %s</li>
-	<li>Comando silenciar: %s</li>
-	<li>Comando avisar: %s</li>
-	<li>Comando lockdown: %s</li>
-	<li>Comando modo lento: %s</li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.ReportEnabled),
+			web.EnabledDisabledSpanStatusPT(config.CleanEnabled), web.EnabledDisabledSpanStatusPT(config.GiveRoleCmdEnabled),
+			web.EnabledDisabledSpanStatusPT(config.KickEnabled), web.EnabledDisabledSpanStatusPT(config.BanEnabled),
+			web.EnabledDisabledSpanStatusPT(config.MuteEnabled), web.EnabledDisabledSpanStatusPT(config.WarnCommandsEnabled),
+			web.EnabledDisabledSpanStatusPT(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatusPT(config.SlowmodeCommandEnabled)))
+	} else {
+		const format = `<ul>
+		<li>Report command: %s</li>
+		<li>Clean command: %s</li>
+		<li>Giverole/Takerole commands: %s</li>
+		<li>Kick command: %s</li>
+		<li>Ban command: %s</li>
+		<li>Mute/Unmute commands: %s</li>
+		<li>Warning commands: %s</li>
+		<li>Lockdown commands: %s</li>
+		<li>Slowmode command: %s</li>
+	</ul>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.ReportEnabled),
+			web.EnabledDisabledSpanStatus(config.CleanEnabled), web.EnabledDisabledSpanStatus(config.GiveRoleCmdEnabled),
+			web.EnabledDisabledSpanStatus(config.KickEnabled), web.EnabledDisabledSpanStatus(config.BanEnabled),
+			web.EnabledDisabledSpanStatus(config.MuteEnabled), web.EnabledDisabledSpanStatus(config.WarnCommandsEnabled),
+			web.EnabledDisabledSpanStatus(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatus(config.SlowmodeCommandEnabled)))
+	}
 
 	if config.ReportEnabled || config.CleanEnabled || config.GiveRoleCmdEnabled || config.ActionChannel != "" ||
 		config.MuteEnabled || config.KickEnabled || config.BanEnabled || config.WarnCommandsEnabled || config.LockdownCmdEnabled || config.SlowmodeCommandEnabled {
@@ -149,18 +163,6 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	} else {
 		templateData["WidgetDisabled"] = true
 	}
-
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, web.EnabledDisabledSpanStatus(config.ReportEnabled),
-		web.EnabledDisabledSpanStatus(config.CleanEnabled), web.EnabledDisabledSpanStatus(config.GiveRoleCmdEnabled),
-		web.EnabledDisabledSpanStatus(config.KickEnabled), web.EnabledDisabledSpanStatus(config.BanEnabled),
-		web.EnabledDisabledSpanStatus(config.MuteEnabled), web.EnabledDisabledSpanStatus(config.WarnCommandsEnabled),
-		web.EnabledDisabledSpanStatus(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatus(config.SlowmodeCommandEnabled)))
-
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, web.EnabledDisabledSpanStatusPT(config.ReportEnabled),
-		web.EnabledDisabledSpanStatusPT(config.CleanEnabled), web.EnabledDisabledSpanStatusPT(config.GiveRoleCmdEnabled),
-		web.EnabledDisabledSpanStatusPT(config.KickEnabled), web.EnabledDisabledSpanStatusPT(config.BanEnabled),
-		web.EnabledDisabledSpanStatusPT(config.MuteEnabled), web.EnabledDisabledSpanStatusPT(config.WarnCommandsEnabled),
-		web.EnabledDisabledSpanStatusPT(config.LockdownCmdEnabled), web.EnabledDisabledSpanStatusPT(config.SlowmodeCommandEnabled)))
 
 	return templateData, nil
 }

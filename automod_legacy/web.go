@@ -101,42 +101,45 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		templateData["WidgetDisabled"] = true
 	}
 
-	const format = `<ul>
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Modo lento: %s</li>
+		<li>Spam de menção: %s</li>
+		<li>Convites de servidores: %s</li>
+		<li>Quaisquer links: %s</li>
+		<li>Palavras banidas: %s</li>
+		<li>Sites banidos: %s</li>
+	</ul>`
+
+		slowmodePT := web.EnabledDisabledSpanStatusPT(config.Spam.Enabled)
+		massMentionPT := web.EnabledDisabledSpanStatusPT(config.Mention.Enabled)
+		invitesPT := web.EnabledDisabledSpanStatusPT(config.Invite.Enabled)
+		linksPT := web.EnabledDisabledSpanStatusPT(config.Links.Enabled)
+		wordsPT := web.EnabledDisabledSpanStatusPT(config.Words.Enabled)
+		sitesPT := web.EnabledDisabledSpanStatusPT(config.Sites.Enabled)
+
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, slowmodePT,
+			massMentionPT, invitesPT, linksPT, wordsPT, sitesPT))
+	} else {
+		const format = `<ul>
 	<li>Slowmode: %s</li>
 	<li>Mass mention: %s</li>
 	<li>Server invites: %s</li>
 	<li>Any links: %s</li>
 	<li>Banned words: %s</li>
 	<li>Banned websites: %s</li>
-</ul>`
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Modo lento: %s</li>
-	<li>Spam de menção: %s</li>
-	<li>Convites de servidores: %s</li>
-	<li>Quaisquer links: %s</li>
-	<li>Palavras banidas: %s</li>
-	<li>Sites banidos: %s</li>
-</ul>`
+		slowmode := web.EnabledDisabledSpanStatus(config.Spam.Enabled)
+		massMention := web.EnabledDisabledSpanStatus(config.Mention.Enabled)
+		invites := web.EnabledDisabledSpanStatus(config.Invite.Enabled)
+		links := web.EnabledDisabledSpanStatus(config.Links.Enabled)
+		words := web.EnabledDisabledSpanStatus(config.Words.Enabled)
+		sites := web.EnabledDisabledSpanStatus(config.Sites.Enabled)
 
-	slowmode := web.EnabledDisabledSpanStatus(config.Spam.Enabled)
-	massMention := web.EnabledDisabledSpanStatus(config.Mention.Enabled)
-	invites := web.EnabledDisabledSpanStatus(config.Invite.Enabled)
-	links := web.EnabledDisabledSpanStatus(config.Links.Enabled)
-	words := web.EnabledDisabledSpanStatus(config.Words.Enabled)
-	sites := web.EnabledDisabledSpanStatus(config.Sites.Enabled)
-
-	slowmodePT := web.EnabledDisabledSpanStatusPT(config.Spam.Enabled)
-	massMentionPT := web.EnabledDisabledSpanStatusPT(config.Mention.Enabled)
-	invitesPT := web.EnabledDisabledSpanStatusPT(config.Invite.Enabled)
-	linksPT := web.EnabledDisabledSpanStatusPT(config.Links.Enabled)
-	wordsPT := web.EnabledDisabledSpanStatusPT(config.Words.Enabled)
-	sitesPT := web.EnabledDisabledSpanStatusPT(config.Sites.Enabled)
-
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, slowmode,
-		massMention, invites, links, words, sites))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, slowmodePT,
-		massMentionPT, invitesPT, linksPT, wordsPT, sitesPT))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, slowmode,
+			massMention, invites, links, words, sites))
+	}
 
 	return templateData, nil
 }

@@ -141,11 +141,12 @@ func HandleGuildCreate(evt *eventsystem.EventData) (retry bool, err error) {
 		logger.WithField("guild", g.ID).Info("Banned server tried to add bot back")
 
 		for _, c := range g.Channels {
-			if c.Type == discordgo.ChannelTypeGuildText {
+			if c.Type == discordgo.ChannelTypeGuildText && BotProbablyHasPermission(g.ID, c.ID, discordgo.PermissionSendMessages) {
 				_, err = common.BotSession.ChannelMessageSend(c.ID, "This server is banned from using this bot. Join the support server for more info.\nEsse servidor está banido de usar esse bot. Entre no servidor de suporte para mais informação.")
 				if err != nil {
 					logger.Warnf("Failed sending banned message for guild %d", g.ID)
 				}
+
 				break
 			}
 		}

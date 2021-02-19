@@ -807,18 +807,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 		return templateData, err
 	}
 
-	const format = `<ul>
-    <li>Active and enabled Rulesets: <code>%d</code></li>
-    <li>Total rules: <code>%d</code></li>
-	</ul>`
-
-	const formatPT = `<ul>
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
 	<li>Regras ativadas: <code>%d</code></li>
 	<li>Quantidade de regas total: <code>%d</code></li>
 	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, rulesets, rules))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, rulesets, rules))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, rulesets, rules))
+	} else {
+		const format = `<ul>
+    <li>Active and enabled Rulesets: <code>%d</code></li>
+    <li>Total rules: <code>%d</code></li>
+	</ul>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, rulesets, rules))
+	}
 
 	if rulesets > 0 {
 		templateData["WidgetEnabled"] = true

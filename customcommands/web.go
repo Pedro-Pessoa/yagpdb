@@ -511,11 +511,15 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 
 	numCustomCommands, err := models.CustomCommands(qm.Where("guild_id = ?", ag.ID)).CountG(r.Context())
 
-	const format = `<p>Number of custom commands: <code>%d</code></p>`
-	const formatPT = `<p>Número custom commands: <code>%d</code></p>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<p>Número custom commands: <code>%d</code></p>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCustomCommands))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCustomCommands))
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, numCustomCommands))
+	} else {
+		const format = `<p>Number of custom commands: <code>%d</code></p>`
+
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, numCustomCommands))
+	}
 
 	if numCustomCommands > 0 {
 		templateData["WidgetEnabled"] = true

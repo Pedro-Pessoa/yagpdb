@@ -30,8 +30,8 @@ type Tree struct {
 	peekCount  int
 	vars       []string // variables defined at the moment.
 	treeSet    map[string]*Tree
-	loopDepth  int // nesting level of range/while loops.
 	actionLine int // line of left delim starting action
+	loopDepth  int // nesting level of range/while loops.
 }
 
 // A mode value is a set of flags (or 0). Modes control parser behavior.

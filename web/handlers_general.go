@@ -19,6 +19,7 @@ import (
 	"github.com/volatiletech/null"
 	"goji.io/pat"
 
+	"github.com/Pedro-Pessoa/tidbot/bot"
 	"github.com/Pedro-Pessoa/tidbot/bot/botrest"
 	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
@@ -154,6 +155,12 @@ func HandleLandingPage(w http.ResponseWriter, r *http.Request) (TemplateData, er
 	// Command stats
 	tmpl["Commands"] = atomic.LoadInt64(commandsRanToday)
 	tmpl["CCs"] = atomic.LoadInt64(customCommandsRanToday)
+
+	// API Calls on the current session
+	tmpl["APICalls"] = common.BotSession.APICalls
+
+	// Current Uptime
+	tmpl["Uptime"] = time.Since(bot.Started)
 
 	return tmpl, nil
 }
@@ -345,6 +352,7 @@ var commandsRanToday = new(int64)
 
 func pollCommandsRan() {
 	t := time.NewTicker(time.Minute)
+
 	for {
 		var result struct {
 			Count int64
@@ -366,7 +374,8 @@ func pollCommandsRan() {
 var customCommandsRanToday = new(int64)
 
 func pollCCsRan() {
-	t := time.NewTicker(time.Minute)
+	t := time.NewTicker(10 * time.Minute)
+
 	for {
 		within := time.Now().Add(-24 * time.Hour)
 		var result null.Int64
@@ -428,22 +437,25 @@ func (p *ControlPanelPlugin) LoadServerHomeWidget(w http.ResponseWriter, r *http
 
 	config := r.Context().Value(common.ContextKeyCoreConfig).(*models.CoreConfig)
 
-	const format = `<ul>
-	<li>Read-only roles: <code>%d</code></li>
-	<li>Write roles: <code>%d</code></li>
-	<li>All members read-only: %s</li>
-	<li>Allow absolutely everyone read-only access: %s</li>
-</ul>`
+	if templateData["IsPT"] == true {
+		const formatPT = `<ul>
+		<li>Cargos com permissão somente leitura: <code>%d</code></li>
+		<li>Cargos com permissão moderadora: <code>%d</code></li>
+		<li>Todos os membros tem permissão somente leitura: %s</li>
+		<li>Qualquer usuário tem permissão somente leitura: %s</li>
+	</ul>`
 
-	const formatPT = `<ul>
-	<li>Cargos com permissão somente leitura: <code>%d</code></li>
-	<li>Cargos com permissão moderadora: <code>%d</code></li>
-	<li>Todos os membros tem permissão somente leitura: %s</li>
-	<li>Qualquer usuário tem permissão somente leitura: %s</li>
-</ul>`
+		templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatusPT(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatusPT(config.AllowNonMembersReadOnly)))
+	} else {
+		const format = `<ul>
+		<li>Read-only roles: <code>%d</code></li>
+		<li>Write roles: <code>%d</code></li>
+		<li>All members read-only: %s</li>
+		<li>Allow absolutely everyone read-only access: %s</li>
+	</ul>`
 
-	templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatus(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatus(config.AllowNonMembersReadOnly)))
-	templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf(formatPT, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatusPT(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatusPT(config.AllowNonMembersReadOnly)))
+		templateData["WidgetBody"] = template.HTML(fmt.Sprintf(format, len(config.AllowedReadOnlyRoles), len(config.AllowedWriteRoles), EnabledDisabledSpanStatus(config.AllowAllMembersReadOnly), EnabledDisabledSpanStatus(config.AllowNonMembersReadOnly)))
+	}
 
 	return templateData, nil
 }
