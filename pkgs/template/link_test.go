@@ -6,11 +6,12 @@ package template_test
 
 import (
 	"bytes"
-	"internal/testenv"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/Pedro-Pessoa/tidbot/pkgs/template/testenv"
 )
 
 // Issue 36021: verify that text/template doesn't prevent the linker from removing
