@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -405,7 +405,7 @@ func handleAdsTXT(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := ioutil.ReadFile(ConfAdsTxt.GetString())
+	f, err := os.ReadFile(ConfAdsTxt.GetString())
 	if err != nil {
 		logger.WithError(err).Error("failed reading ads.txt file")
 		return

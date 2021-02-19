@@ -2,7 +2,7 @@ package safebrowsing
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -50,9 +50,9 @@ func performRemoteLookup(input string) (*safebrowsing.URLThreat, error) {
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.WithMessage(err, "ioutil.ReadAll")
+		return nil, errors.WithMessage(err, "io.ReadAll")
 	}
 
 	var result [][]safebrowsing.URLThreat

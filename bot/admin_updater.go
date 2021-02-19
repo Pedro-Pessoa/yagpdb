@@ -19,6 +19,7 @@ var (
 	// Set of redis admins
 	RedisKeyAdmins    = "yagpdb_admins"
 	tmpRedisKeyAdmins = "yagpdb_admins_tmp"
+
 	// Set of users with read only access
 	RedisKeyReadOnlyAccess    = "yagpdb_ro_access"
 	tmpRedisKeyReadOnlyAccess = "yagpdb_ro_access_tmp"

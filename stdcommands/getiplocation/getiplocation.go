@@ -5,7 +5,7 @@ package getiplocation
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net/http"
 
@@ -105,7 +105,7 @@ func getData(query string) ([]byte, error) {
 		return nil, commands.NewPublicError("Cannot fetch IP-location. Try again later.")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -231,7 +230,7 @@ func (p *Plugin) HandleFeedUpdate(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	bodyReader := io.LimitReader(r.Body, 0xffff1)
 
-	result, err := ioutil.ReadAll(bodyReader)
+	result, err := io.ReadAll(bodyReader)
 	if err != nil {
 		web.CtxLogger(ctx).WithError(err).Error("Failed reading body")
 		w.WriteHeader(http.StatusInternalServerError)

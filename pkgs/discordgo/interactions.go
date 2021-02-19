@@ -5,7 +5,6 @@ import (
 	"crypto/ed25519"
 	"encoding/hex"
 	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -41,7 +40,7 @@ func VerifyInteraction(r *http.Request, key ed25519.PublicKey) bool {
 
 	// at the end of the function, copy the original body back into the request
 	defer func() {
-		r.Body = ioutil.NopCloser(&body)
+		r.Body = io.NopCloser(&body)
 	}()
 
 	// copy body into buffers
