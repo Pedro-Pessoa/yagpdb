@@ -215,7 +215,7 @@ func shutdown() {
 	}
 
 	log.Info("Saving API Calls to redis")
-	err := common.RedisPool.Do(radix.Cmd(nil, "INCR", "api_calls_counter", strconv.Itoa(common.BotSession.APICalls)))
+	err := common.RedisPool.Do(radix.Cmd(nil, "INCRBY", "api_calls_counter", strconv.Itoa(common.BotSession.APICalls)))
 	if err != nil {
 		log.Errorf("Failed saving redis API calls counter -> %#v || string error -> %s", err, err)
 	}

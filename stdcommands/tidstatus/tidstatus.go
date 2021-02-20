@@ -3,8 +3,10 @@ package tidstatus
 import (
 	"fmt"
 	"runtime"
+	"strconv"
 	"time"
 
+	"github.com/mediocregopher/radix/v3"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 
@@ -55,6 +57,12 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 	numGoroutines := runtime.NumGoroutine()
 	botUser := common.BotUser
 
+	var totalAPICalls int
+	err = common.RedisPool.Do(radix.Cmd(&totalAPICalls, "GET", "api_calls_counter"))
+	if err != nil {
+		logger.WithError(err).Error("Failed getting total API Calls amount")
+	}
+
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name:    botUser.Username,
@@ -72,6 +80,8 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 			{Name: "System Mem (used, total)", Value: sysMemStats, Inline: true},
 			{Name: "System Load (1, 5, 15)", Value: sysLoadStats, Inline: true},
 			{Name: "Master version", Value: common.CurrentVersion, Inline: true},
+			{Name: "API Calls on this session", Value: strconv.Itoa(common.BotSession.APICalls), Inline: true},
+			{Name: "Total API Calls", Value: strconv.Itoa(totalAPICalls), Inline: true},
 		},
 	}
 
