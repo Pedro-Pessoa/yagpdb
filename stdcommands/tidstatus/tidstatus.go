@@ -81,7 +81,7 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 			{Name: "System Load (1, 5, 15)", Value: sysLoadStats, Inline: true},
 			{Name: "Master version", Value: common.CurrentVersion, Inline: true},
 			{Name: "API Calls on this session", Value: strconv.Itoa(common.BotSession.APICalls), Inline: true},
-			{Name: "Total API Calls", Value: strconv.Itoa(totalAPICalls), Inline: true},
+			{Name: "Total API Calls", Value: strconv.Itoa(totalAPICalls + common.BotSession.APICalls), Inline: true},
 		},
 	}
 
