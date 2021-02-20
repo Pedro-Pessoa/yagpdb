@@ -6,12 +6,14 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/mediocregopher/radix/v3"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/Pedro-Pessoa/tidbot/bot"
@@ -210,6 +212,12 @@ func shutdown() {
 	if shouldWait {
 		log.Info("Waiting for things to shut down...")
 		wg.Wait()
+	}
+
+	log.Info("Saving API Calls to redis")
+	err := common.RedisPool.Do(radix.Cmd(nil, "INCR", "api_calls_counter", strconv.Itoa(common.BotSession.APICalls)))
+	if err != nil {
+		log.Errorf("Failed saving redis API calls counter -> %#v || string error -> %s", err, err)
 	}
 
 	log.Info("Sleeping for a second to allow work to finish")
