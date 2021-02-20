@@ -76,12 +76,12 @@ func cmdFuncYagStatus(data *dcmd.Data) (interface{}, error) {
 			{Name: "Uptime", Value: common.HumanizeDuration(common.DurationPrecisionSeconds, uptime), Inline: true},
 			{Name: "Goroutines", Value: fmt.Sprint(numGoroutines), Inline: true},
 			{Name: "GC Pause Fraction", Value: fmt.Sprintf("%.3f%%", memStats.GCCPUFraction*100), Inline: true},
-			{Name: "Process Mem (alloc, sys, freed)", Value: fmt.Sprintf("%.1fMB, %.1fMB, %.1fMB", float64(memStats.Alloc)/1000000, float64(memStats.Sys)/1000000, (float64(memStats.TotalAlloc)/1000000)-allocated), Inline: true},
-			{Name: "System Mem (used, total)", Value: sysMemStats, Inline: true},
-			{Name: "System Load (1, 5, 15)", Value: sysLoadStats, Inline: true},
 			{Name: "Master version", Value: common.CurrentVersion, Inline: true},
 			{Name: "API Calls on this session", Value: strconv.Itoa(common.BotSession.APICalls), Inline: true},
 			{Name: "Total API Calls", Value: strconv.Itoa(totalAPICalls + common.BotSession.APICalls), Inline: true},
+			{Name: "Process Mem (alloc, sys, freed)", Value: fmt.Sprintf("%.1fMB, %.1fMB, %.1fMB", float64(memStats.Alloc)/1000000, float64(memStats.Sys)/1000000, (float64(memStats.TotalAlloc)/1000000)-allocated), Inline: true},
+			{Name: "System Mem (used, total)", Value: sysMemStats, Inline: true},
+			{Name: "System Load (1, 5, 15)", Value: sysLoadStats, Inline: true},
 		},
 	}
 
