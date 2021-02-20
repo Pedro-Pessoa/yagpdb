@@ -207,7 +207,7 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 		extras.WriteString("Guild Region: " + strings.Title(guild.Region))
 	}
 
-	verificationLevel := [5]string{"None", "Low", "Medium", "High", "Very High"}
+	verificationLevel := [5]string{"None: Unrestricted", "Low: Must have a verified email on their Discord account.", "Medium: Must also be registered on Discord for longer than 5 minutes.", "(╯°□°）╯︵ ┻━┻: Must also be a member of this server for longer than 10 minutes.", "┻━┻ ﾐヽ(ಠ益ಠ)ノ彡┻━┻: Must have a verified phone on their Discord account."}
 	verificationLevelOut := verificationLevel[int(guild.VerificationLevel)]
 
 	var widgetOut string

@@ -270,35 +270,37 @@ OUTER:
 }
 
 func CreatePostMessage(post *reddit.Link) (string, *discordgo.MessageEmbed) {
-	plainMessage := fmt.Sprintf("**%s**\n*by %s (<%s>)*\n",
-		html.UnescapeString(post.Title), post.Author, "https://redd.it/"+post.ID)
+	var plainMessage strings.Builder
+	plainMessage.WriteString("**" + html.UnescapeString(post.Title) + "**\n*by " + post.Author + " (<" + "https://redd.it/" + post.ID + ">)*\n")
 
-	plainBody := ""
-	parentSpoiler := false
-	if post.IsSelf {
-		plainBody = common.CutStringShort(html.UnescapeString(post.Selftext), 250)
-	} else if post.CrosspostParent != "" && len(post.CrosspostParentList) > 0 {
+	var plainBody strings.Builder
+	var parentSpoiler bool
+
+	switch {
+	case post.IsSelf:
+		plainBody.WriteString(common.CutStringShort(html.UnescapeString(post.Selftext), 250))
+	case post.CrosspostParent != "" && len(post.CrosspostParentList) > 0:
 		// Handle cross posts
 		parent := post.CrosspostParentList[0]
-		plainBody += "**" + html.UnescapeString(parent.Title) + "**\n"
+		plainBody.WriteString("**" + html.UnescapeString(parent.Title) + "**\n")
 
 		if parent.IsSelf {
-			plainBody += common.CutStringShort(html.UnescapeString(parent.Selftext), 250)
+			plainBody.WriteString(common.CutStringShort(html.UnescapeString(parent.Selftext), 250))
 		} else {
-			plainBody += parent.URL
+			plainBody.WriteString(parent.URL)
 		}
 
 		if parent.Spoiler {
 			parentSpoiler = true
 		}
-	} else {
-		plainBody = post.URL
+	default:
+		plainBody.WriteString(post.URL)
 	}
 
 	if post.Spoiler || parentSpoiler {
-		plainMessage += "|| " + plainBody + " ||"
+		plainMessage.WriteString("|| " + plainBody.String() + " ||")
 	} else {
-		plainMessage += plainBody
+		plainMessage.WriteString(plainBody.String())
 	}
 
 	embed := &discordgo.MessageEmbed{
@@ -310,49 +312,52 @@ func CreatePostMessage(post *reddit.Link) (string, *discordgo.MessageEmbed) {
 			Name: "Reddit",
 			URL:  "https://reddit.com",
 		},
-		Description: "**" + html.UnescapeString(post.Title) + "**\n",
 	}
 	embed.URL = "https://redd.it/" + post.ID
 
-	if post.IsSelf {
+	var embedDesc strings.Builder
+	embedDesc.WriteString("**" + html.UnescapeString(post.Title) + "**\n")
+
+	switch {
+	case post.IsSelf:
 		//  Handle Self posts
 		embed.Title = "New self post"
 		if post.Spoiler {
-			embed.Description += "|| " + common.CutStringShort(html.UnescapeString(post.Selftext), 250) + " ||"
+			embedDesc.WriteString("|| " + common.CutStringShort(html.UnescapeString(post.Selftext), 250) + " ||")
 		} else {
-			embed.Description += common.CutStringShort(html.UnescapeString(post.Selftext), 250)
+			embedDesc.WriteString(common.CutStringShort(html.UnescapeString(post.Selftext), 250))
 		}
 
 		embed.Color = 0xc3fc7e
-	} else if post.CrosspostParent != "" && len(post.CrosspostParentList) > 0 {
+	case post.CrosspostParent != "" && len(post.CrosspostParentList) > 0:
 		//  Handle crossposts
 		embed.Title = "New Crosspost"
 
 		parent := post.CrosspostParentList[0]
-		embed.Description += "**" + html.UnescapeString(parent.Title) + "**\n"
+		embedDesc.WriteString("**" + html.UnescapeString(parent.Title) + "**\n")
 		if parent.IsSelf {
 			// Cropsspost was a self post
 			embed.Color = 0xc3fc7e
 			if parent.Spoiler {
-				embed.Description += "|| " + common.CutStringShort(html.UnescapeString(parent.Selftext), 250) + " ||"
+				embedDesc.WriteString("|| " + common.CutStringShort(html.UnescapeString(parent.Selftext), 250) + " ||")
 			} else {
-				embed.Description += common.CutStringShort(html.UnescapeString(parent.Selftext), 250)
+				embedDesc.WriteString(common.CutStringShort(html.UnescapeString(parent.Selftext), 250))
 			}
 		} else {
 			// cross post was a link most likely
 			embed.Color = 0x718aed
-			embed.Description += parent.URL
+			embedDesc.WriteString(parent.URL)
 			if parent.Media.Type == "" && !parent.Spoiler && parent.PostHint == "image" {
 				embed.Image = &discordgo.MessageEmbedImage{
 					URL: parent.URL,
 				}
 			}
 		}
-	} else {
+	default:
 		//  Handle Link posts
 		embed.Color = 0x718aed
 		embed.Title = "New link post"
-		embed.Description += post.URL
+		embedDesc.WriteString(post.URL)
 
 		if post.Media.Type == "" && !post.Spoiler && post.PostHint == "image" {
 			embed.Image = &discordgo.MessageEmbedImage{
@@ -365,7 +370,9 @@ func CreatePostMessage(post *reddit.Link) (string, *discordgo.MessageEmbed) {
 		embed.Title += " [spoiler]"
 	}
 
-	return plainMessage, embed
+	embed.Description = embedDesc.String()
+
+	return plainMessage.String(), embed
 }
 
 type RedditIdSlice []string

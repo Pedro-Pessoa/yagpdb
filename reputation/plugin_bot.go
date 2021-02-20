@@ -352,17 +352,18 @@ var cmds = []*commands.TIDCommand{
 			}
 
 			leaderboardURL := web.BaseURL() + "/public/" + discordgo.StrID(parsed.GS.ID) + "/reputation/leaderboard"
-			out := "```\n# -- Points -- User\n"
+			var out strings.Builder
+			out.WriteString("```\n# -- Points -- User\n")
 			for _, v := range detailed {
 				user := v.Username
 				if user == "" {
 					user = "unknown ID:" + strconv.FormatInt(v.UserID, 10)
 				}
-				out += fmt.Sprintf("#%02d: %6d - %s\n", v.Rank, v.Points, user)
+				out.WriteString(fmt.Sprintf("#%02s: %6s - %s\n", strconv.Itoa(v.Rank), strconv.FormatInt(v.Points, 10), user))
 			}
-			out += "```\n" + "Full leaderboard: <" + leaderboardURL + ">"
+			out.WriteString("```\n" + "Full leaderboard: <" + leaderboardURL + ">")
 
-			embed.Description = out
+			embed.Description = out.String()
 
 			return embed, nil
 

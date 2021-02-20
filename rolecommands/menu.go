@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -210,7 +212,8 @@ func StrFlags(rm *models.RoleMenu) string {
 }
 
 func UpdateRoleMenuMessage(ctx context.Context, rm *models.RoleMenu) error {
-	newMsg := "**Role Menu: " + rm.R.RoleGroup.Name + "**\nReact to give yourself a role.\n\n"
+	var newMsg strings.Builder
+	newMsg.WriteString("**Role Menu: " + rm.R.RoleGroup.Name + "**\nReact to give yourself a role.\n\n")
 
 	opts := rm.R.RoleMenuOptions
 	sort.Slice(opts, OptionsLessFunc(opts))
@@ -220,16 +223,16 @@ func UpdateRoleMenuMessage(ctx context.Context, rm *models.RoleMenu) error {
 		emoji := opt.UnicodeEmoji
 		if opt.EmojiID != 0 {
 			if opt.EmojiAnimated {
-				emoji = fmt.Sprintf("<a:yagpdb:%d>", opt.EmojiID)
+				emoji = "<a:yagpdb:" + strconv.FormatInt(opt.EmojiID, 10) + ">"
 			} else {
-				emoji = fmt.Sprintf("<:yagpdb:%d>", opt.EmojiID)
+				emoji = "<:yagpdb:" + strconv.FormatInt(opt.EmojiID, 10) + ">"
 			}
 		}
 
-		newMsg += fmt.Sprintf("%s : `%s`\n\n", emoji, cmd.Name)
+		newMsg.WriteString(emoji + " : `" + cmd.Name + "`\n\n")
 	}
 
-	_, err := common.BotSession.ChannelMessageEdit(rm.ChannelID, rm.MessageID, newMsg)
+	_, err := common.BotSession.ChannelMessageEdit(rm.ChannelID, rm.MessageID, newMsg.String())
 
 	return err
 }

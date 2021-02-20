@@ -82,11 +82,7 @@ var cmds = []*commands.TIDCommand{
 				return nil, err
 			}
 
-			out := "Your reminders:\n"
-			out += stringReminders(currentReminders, false)
-			out += "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above"
-
-			return out, nil
+			return "Your reminders:\n" + stringReminders(currentReminders, false) + "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above", nil
 		},
 	},
 	{
@@ -100,11 +96,7 @@ var cmds = []*commands.TIDCommand{
 				return nil, err
 			}
 
-			out := "Reminders in this channel:\n"
-			out += stringReminders(currentReminders, true)
-			out += "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above"
-
-			return out, nil
+			return "Reminders in this channel:\n" + stringReminders(currentReminders, true) + "\nRemove a reminder with `delreminder/rmreminder (id)` where id is the first number for each reminder above", nil
 		},
 	},
 	{
@@ -169,7 +161,7 @@ var cmds = []*commands.TIDCommand{
 }
 
 func stringReminders(reminders []*Reminder, displayUsernames bool) string {
-	out := ""
+	var out strings.Builder
 	for _, v := range reminders {
 		parsedCID, _ := strconv.ParseInt(v.ChannelID, 10, 64)
 
@@ -178,18 +170,18 @@ func stringReminders(reminders []*Reminder, displayUsernames bool) string {
 		tStr := t.Format(time.RFC822)
 		if !displayUsernames {
 			channel := "<#" + discordgo.StrID(parsedCID) + ">"
-			out += fmt.Sprintf("**%d**: %s: '%s' - %s from now (%s)\n", v.ID, channel, limitString(v.Message), timeFromNow, tStr)
+			out.WriteString("**" + strconv.FormatUint(uint64(v.ID), 10) + "**: " + channel + ": '" + limitString(v.Message) + "' - " + timeFromNow + " from now (" + tStr + ")")
 		} else {
 			member, _ := bot.GetMember(v.GuildID, v.UserIDInt())
 			username := "Unknown user"
 			if member != nil {
 				username = member.Username
 			}
-			out += fmt.Sprintf("**%d**: %s: '%s' - %s from now (%s)\n", v.ID, username, limitString(v.Message), timeFromNow, tStr)
+			out.WriteString("**" + strconv.FormatUint(uint64(v.ID), 10) + "**: " + username + ": '" + limitString(v.Message) + "' - " + timeFromNow + " from now (" + tStr + ")")
 		}
 	}
 
-	return out
+	return out.String()
 }
 
 func checkUserScheduledEvent(evt *seventsmodels.ScheduledEvent, data interface{}) (retry bool, err error) {

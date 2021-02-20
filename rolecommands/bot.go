@@ -3,6 +3,7 @@ package rolecommands
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
 	"github.com/sirupsen/logrus"
@@ -227,7 +228,8 @@ func CmdFuncListCommands(parsed *dcmd.Data) (interface{}, error) {
 		return "Failed retrieving role commands", err
 	}
 
-	output := "Here is a list of available roles:\n"
+	var output strings.Builder
+	output.WriteString("Here is a list of available roles:\n")
 
 	didListCommands := false
 	for group, cmds := range grouped {
@@ -236,49 +238,49 @@ func CmdFuncListCommands(parsed *dcmd.Data) (interface{}, error) {
 		}
 		didListCommands = true
 
-		output += "**" + group.Name + "**\n"
-		output += StringCommands(cmds)
-		output += "\n"
+		output.WriteString("**" + group.Name + "**\n" + StringCommands(cmds) + "\n")
 	}
 
 	if len(ungrouped) > 0 {
 		didListCommands = true
 
-		output += "**Ungrouped roles**\n"
-		output += StringCommands(ungrouped)
+		output.WriteString("**Ungrouped roles**\n" + StringCommands(ungrouped))
 	}
 
 	if !didListCommands {
-		output += "No role commands (self assignable roles) set up. You can set them up in the control panel."
+		output.WriteString("No role commands (self assignable roles) set up. You can set them up in the control panel.")
 	}
 
-	return output, nil
+	return output.String(), nil
 }
 
 // StringCommands pretty formats a bunch of commands into  a string
 func StringCommands(cmds []*models.RoleCommand) string {
 	stringedCommands := make([]int64, 0, len(cmds))
 
-	output := "```\n"
+	var output strings.Builder
+	output.WriteString("```\n")
 
 	for _, cmd := range cmds {
 		if common.ContainsInt64Slice(stringedCommands, cmd.Role) {
 			continue
 		}
 
-		output += cmd.Name
+		output.WriteString(cmd.Name)
 		// Check for duplicate roles
 		for _, cmd2 := range cmds {
 			if cmd.Role == cmd2.Role && cmd.Name != cmd2.Name {
-				output += "/ " + cmd2.Name
+				output.WriteString("/ " + cmd2.Name)
 			}
 		}
-		output += "\n"
+		output.WriteString("\n")
 
 		stringedCommands = append(stringedCommands, cmd.Role)
 	}
 
-	return output + "```\n"
+	output.WriteString("```\n")
+
+	return output.String()
 }
 
 func handleRemoveMemberRole(evt *schEvtsModels.ScheduledEvent, data interface{}) (retry bool, err error) {

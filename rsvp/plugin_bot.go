@@ -332,20 +332,13 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 		Value: "React to mark you as a participant, undecided, or not joining",
 	})
 
-	participantsEmbed := &discordgo.MessageEmbedField{
-		Name:   "Participants",
-		Inline: false,
-		Value:  "```\n",
-	}
-
-	waitingListField := &discordgo.MessageEmbedField{
-		Name:   "🕐 Waiting list",
-		Inline: false,
-		Value:  "```\n",
-	}
-
 	var addedParticipants, numWaitingList, numParticipantsShown, numWaitingListShown int
 	var waitingListHitMax, participantsHitMax bool
+	var participantsEmbedName, participantsEmbedValue, waitingListFieldName, waitingListFieldValue strings.Builder
+	participantsEmbedName.WriteString("Participants")
+	participantsEmbedValue.WriteString("```\n")
+	waitingListFieldName.WriteString("🕐 Waiting list")
+	waitingListFieldValue.WriteString("```\n")
 
 	for _, v := range participants {
 		if v.JoinState != int16(ParticipantStateJoining) && v.JoinState != int16(ParticipantStateWaitlist) {
@@ -358,10 +351,10 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 			if !waitingListHitMax {
 				// we hit the max limit so add them to the waiting list instead
 				toAdd := user.Username + "#" + user.Discriminator + "\n"
-				if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(waitingListField.Value) >= 990 {
+				if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(waitingListFieldValue.String()) >= 990 {
 					waitingListHitMax = true
 				} else {
-					waitingListField.Value += toAdd
+					waitingListFieldValue.WriteString(toAdd)
 					numWaitingListShown++
 				}
 			}
@@ -372,10 +365,10 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 
 		if !participantsHitMax {
 			toAdd := user.Username + "#" + user.Discriminator + "\n"
-			if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(participantsEmbed.Value) > 990 {
+			if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(participantsEmbedValue.String()) > 990 {
 				participantsHitMax = true
 			} else {
-				participantsEmbed.Value += toAdd
+				participantsEmbedValue.WriteString(toAdd)
 				numParticipantsShown++
 			}
 		}
@@ -384,31 +377,43 @@ func UpdateEventEmbed(m *models.RSVPSession) error {
 	}
 
 	// Finalize the participants field
-	if participantsEmbed.Value == "```\n" {
-		participantsEmbed.Value += "None"
+	if participantsEmbedValue.String() == "```\n" {
+		participantsEmbedValue.WriteString("None")
 	} else if participantsHitMax {
-		participantsEmbed.Value += fmt.Sprintf("+ %d users", addedParticipants-numParticipantsShown)
+		participantsEmbedValue.WriteString("+ " + strconv.Itoa(addedParticipants-numParticipantsShown) + " users")
 	}
-	participantsEmbed.Value += "```"
+	participantsEmbedValue.WriteString("```")
 
 	// Finalize the waiting list field
-	waitingListField.Name += " (" + strconv.Itoa(numWaitingList) + ")"
-	if waitingListField.Value == "```\n" {
-		waitingListField.Value += "None"
+	waitingListFieldName.WriteString(" (" + strconv.Itoa(numWaitingList) + ")")
+	if waitingListFieldValue.String() == "```\n" {
+		waitingListFieldValue.WriteString("None")
 	} else if waitingListHitMax {
-		waitingListField.Value += fmt.Sprintf("+ %d users", numWaitingList-numWaitingListShown)
+		waitingListFieldValue.WriteString("+ " + strconv.Itoa(numWaitingList-numWaitingListShown) + " users")
 	}
-	waitingListField.Value += "```"
+	waitingListFieldValue.WriteString("```")
 
 	if m.MaxParticipants > 0 {
-		participantsEmbed.Name += fmt.Sprintf(" (%d / %d)", addedParticipants, m.MaxParticipants)
+		participantsEmbedName.WriteString(" (" + strconv.Itoa(addedParticipants) + " / " + strconv.Itoa(m.MaxParticipants) + ")")
 	} else {
-		participantsEmbed.Name += fmt.Sprintf("(%d)", addedParticipants)
+		participantsEmbedName.WriteString("(" + strconv.Itoa(addedParticipants) + ")")
 	}
 
 	// The undecided and maybe people
 	undecidedField := ParticipantField(ParticipantStateMaybe, participants, fetchedMembers, "❔ Undecided")
 	// notJoiningField := ParticipantField(ParticipantStateNotJoining, participants, participantUsers, "Not joining")
+
+	participantsEmbed := &discordgo.MessageEmbedField{
+		Name:   participantsEmbedName.String(),
+		Inline: false,
+		Value:  participantsEmbedValue.String(),
+	}
+
+	waitingListField := &discordgo.MessageEmbedField{
+		Name:   waitingListFieldName.String(),
+		Inline: false,
+		Value:  waitingListFieldValue.String(),
+	}
 
 	embed.Fields = append(embed.Fields, participantsEmbed)
 	// hide waiting list if theres no limit
@@ -436,15 +441,11 @@ func findUser(members []*dstate.MemberState, target int64) *discordgo.User {
 }
 
 func ParticipantField(state ParticipantState, participants []*models.RSVPParticipant, users []*dstate.MemberState, name string) *discordgo.MessageEmbedField {
-	field := &discordgo.MessageEmbedField{
-		Name:   name,
-		Inline: true,
-		Value:  "```\n",
-	}
+	var fieldName, fieldValue strings.Builder
+	fieldValue.WriteString("```\n")
 
-	count := 0
-	countShown := 0
-	reachedMax := false
+	var count, countShown int
+	var reachedMax bool
 
 	for _, v := range participants {
 		user := findUser(users, v.UserID)
@@ -452,10 +453,10 @@ func ParticipantField(state ParticipantState, participants []*models.RSVPPartici
 		if v.JoinState == int16(state) {
 			if !reachedMax {
 				toAdd := user.Username + "#" + user.Discriminator + "\n"
-				if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(field.Value) >= 100 {
+				if utf8.RuneCountInString(toAdd)+utf8.RuneCountInString(fieldValue.String()) >= 100 {
 					reachedMax = true
 				} else {
-					field.Value += toAdd
+					fieldValue.WriteString(toAdd)
 					countShown++
 				}
 			}
@@ -464,15 +465,21 @@ func ParticipantField(state ParticipantState, participants []*models.RSVPPartici
 	}
 
 	if count == 0 {
-		field.Value += "None\n"
+		fieldValue.WriteString("None\n")
 	} else {
-		field.Name += " (" + strconv.Itoa(count) + ")"
+		fieldName.WriteString(" (" + strconv.Itoa(count) + ")")
 		if reachedMax {
-			field.Value += fmt.Sprintf("+ %d users", count-countShown)
+			fieldValue.WriteString("+ " + strconv.Itoa(count-countShown) + " users")
 		}
 	}
 
-	field.Value += "```"
+	fieldValue.WriteString("```")
+
+	field := &discordgo.MessageEmbedField{
+		Name:   fieldName.String(),
+		Inline: true,
+		Value:  fieldValue.String(),
+	}
 
 	return field
 }

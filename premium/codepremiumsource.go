@@ -8,6 +8,7 @@ import (
 	"encoding/base32"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -153,15 +154,15 @@ var keyEncoder = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 func encodeKey(rawKey []byte) string {
 	str := keyEncoder.EncodeToString(rawKey)
-	output := ""
+	var output strings.Builder
 	for i, r := range str {
 		if i%6 == 0 && i != 0 {
-			output += "-"
+			output.WriteString("-")
 		}
-		output += string(r)
+		output.WriteString(string(r))
 	}
 
-	return output
+	return output.String()
 }
 
 var cmdGenerateCode = &commands.TIDCommand{
@@ -197,15 +198,17 @@ var cmdGenerateCode = &commands.TIDCommand{
 			codes = append(codes, code.Code)
 		}
 
-		dm := fmt.Sprintf("Duration: `%s`, Permanent: `%t`, Message: `%s`\n```\n", duration.String(), duration == -1, data.Args[2].Str())
+		var dm strings.Builder
+
+		dm.WriteString(fmt.Sprintf("Duration: `%s`, Permanent: `%t`, Message: `%s`\n```\n", duration.String(), duration == -1, data.Args[2].Str()))
 
 		for _, v := range codes {
-			dm += v + "\n"
+			dm.WriteString(v + "\n")
 		}
 
-		dm += "```"
+		dm.WriteString("```")
 
-		if err := bot.SendDM(data.Msg.Author.ID, dm); err != nil {
+		if err := bot.SendDM(data.Msg.Author.ID, dm.String()); err != nil {
 			return fmt.Sprintf("I wasn't able to send you a DM.\nError:%v", err), err
 		}
 
