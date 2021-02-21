@@ -44,6 +44,7 @@ type State struct {
 	TrackBeforeStates   bool
 	BeforeStateFlushing bool
 
+	BeforeStateLocker         sync.RWMutex
 	BeforeStateMemberMap      map[int64]*BeforeStateMember
 	BeforeStateEmojiMap       map[int64]*BeforeStateEmoji
 	BeforeStateChannelMap     map[int64]*BeforeStateChannel
@@ -379,6 +380,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if s.TrackBeforeStates {
 			old := s.Guild(true, evt.ID)
 			if old != nil {
+				s.BeforeStateLocker.Lock()
+
 				oldCopy := old.Copy()
 				if s.BeforeStateGuildMap == nil {
 					s.BeforeStateGuildMap = make(map[int64]*BeforeStateGuild)
@@ -388,6 +391,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					CreatedAt:  time.Now(),
 					GuildState: oldCopy,
 				}
+
+				s.BeforeStateLocker.Unlock()
 			}
 		}
 		s.GuildUpdate(true, evt.Guild)
@@ -417,6 +422,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 				if evt.Member.User != nil {
 					old := g.Member(true, evt.Member.User.ID)
 					if old != nil {
+						s.BeforeStateLocker.Lock()
+
 						oldCopy := *old
 						if s.BeforeStateMemberMap == nil {
 							s.BeforeStateMemberMap = make(map[int64]*BeforeStateMember)
@@ -426,6 +433,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 							CreatedAt:   time.Now(),
 							MemberState: &oldCopy,
 						}
+
+						s.BeforeStateLocker.Unlock()
 					}
 				}
 			}
@@ -442,6 +451,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 				if evt.Member.User != nil {
 					old := g.Member(true, evt.Member.User.ID)
 					if old != nil {
+						s.BeforeStateLocker.Lock()
+
 						oldCopy := *old
 						if s.BeforeStateMemberMap == nil {
 							s.BeforeStateMemberMap = make(map[int64]*BeforeStateMember)
@@ -451,6 +462,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 							CreatedAt:   time.Now(),
 							MemberState: &oldCopy,
 						}
+
+						s.BeforeStateLocker.Unlock()
 					}
 				}
 			}
@@ -464,6 +477,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if s.TrackBeforeStates {
 			old := s.Channel(true, evt.Channel.ID)
 			if old != nil {
+				s.BeforeStateLocker.Lock()
+
 				oldCopy := *old
 				if s.BeforeStateChannelMap == nil {
 					s.BeforeStateChannelMap = make(map[int64]*BeforeStateChannel)
@@ -473,6 +488,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					CreatedAt:    time.Now(),
 					ChannelState: &oldCopy,
 				}
+
+				s.BeforeStateLocker.Unlock()
 			}
 		}
 		s.ChannelAddUpdate(evt.Channel)
@@ -480,6 +497,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if s.TrackBeforeStates {
 			old := s.Channel(true, evt.Channel.ID)
 			if old != nil {
+				s.BeforeStateLocker.Lock()
+
 				oldCopy := *old
 				if s.BeforeStateChannelMap == nil {
 					s.BeforeStateChannelMap = make(map[int64]*BeforeStateChannel)
@@ -489,6 +508,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					CreatedAt:    time.Now(),
 					ChannelState: &oldCopy,
 				}
+
+				s.BeforeStateLocker.Unlock()
 			}
 		}
 		s.ChannelRemove(evt.Channel)
@@ -513,6 +534,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 			if s.TrackBeforeStates {
 				old := g.Role(true, evt.Role.ID)
 				if old != nil {
+					s.BeforeStateLocker.Lock()
+
 					oldCopy := *old
 					if s.BeforeStateRoleMap == nil {
 						s.BeforeStateRoleMap = make(map[int64]*BeforeStateRole)
@@ -522,6 +545,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 						CreatedAt: time.Now(),
 						RoleState: &oldCopy,
 					}
+
+					s.BeforeStateLocker.Unlock()
 				}
 			}
 			g.RoleAddUpdate(true, evt.Role)
@@ -536,6 +561,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 			if s.TrackBeforeStates {
 				old := g.Role(true, evt.RoleID)
 				if old != nil {
+					s.BeforeStateLocker.Lock()
+
 					oldCopy := *old
 					if s.BeforeStateRoleMap == nil {
 						s.BeforeStateRoleMap = make(map[int64]*BeforeStateRole)
@@ -545,6 +572,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 						CreatedAt: time.Now(),
 						RoleState: &oldCopy,
 					}
+
+					s.BeforeStateLocker.Unlock()
 				}
 			}
 			g.RoleRemove(true, evt.RoleID)
@@ -581,6 +610,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if s.TrackBeforeStates {
 			old := channel.Message(true, evt.Message.ID)
 			if old != nil {
+				s.BeforeStateLocker.Lock()
+
 				oldCopy := *old
 				if s.BeforeStateMessageMap == nil {
 					s.BeforeStateMessageMap = make(map[int64]*BeforeStateMessage)
@@ -590,6 +621,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					CreatedAt:    time.Now(),
 					MessageState: &oldCopy,
 				}
+
+				s.BeforeStateLocker.Unlock()
 			}
 		}
 
@@ -610,6 +643,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if s.TrackBeforeStates {
 			old := channel.Message(true, evt.Message.ID)
 			if old != nil {
+				s.BeforeStateLocker.Lock()
+
 				oldCopy := *old
 				if s.BeforeStateMessageMap == nil {
 					s.BeforeStateMessageMap = make(map[int64]*BeforeStateMessage)
@@ -619,6 +654,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					CreatedAt:    time.Now(),
 					MessageState: &oldCopy,
 				}
+
+				s.BeforeStateLocker.Unlock()
 			}
 		}
 
@@ -642,6 +679,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 			if s.TrackBeforeStates {
 				old := channel.Message(true, v)
 				if old != nil {
+					s.BeforeStateLocker.Lock()
+
 					oldCopy := *old
 					if s.BeforeStateMessageBulkMap == nil {
 						s.BeforeStateMessageBulkMap = make(map[int64][]*BeforeStateMessage)
@@ -655,6 +694,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 						CreatedAt:    time.Now(),
 						MessageState: &oldCopy,
 					})
+
+					s.BeforeStateLocker.Unlock()
 				}
 			}
 			channel.MessageRemove(false, v, s.KeepDeletedMessages)
@@ -679,6 +720,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 			if s.TrackBeforeStates {
 				old := g.VoiceState(true, evt.UserID)
 				if old != nil {
+					s.BeforeStateLocker.Lock()
+
 					oldCopy := *old
 					if s.BeforeStateVoiceMap == nil {
 						s.BeforeStateVoiceMap = make(map[int64]*BeforeStateVoice)
@@ -688,6 +731,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 						CreatedAt:  time.Now(),
 						VoiceState: &oldCopy,
 					}
+
+					s.BeforeStateLocker.Unlock()
 				}
 			}
 			g.VoiceStateUpdate(true, evt.VoiceState)
@@ -701,6 +746,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 				for _, e := range evt.Emojis {
 					old := g.Emoji(true, e.ID)
 					if old != nil {
+						s.BeforeStateLocker.Lock()
+
 						oldCopy := *old
 						if s.BeforeStateEmojiMap == nil {
 							s.BeforeStateEmojiMap = make(map[int64]*BeforeStateEmoji)
@@ -710,6 +757,8 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 							CreatedAt: time.Now(),
 							Emoji:     &oldCopy,
 						}
+
+						s.BeforeStateLocker.Unlock()
 					}
 				}
 			}
@@ -841,8 +890,12 @@ type LimitProvider interface {
 
 func (s *State) FlushBeforeStates() {
 	s.BeforeStateFlushing = true
+
 	go func() {
+		ticker := time.NewTicker(1 * time.Minute)
+
 		for {
+			s.BeforeStateLocker.Lock()
 			for k, m := range s.BeforeStateMemberMap {
 				if time.Since(m.CreatedAt) > (10 * time.Second) {
 					delete(s.BeforeStateMemberMap, k)
@@ -898,8 +951,9 @@ func (s *State) FlushBeforeStates() {
 					delete(s.BeforeStateRoleMap, k)
 				}
 			}
+			s.BeforeStateLocker.Unlock()
 
-			time.Sleep(15 * time.Second)
+			<-ticker.C
 		}
 	}()
 }

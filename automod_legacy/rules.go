@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mediocregopher/radix/v3"
@@ -187,6 +188,17 @@ func (i *InviteRule) Check(evt *discordgo.Message, cs *dstate.ChannelState) (del
 	return
 }
 
+type CachedInvite struct {
+	CreatedAt time.Time
+	Invite    string // we only store the invite code, no need to waste memory on the entire invite data
+}
+
+var InvitesCache struct {
+	sync.RWMutex
+
+	CacheMap map[int64][]CachedInvite
+}
+
 func CheckMessageForBadInvites(msg string, guildID int64) (containsBadInvites bool) {
 	// check third party sites
 	if common.ContainsInvite(msg, false, true) != nil {
@@ -199,7 +211,7 @@ func CheckMessageForBadInvites(msg string, guildID int64) (containsBadInvites bo
 	}
 
 	// Only check each invite id once
-	checked := make([]string, 0)
+	checked := make([]string, 0, len(matches))
 
 OUTER:
 	for _, v := range matches {
@@ -218,6 +230,36 @@ OUTER:
 
 		checked = append(checked, id)
 
+		InvitesCache.Lock()
+		if InvitesCache.CacheMap == nil {
+			InvitesCache.CacheMap = make(map[int64][]CachedInvite)
+			go flushInvitesCache()
+		}
+
+		for guild, cache := range InvitesCache.CacheMap {
+			if guild == guildID {
+				for _, cachedInvite := range cache {
+					if cachedInvite.Invite == id {
+						// Ignore invites to this server
+						InvitesCache.Unlock()
+						continue OUTER
+					}
+				}
+			} else {
+				for _, cachedInvite := range cache {
+					if cachedInvite.Invite == id {
+						// If the invite is present on our cache, we return true even if it is not valid anymore
+						// This is to prevent making API Calls about invites which have a restrict rate limit
+						// Because otherwise we would most likely hit those limits
+						// Invites are cached for 60 minutes
+						InvitesCache.Unlock()
+						return true
+					}
+				}
+			}
+		}
+		InvitesCache.Unlock()
+
 		// Check to see if its a valid id, and if so check if its to the same server were on
 		invite, err := common.BotSession.Invite(id)
 		if err != nil {
@@ -229,6 +271,24 @@ OUTER:
 			continue
 		}
 
+		InvitesCache.Lock()
+		var found bool
+		for _, cached := range InvitesCache.CacheMap[invite.Guild.ID] {
+			if cached.Invite == invite.Code {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			// This invite was not found on our cache, so let's add it
+			InvitesCache.CacheMap[invite.Guild.ID] = append(InvitesCache.CacheMap[invite.Guild.ID], CachedInvite{
+				CreatedAt: time.Now(),
+				Invite:    invite.Code,
+			})
+		}
+		InvitesCache.Unlock()
+
 		// Ignore invites to this server
 		if invite.Guild.ID == guildID {
 			continue
@@ -239,6 +299,54 @@ OUTER:
 
 	// If we got here then there's no bad invites
 	return false
+}
+
+func flushInvitesCache() {
+	// Called right now, so we can sleep before starting
+	time.Sleep(61 * time.Minute)
+
+	ticker := time.NewTicker(60 * time.Minute)
+	for {
+		logger.Info("Starting flushing invites cache")
+
+		start := time.Now()
+		var counter int
+
+		InvitesCache.Lock()
+
+		for guild, cache := range InvitesCache.CacheMap {
+			for i, cached := range cache {
+				if time.Since(cached.CreatedAt) > (60 * time.Minute) {
+					InvitesCache.CacheMap[guild] = removeFromSlice(cache, i)
+					counter++
+				}
+			}
+
+			if len(InvitesCache.CacheMap[guild]) == 0 {
+				// there are no more cached invites for this guild, so we can delete the entry
+				delete(InvitesCache.CacheMap, guild)
+			}
+		}
+
+		if len(InvitesCache.CacheMap) == 0 {
+			InvitesCache.CacheMap = nil
+			InvitesCache.Unlock()
+			// there are no more cached invites, so we can break the loop
+			logger.Info("No more invites cached. Breaking the Invite's flush loop now")
+			break
+		}
+
+		InvitesCache.Unlock()
+
+		logger.Infof("Finished clearing invites cache in %v. %d invites removed.", time.Since(start), counter)
+
+		<-ticker.C
+	}
+}
+
+func removeFromSlice(s []CachedInvite, i int) []CachedInvite {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
 }
 
 type MentionRule struct {

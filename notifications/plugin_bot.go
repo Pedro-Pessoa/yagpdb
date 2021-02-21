@@ -126,7 +126,11 @@ func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err er
 	gs := bot.State.Guild(true, evt.GuildID)
 	ms := dstate.MSFromDGoMember(gs, evt.Member)
 
-	if bot.State.BeforeStateMemberMap[evt.Member.User.ID] == nil || !bot.State.BeforeStateMemberMap[evt.Member.User.ID].MemberState.Pending {
+	bot.State.BeforeStateLocker.Lock()
+	beforeMS := bot.State.BeforeStateMemberMap[evt.Member.User.ID]
+	bot.State.BeforeStateLocker.Unlock()
+
+	if beforeMS == nil || !beforeMS.MemberState.Pending {
 		// Msg probably already sent
 		return
 	}

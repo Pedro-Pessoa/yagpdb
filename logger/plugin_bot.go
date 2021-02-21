@@ -129,7 +129,10 @@ func HandleChannelUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 		cID = logger.ServerLoggerChannelInt()
 	}
 
+	bot.State.BeforeStateLocker.Lock()
 	oldChannel := bot.State.BeforeStateChannelMap[update.ID]
+	bot.State.BeforeStateLocker.Unlock()
+
 	if oldChannel == nil || oldChannel.ChannelState == nil {
 		return false, nil
 	}
