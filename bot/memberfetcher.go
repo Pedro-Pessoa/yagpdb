@@ -247,13 +247,14 @@ func (m *memberFetcher) next(guildID int64) (more bool) {
 			err = errors.New("User is nil")
 		}
 
-		if err != nil {
+		switch {
+		case err != nil:
 			logger.WithField("guild", guildID).WithField("user", elem.Member).WithError(err).Debug("Failed fetching member")
 			code, _ := common.DiscordError(err)
 			if code == discordgo.ErrCodeUnknownUser {
 				failedUsersCache.Set(failedCacheKey, 1, time.Hour)
 			}
-		} else if member != nil {
+		case member != nil:
 			member.GuildID = guildID
 			go eventsystem.EmitEvent(eventsystem.NewEventData(nil, eventsystem.EventMemberFetched, &discordgo.GuildMemberAdd{Member: member}), eventsystem.EventMemberFetched)
 
@@ -265,7 +266,7 @@ func (m *memberFetcher) next(guildID int64) (more bool) {
 				gs.MemberAddUpdate(true, member)
 				ms = gs.MemberCopy(true, member.User.ID)
 			}
-		} else if member == nil {
+		case member == nil:
 			panic("nil member")
 		}
 	} else {

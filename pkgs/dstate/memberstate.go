@@ -268,11 +268,12 @@ func (m *MemberState) StrDiscriminator() string {
 	result := strconv.FormatInt(int64(m.Discriminator), 10)
 
 	// Pad the discrim
-	if m.Discriminator < 10 {
+	switch {
+	case m.Discriminator < 10:
 		result = "000" + result
-	} else if m.Discriminator < 100 {
+	case m.Discriminator < 100:
 		result = "00" + result
-	} else if m.Discriminator < 1000 {
+	case m.Discriminator < 1000:
 		result = "0" + result
 	}
 

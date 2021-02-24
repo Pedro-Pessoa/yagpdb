@@ -215,7 +215,8 @@ func SplitArgs(in string) []*RawArg {
 
 		// Check for other special tokens
 		isSpecialToken := true
-		if r == ' ' {
+		switch {
+		case r == ' ':
 			// Maybe seperate by space
 			if curBuf != "" && container == 0 && !escape {
 				rawArgs = append(rawArgs, &RawArg{curBuf, 0})
@@ -223,7 +224,7 @@ func SplitArgs(in string) []*RawArg {
 			} else if curBuf != "" {
 				curBuf += " "
 			}
-		} else if r == container && container != 0 {
+		case r == container && container != 0:
 			// Split arg here
 			if escape {
 				curBuf += string(r)
@@ -232,7 +233,7 @@ func SplitArgs(in string) []*RawArg {
 				curBuf = ""
 				container = 0
 			}
-		} else if container == 0 && curBuf == "" {
+		case container == 0 && curBuf == "":
 			// Check if we should start containing a arg
 			foundMatch := false
 			for _, v := range ArgContainers {
@@ -250,7 +251,7 @@ func SplitArgs(in string) []*RawArg {
 			if !foundMatch {
 				isSpecialToken = false
 			}
-		} else {
+		default:
 			isSpecialToken = false
 		}
 

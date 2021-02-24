@@ -71,13 +71,15 @@ func (c *Container) Run(data *Data) (interface{}, error) {
 
 	if matchingCmd == nil {
 		var defaultHandler RunFunc
-		if data.MsgStrippedPrefix == "" && data.Source == MentionSource && c.DefaultMention != nil {
+		switch {
+		case data.MsgStrippedPrefix == "" && data.Source == MentionSource && c.DefaultMention != nil:
 			defaultHandler = c.DefaultMention
-		} else if data.Source == MentionSource || data.Source == PrefixSource {
+		case data.Source == MentionSource || data.Source == PrefixSource:
 			defaultHandler = c.NotFound
-		} else if data.Source == DMSource {
+		case data.Source == DMSource:
 			defaultHandler = c.DMNotFound
 		}
+
 		if defaultHandler != nil {
 			return defaultHandler(data)
 		}

@@ -125,14 +125,15 @@ func New(args ...interface{}) (s *Session, err error) {
 			// Second string must be a password.
 			// Only 2 input strings are supported.
 
-			if auth == "" {
+			switch {
+			case auth == "":
 				auth = v
-			} else if pass == "" {
+			case pass == "":
 				pass = v
-			} else if s.Token == "" {
+			case s.Token == "":
 				s.Identify.Token = v
 				s.Token = v // TODO: Remove, Deprecated - Kept for backwards compatibility.
-			} else {
+			default:
 				err = fmt.Errorf("too many string parameters provided")
 				return
 			}

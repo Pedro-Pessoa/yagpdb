@@ -70,8 +70,26 @@ func (e *EventData) Context() context.Context {
 }
 
 func (e *EventData) WithContext(ctx context.Context) *EventData {
-	cop := e
+	cop := e.Copy()
 	cop.ctx = ctx
+	return cop
+}
+
+func (e *EventData) Copy() *EventData {
+	if e == nil {
+		return nil
+	}
+
+	cop := new(EventData)
+	cop.cancelled = e.cancelled
+	cop.cs = e.cs
+	cop.ctx = e.ctx
+	cop.EvtInterface = e.EvtInterface
+	cop.GS = e.GS
+	cop.GuildFeatureFlags = e.GuildFeatureFlags
+	cop.Session = e.Session
+	cop.Type = e.Type
+
 	return cop
 }
 

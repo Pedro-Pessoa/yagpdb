@@ -79,13 +79,14 @@ var Command = &commands.TIDCommand{
 		var pageInit = 1
 
 		//to determine what will happen and what data gets shown
-		if data.Switches["countries"].Value != nil && data.Switches["countries"].Value.(bool) {
+		switch {
+		case data.Switches["countries"].Value != nil && data.Switches["countries"].Value.(bool):
 			queryType = typeCountries
 			//pagination = true
-		} else if data.Switches["continents"].Value != nil && data.Switches["continents"].Value.(bool) {
+		case data.Switches["continents"].Value != nil && data.Switches["continents"].Value.(bool):
 			queryType = typeContinents
 			//pagination = true
-		} else if data.Switches["states"].Value != nil && data.Switches["states"].Value.(bool) {
+		case data.Switches["states"].Value != nil && data.Switches["states"].Value.(bool):
 			queryType = typeStates
 			//pagination = true
 		}

@@ -188,11 +188,12 @@ func (s *StdHelpFormatter) FullCmdHelp(cmd *RegisteredCommand, container *Contai
 	desc := ""
 	if cast, ok := cmd.Command.(CmdWithDescriptions); ok {
 		short, long := cast.Descriptions(data)
-		if long != "" {
+		switch {
+		case long != "":
 			desc = long
-		} else if short != "" {
+		case short != "":
 			desc = short
-		} else {
+		default:
 			desc = "No description for this command"
 		}
 	}

@@ -623,9 +623,8 @@ func (p *Plugin) handleMessageReactionAdd(evt *eventsystem.EventData) {
 		}
 	}
 
-	// common.BotSession.MessageReactionRemove(ra.ChannelID, ra.MessageID, ra.Emoji.APIName(), ra.UserID)
-
-	if joining {
+	switch {
+	case joining:
 		if participant.JoinState == int16(ParticipantStateJoining) {
 			// already at this state
 			return
@@ -633,7 +632,7 @@ func (p *Plugin) handleMessageReactionAdd(evt *eventsystem.EventData) {
 
 		participant.JoinState = int16(ParticipantStateJoining)
 		participant.MarkedAsParticipatingAt = time.Now()
-	} else if maybe {
+	case maybe:
 		if participant.JoinState == int16(ParticipantStateMaybe) {
 			// already at this state
 			return
@@ -641,7 +640,7 @@ func (p *Plugin) handleMessageReactionAdd(evt *eventsystem.EventData) {
 
 		participant.JoinState = int16(ParticipantStateMaybe)
 		participant.MarkedAsParticipatingAt = time.Now()
-	} else if waitlist {
+	case waitlist:
 		if participant.JoinState == int16(ParticipantStateWaitlist) {
 			// already at this state
 			return
@@ -649,7 +648,7 @@ func (p *Plugin) handleMessageReactionAdd(evt *eventsystem.EventData) {
 
 		participant.JoinState = int16(ParticipantStateWaitlist)
 		participant.MarkedAsParticipatingAt = time.Now()
-	} else if notJoining {
+	case notJoining:
 		participant.JoinState = int16(ParticipantStateNotJoining)
 	}
 
