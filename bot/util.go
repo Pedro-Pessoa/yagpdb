@@ -305,12 +305,10 @@ func RefreshStatus(session *discordgo.Session) {
 		logger.WithError(err2).Error("failed retrieving bot status")
 	}
 
-	if status != "" {
-		if streamingURL != "" {
-			_ = session.UpdateStreamingStatus(0, status, streamingURL)
-		} else {
-			_ = session.UpdateGameStatus(0, status)
-		}
+	if streamingURL != "" {
+		_ = session.UpdateStreamingStatus(0, status, streamingURL)
+	} else {
+		_ = session.UpdateGameStatus(0, status)
 	}
 }
 

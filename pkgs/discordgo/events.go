@@ -394,6 +394,11 @@ func (e *WebhooksUpdate) GetChannelID() int64 {
 	return e.ChannelID
 }
 
+// InteractionCreate is the data for a InteractionCreate event
+type InteractionCreate struct {
+	*Interaction
+}
+
 // InviteCreate is the data for the InviteCreate event
 type InviteCreate struct {
 	GuildID   int64 `json:"guild_id,string"`

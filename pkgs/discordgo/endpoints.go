@@ -123,6 +123,9 @@ var (
 	EndpointChannelWebhooks = func(cID int64) string { return EndpointChannel(cID) + "/webhooks" }
 	EndpointWebhook         = func(wID int64) string { return EndpointWebhooks + StrID(wID) }
 	EndpointWebhookToken    = func(wID int64, token string) string { return EndpointWebhooks + StrID(wID) + "/" + token }
+	EndpointWebhookMessage  = func(wID int64, token, messageID string) string {
+		return EndpointWebhookToken(wID, token) + "/messages/" + messageID
+	}
 
 	EndpointDefaultUserAvatar = func(uDiscriminator string) string {
 		uDiscriminatorInt, _ := strconv.Atoi(uDiscriminator)
@@ -139,22 +142,61 @@ var (
 		return EndpointMessageReactions(cID, mID, emoji) + "/" + uID
 	}
 
+	EndpointApplicationGlobalCommands = func(aID int64) string {
+		return EndpointApplication(aID) + "/commands"
+	}
+	EndpointApplicationGlobalCommand = func(aID, cID int64) string {
+		return EndpointApplicationGlobalCommands(aID) + "/" + StrID(cID)
+	}
+
+	EndpointApplicationGuildCommands = func(aID, gID int64) string {
+		return EndpointApplication(aID) + "/guilds/" + StrID(gID) + "/commands"
+	}
+	EndpointApplicationGuildCommand = func(aID, gID, cID int64) string {
+		return EndpointApplicationGuildCommands(aID, gID) + "/" + StrID(cID)
+	}
+	EndpointInteraction = func(aID int64, iToken string) string {
+		return EndpointAPI + "interactions/" + StrID(aID) + "/" + iToken
+	}
+	EndpointInteractionResponse = func(iID int64, iToken string) string {
+		return EndpointInteraction(iID, iToken) + "/callback"
+	}
+	EndpointInteractionResponseActions = func(aID int64, iToken string) string {
+		return EndpointWebhookMessage(aID, iToken, "@original")
+	}
+	EndpointFollowupMessage = func(aID int64, iToken string) string {
+		return EndpointWebhookToken(aID, iToken)
+	}
+	EndpointFollowupMessageActions = func(aID int64, iToken, mID string) string {
+		return EndpointWebhookMessage(aID, iToken, mID)
+	}
+
 	EndpointRelationships       = func() string { return EndpointUsers + "@me" + "/relationships" }
 	EndpointRelationship        = func(uID int64) string { return EndpointRelationships() + "/" + StrID(uID) }
 	EndpointRelationshipsMutual = func(uID int64) string { return EndpointUsers + StrID(uID) + "/relationships" }
 
 	EndpointGuildCreate = EndpointAPI + "guilds"
 
-	EndpointInvite = func(iID string) string { return EndpointAPI + "invite/" + iID }
+	EndpointInvite = func(iID string) string { return EndpointAPI + "invites/" + iID }
 
 	EndpointIntegrationsJoin = func(iID string) string { return EndpointAPI + "integrations/" + iID + "/join" }
 
 	EndpointEmoji         = func(eID int64) string { return EndpointCDN + "emojis/" + StrID(eID) + ".png" }
 	EndpointEmojiAnimated = func(eID int64) string { return EndpointCDN + "emojis/" + StrID(eID) + ".gif" }
 
-	EndpointOauth2            = EndpointAPI + "oauth2/"
-	EndpointApplications      = EndpointOauth2 + "applications"
-	EndpointApplication       = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) }
-	EndpointApplicationsBot   = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) + "/bot" }
-	EndpointApplicationAssets = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) + "/assets" }
+	EndpointApplications = EndpointAPI + "applications"
+	EndpointApplication  = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) }
+
+	EndpointOAuth2                  = EndpointAPI + "oauth2/"
+	EndpointOAuth2Applications      = EndpointOauth2 + "applications"
+	EndpointOAuth2Application       = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) }
+	EndpointOAuth2ApplicationsBot   = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) + "/bot" }
+	EndpointOAuth2ApplicationAssets = func(aID int64) string { return EndpointApplications + "/" + StrID(aID) + "/assets" }
+
+	// Deprecated
+	EndpointOauth2                  = EndpointOAuth2
+	EndpointOauth2Applications      = EndpointOAuth2Applications
+	EndpointOauth2Application       = EndpointOAuth2Application
+	EndpointOauth2ApplicationsBot   = EndpointOAuth2ApplicationsBot
+	EndpointOauth2ApplicationAssets = EndpointOAuth2ApplicationAssets
 )

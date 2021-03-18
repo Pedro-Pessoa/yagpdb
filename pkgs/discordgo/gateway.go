@@ -824,6 +824,10 @@ func (s *Session) UpdateListeningStatus(name string) (err error) {
 }
 
 func (s *Session) UpdateStatusComplex(usd UpdateStatusData) (err error) {
+	if usd.Activities == nil {
+		usd.Activities = make([]*Activity, 0)
+	}
+
 	s.GatewayManager.mu.RLock()
 	defer s.GatewayManager.mu.RUnlock()
 

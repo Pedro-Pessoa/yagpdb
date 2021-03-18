@@ -546,60 +546,6 @@ type Guild struct {
 	Permissions int64 `json:"permissions,string"`
 }
 
-// A GuildPreview holds data related to a specific public Discord Guild, even if the user is not in the guild.
-type GuildPreview struct {
-	// The ID of the guild.
-	ID int64 `json:"id,string"`
-
-	// The name of the guild. (2–100 characters)
-	Name string `json:"name"`
-
-	// The hash of the guild's icon. Use Session.GuildIcon
-	// to retrieve the icon itself.
-	Icon string `json:"icon"`
-
-	// The hash of the guild's splash.
-	Splash string `json:"splash"`
-
-	// The hash of the guild's discovery splash.
-	DiscoverySplash string `json:"discovery_splash"`
-
-	// A list of the custom emojis present in the guild.
-	Emojis []*Emoji `json:"emojis"`
-
-	// The list of enabled guild features
-	Features []string `json:"features"`
-
-	// Approximate number of members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
-	ApproximateMemberCount int `json:"approximate_member_count"`
-
-	// Approximate number of non-offline members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
-	ApproximatePresenceCount int `json:"approximate_presence_count"`
-
-	// the description for the guild
-	Description string `json:"description"`
-}
-
-// MessageNotifications is the notification level for a guild
-// https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level
-type MessageNotifications int
-
-// Block containing known MessageNotifications values
-const (
-	MessageNotificationsAllMessages MessageNotifications = iota
-	MessageNotificationsOnlyMentions
-)
-
-// SystemChannelFlag is the type of flags in the system channel (see SystemChannelFlag* consts)
-// https://discord.com/developers/docs/resources/guild#guild-object-system-channel-flags
-type SystemChannelFlag int
-
-// Block containing known SystemChannelFlag values
-const (
-	SystemChannelFlagsSuppressJoin SystemChannelFlag = 1 << iota
-	SystemChannelFlagsSuppressPremium
-)
-
 // IconURL returns a URL to the guild's icon.
 func (g *Guild) IconURL() string {
 	if g.Icon == "" {
@@ -636,6 +582,73 @@ func (g *Guild) Channel(id int64) *Channel {
 
 	return nil
 }
+
+// A GuildPreview holds data related to a specific public Discord Guild, even if the user is not in the guild.
+type GuildPreview struct {
+	// The ID of the guild.
+	ID int64 `json:"id,string"`
+
+	// The name of the guild. (2–100 characters)
+	Name string `json:"name"`
+
+	// The hash of the guild's icon. Use Session.GuildIcon
+	// to retrieve the icon itself.
+	Icon string `json:"icon"`
+
+	// The hash of the guild's splash.
+	Splash string `json:"splash"`
+
+	// The hash of the guild's discovery splash.
+	DiscoverySplash string `json:"discovery_splash"`
+
+	// A list of the custom emojis present in the guild.
+	Emojis []*Emoji `json:"emojis"`
+
+	// The list of enabled guild features
+	Features []string `json:"features"`
+
+	// Approximate number of members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
+	ApproximateMemberCount int `json:"approximate_member_count"`
+
+	// Approximate number of non-offline members in this guild, returned from the GET /guild/<id> endpoint when with_counts is true
+	ApproximatePresenceCount int `json:"approximate_presence_count"`
+
+	// the description for the guild
+	Description string `json:"description"`
+}
+
+// IconURL returns a URL to the guild's icon.
+func (g *GuildPreview) IconURL() string {
+	if g.Icon == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(g.Icon, "a_") {
+		return EndpointGuildIconAnimated(g.ID, g.Icon)
+	}
+
+	return EndpointGuildIcon(g.ID, g.Icon)
+}
+
+// MessageNotifications is the notification level for a guild
+// https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level
+type MessageNotifications int
+
+// Block containing known MessageNotifications values
+const (
+	MessageNotificationsAllMessages MessageNotifications = iota
+	MessageNotificationsOnlyMentions
+)
+
+// SystemChannelFlag is the type of flags in the system channel (see SystemChannelFlag* consts)
+// https://discord.com/developers/docs/resources/guild#guild-object-system-channel-flags
+type SystemChannelFlag int
+
+// Block containing known SystemChannelFlag values
+const (
+	SystemChannelFlagsSuppressJoin SystemChannelFlag = 1 << iota
+	SystemChannelFlagsSuppressPremium
+)
 
 // A UserGuild holds a brief version of a Guild
 type UserGuild struct {
@@ -1132,42 +1145,6 @@ type UserGuildSettingsEdit struct {
 type APIErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
-}
-
-// Webhook stores the data for a webhook.
-type Webhook struct {
-	ID        int64       `json:"id,string"`
-	Type      WebhookType `json:"type"`
-	GuildID   int64       `json:"guild_id,string"`
-	ChannelID int64       `json:"channel_id,string"`
-	User      *User       `json:"user"`
-	Name      string      `json:"name"`
-	Avatar    string      `json:"avatar"`
-	Token     string      `json:"token"`
-
-	// ApplicationID is the bot/OAuth2 application that created this webhook
-	ApplicationID int64 `json:"application_id,string,omitempty"`
-}
-
-// WebhookType is the type of Webhook (see WebhookType* consts) in the Webhook struct
-// https://discord.com/developers/docs/resources/webhook#webhook-object-webhook-types
-type WebhookType int
-
-// Valid WebhookType values
-const (
-	WebhookTypeIncoming WebhookType = iota
-	WebhookTypeChannelFollower
-)
-
-// WebhookParams is a struct for webhook params, used in the WebhookExecute command.
-type WebhookParams struct {
-	Content         string                  `json:"content,omitempty"`
-	Username        string                  `json:"username,omitempty"`
-	AvatarURL       string                  `json:"avatar_url,omitempty"`
-	TTS             bool                    `json:"tts,omitempty"`
-	File            string                  `json:"file,omitempty"`
-	Embeds          []*MessageEmbed         `json:"embeds,omitempty"`
-	AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 }
 
 // MessageReaction stores the data for a message reaction.

@@ -156,8 +156,7 @@ var Command = &commands.TIDCommand{
 			return cConts[i].Cases > cConts[j].Cases
 		})
 
-		var embed = &discordgo.MessageEmbed{}
-		embed = embedCreator(cConts, queryType, whatDay, 0)
+		embed := embedCreator(cConts, queryType, whatDay, 0)
 
 		//no pagination for whole world stats
 		if queryType == typeWorld || data.Args[0].Str() != "" {
