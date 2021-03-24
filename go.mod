@@ -62,10 +62,10 @@ require (
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210324051636-2c4c8ecb7826
+	golang.org/x/net v0.0.0-20210324205630-d1beb07c2056
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/text v0.3.5
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/api v0.42.0
+	google.golang.org/api v0.43.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )
