@@ -42,3 +42,7 @@ func (multi *MultiRatelimiter) findCreateLimiter(key interface{}) *rate.Limiter 
 func (multi *MultiRatelimiter) AllowN(key interface{}, now time.Time, n int) bool {
 	return multi.findCreateLimiter(key).AllowN(now, n)
 }
+
+func (multi *MultiRatelimiter) Allow(key interface{}) bool {
+	return multi.findCreateLimiter(key).Allow()
+}

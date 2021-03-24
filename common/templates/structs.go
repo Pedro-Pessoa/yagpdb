@@ -104,6 +104,7 @@ func (c CtxExecReturn) String() string {
 	if c.Response != nil {
 		return c.Response.Content
 	}
+
 	return ""
 }
 

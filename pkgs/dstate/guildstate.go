@@ -2,6 +2,7 @@ package dstate
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -381,7 +382,7 @@ func (g *GuildState) ChannelRemove(lock bool, id int64) {
 	delete(g.Channels, id)
 }
 
-// Role returns a role by id, this is a strict copy
+// RoleCopy returns a role by id, this is a strict copy
 func (g *GuildState) RoleCopy(lock bool, id int64) *discordgo.Role {
 	if lock {
 		g.RLock()
@@ -390,6 +391,23 @@ func (g *GuildState) RoleCopy(lock bool, id int64) *discordgo.Role {
 
 	for _, role := range g.Guild.Roles {
 		if role.ID == id {
+			cop := *role
+			return &cop
+		}
+	}
+
+	return nil
+}
+
+// RoleCopyByName returns a role by name, this is a strict copy
+func (g *GuildState) RoleCopyByName(lock bool, name string) *discordgo.Role {
+	if lock {
+		g.RLock()
+		defer g.RUnlock()
+	}
+
+	for _, role := range g.Guild.Roles {
+		if strings.EqualFold(role.Name, name) {
 			cop := *role
 			return &cop
 		}
@@ -407,6 +425,22 @@ func (g *GuildState) Role(lock bool, id int64) *discordgo.Role {
 
 	for _, role := range g.Guild.Roles {
 		if role.ID == id {
+			return role
+		}
+	}
+
+	return nil
+}
+
+// RoleByName returns a role by name
+func (g *GuildState) RoleByName(lock bool, name string) *discordgo.Role {
+	if lock {
+		g.RLock()
+		defer g.RUnlock()
+	}
+
+	for _, role := range g.Guild.Roles {
+		if strings.EqualFold(role.Name, name) {
 			return role
 		}
 	}

@@ -433,7 +433,7 @@ func handleReactionAddRemove(evt *eventsystem.EventData) {
 	}
 
 	if resp != "" {
-		_ = bot.SendDM(uID, "**"+name+"**: "+resp)
+		_, _ = bot.SendDM(uID, "**"+name+"**: "+resp)
 	}
 }
 

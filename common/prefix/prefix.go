@@ -1,6 +1,8 @@
 package prefix
 
 import (
+	"strings"
+
 	"github.com/mediocregopher/radix/v3"
 
 	"github.com/Pedro-Pessoa/tidbot/common"
@@ -15,7 +17,7 @@ func GetCommandPrefixRedis(guild int64) (string, error) {
 		prefix = DefaultCommandPrefix()
 	}
 
-	return prefix, err
+	return strings.TrimSpace(prefix), err
 }
 
 func DefaultCommandPrefix() string {
@@ -33,5 +35,5 @@ func GetPrefixIgnoreError(guild int64) string {
 		prefix, _ = GetCommandPrefixRedis(guild)
 	}
 
-	return prefix
+	return strings.TrimSpace(prefix)
 }

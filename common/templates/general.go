@@ -223,16 +223,19 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 			if val == nil {
 				continue
 			}
+
 			embed, err := CreateEmbed(val)
 			if err != nil {
 				return nil, err
 			}
+
 			msg.Embed = embed
 		case "file":
 			stringFile := fmt.Sprint(val)
 			if len(stringFile) > 100000 {
 				return nil, errors.New("file length for send message builder exceeded size limit")
 			}
+
 			var buf bytes.Buffer
 			buf.WriteString(stringFile)
 
@@ -246,10 +249,12 @@ func CreateMessageSend(values ...interface{}) (*discordgo.MessageSend, error) {
 				msg.AllowedMentions = &discordgo.MessageAllowedMentions{}
 				continue
 			}
+
 			parsed, err := parseAllowedMentions(val)
 			if err != nil {
 				return nil, err
 			}
+
 			msg.AllowedMentions = parsed
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to send message builder`)
@@ -284,20 +289,24 @@ func CreateMessageEdit(values ...interface{}) (*discordgo.MessageEdit, error) {
 				msg.Embed = (&discordgo.MessageEmbed{}).MarshalNil(true)
 				continue
 			}
+
 			embed, err := CreateEmbed(val)
 			if err != nil {
 				return nil, err
 			}
+
 			msg.Embed = embed
 		case "allowed_mentions":
 			if val == nil {
 				msg.AllowedMentions = &discordgo.MessageAllowedMentions{}
 				continue
 			}
+
 			parsed, err := parseAllowedMentions(val)
 			if err != nil {
 				return nil, err
 			}
+
 			msg.AllowedMentions = parsed
 		default:
 			return nil, errors.New(`invalid key "` + key + `" passed to message edit builder`)
@@ -327,13 +336,17 @@ func parseAllowedMentions(Data interface{}) (*discordgo.MessageAllowedMentions, 
 			if err != nil {
 				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Parse"`)
 			}
+
 			for _, elem := range conv.(Slice) {
 				elem_conv, _ := elem.(string)
+
 				if elem_conv != "users" && elem_conv != "roles" && elem_conv != "everyone" {
 					return nil, errors.New(`Allowed Mentions Parsing: invalid slice element in "Parse"`)
 				}
+
 				parseMentions = append(parseMentions, discordgo.AllowedMentionType(elem_conv))
 			}
+
 			allowedMentions.Parse = parseMentions
 		case "users":
 			var newslice discordgo.IDSlice
@@ -342,15 +355,19 @@ func parseAllowedMentions(Data interface{}) (*discordgo.MessageAllowedMentions, 
 			if err != nil {
 				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Users"`)
 			}
+
 			for _, elem := range conv.(Slice) {
 				if (ToInt64(elem)) == 0 {
 					return nil, errors.New(`Allowed Mentions Parsing: "Users" IDSlice: invalid ID passed -` + fmt.Sprint(elem))
 				}
+
 				newslice = append(newslice, ToInt64(elem))
 			}
+
 			if len(newslice) > 100 {
 				newslice = newslice[:100]
 			}
+
 			allowedMentions.Users = newslice
 		case "roles":
 			var newslice discordgo.IDSlice
@@ -359,15 +376,19 @@ func parseAllowedMentions(Data interface{}) (*discordgo.MessageAllowedMentions, 
 			if err != nil {
 				return nil, errors.New(`Allowed Mentions Parsing : invalid datatype passed to "Roles"`)
 			}
+
 			for _, elem := range conv.(Slice) {
 				if (ToInt64(elem)) == 0 {
 					return nil, errors.New(`Allowed Mentions Parsing: "Roles" IDSlice: invalid ID passed -` + fmt.Sprint(elem))
 				}
+
 				newslice = append(newslice, ToInt64(elem))
 			}
+
 			if len(newslice) > 100 {
 				newslice = newslice[:100]
 			}
+
 			allowedMentions.Roles = newslice
 		default:
 			return nil, errors.New(`Allowed Mentios Parsing : invalid key "` + k + `" for Allowed Mentions`)
@@ -383,10 +404,12 @@ func indirect(v reflect.Value) (rv reflect.Value, isNil bool) {
 		if v.IsNil() {
 			return v, true
 		}
+
 		if v.Kind() == reflect.Interface && v.NumMethod() > 0 {
 			break
 		}
 	}
+
 	return v, false
 }
 
@@ -400,9 +423,11 @@ func in(l interface{}, v interface{}) bool {
 		for i := 0; i < lv.Len(); i++ {
 			lvv := lv.Index(i)
 			lvv, isNil := indirect(lvv)
+
 			if isNil {
 				continue
 			}
+
 			switch lvv.Kind() {
 			case reflect.String:
 				if vv.Type() == lvv.Type() && vv.String() == lvv.String() {
@@ -433,7 +458,7 @@ func in(l interface{}, v interface{}) bool {
 	return false
 }
 
-// in returns whether v is in the set l. l may only be a slice of strings, or a string, v may only be a string
+// inFold returns whether v is in the set l. l may only be a slice of strings, or a string, v may only be a string
 // it differs from "in" because its case insensitive
 func inFold(l interface{}, v string) bool {
 	lv := reflect.ValueOf(l)
@@ -444,9 +469,11 @@ func inFold(l interface{}, v string) bool {
 		for i := 0; i < lv.Len(); i++ {
 			lvv := lv.Index(i)
 			lvv, isNil := indirect(lvv)
+
 			if isNil {
 				continue
 			}
+
 			switch lvv.Kind() {
 			case reflect.String:
 				if vv.Type() == lvv.Type() && strings.EqualFold(vv.String(), lvv.String()) {
@@ -471,15 +498,19 @@ func add(args ...interface{}) interface{} {
 	switch args[0].(type) {
 	case float32, float64:
 		sumF := float64(0)
+
 		for _, v := range args {
 			sumF += ToFloat64(v)
 		}
+
 		return sumF
 	default:
-		sumI := 0
+		var sumI int
+
 		for _, v := range args {
-			sumI += tmplToInt(v)
+			sumI += ToInt(v)
 		}
+
 		return sumI
 	}
 }
@@ -492,21 +523,26 @@ func tmplSub(args ...interface{}) interface{} {
 	switch args[0].(type) {
 	case float32, float64:
 		subF := ToFloat64(args[0])
+
 		for i, v := range args {
 			if i == 0 {
 				continue
 			}
 			subF -= ToFloat64(v)
 		}
+
 		return subF
 	default:
-		subI := tmplToInt(args[0])
+		subI := ToInt(args[0])
+
 		for i, v := range args {
 			if i == 0 {
 				continue
 			}
-			subI -= tmplToInt(v)
+
+			subI -= ToInt(v)
 		}
+
 		return subI
 	}
 }
@@ -526,16 +562,19 @@ func tmplMult(args ...interface{}) interface{} {
 
 			sumF *= ToFloat64(v)
 		}
+
 		return sumF
 	default:
-		sumI := tmplToInt(args[0])
+		sumI := ToInt(args[0])
+
 		for i, v := range args {
 			if i == 0 {
 				continue
 			}
 
-			sumI *= tmplToInt(v)
+			sumI *= ToInt(v)
 		}
+
 		return sumI
 	}
 }
@@ -548,6 +587,7 @@ func tmplDiv(args ...interface{}) interface{} {
 	switch args[0].(type) {
 	case float32, float64:
 		sumF := ToFloat64(args[0])
+
 		for i, v := range args {
 			if i == 0 {
 				continue
@@ -555,16 +595,19 @@ func tmplDiv(args ...interface{}) interface{} {
 
 			sumF /= ToFloat64(v)
 		}
+
 		return sumF
 	default:
-		sumI := tmplToInt(args[0])
+		sumI := ToInt(args[0])
+
 		for i, v := range args {
 			if i == 0 {
 				continue
 			}
 
-			sumI /= tmplToInt(v)
+			sumI /= ToInt(v)
 		}
+
 		return sumI
 	}
 }
@@ -583,6 +626,7 @@ func tmplFDiv(args ...interface{}) interface{} {
 	}
 
 	sumF := ToFloat64(args[0])
+
 	for i, v := range args {
 		if i == 0 {
 			continue
@@ -616,8 +660,10 @@ func tmplPow(argX, argY interface{}) float64 {
 		default:
 			xyValue = math.NaN()
 		}
+
 		xySlice = append(xySlice, xyValue)
 	}
+
 	return math.Pow(xySlice[0], xySlice[1])
 }
 
@@ -656,20 +702,23 @@ func tmplLog(arguments ...interface{}) (float64, error) {
 func tmplHumanizeThousands(input interface{}) string {
 	var f1, f2 string
 
-	i := tmplToInt(input)
+	i := ToInt(input)
 	if i < 0 {
 		i = i * -1
 		f2 = "-"
 	}
+
 	str := strconv.Itoa(i)
 
 	idx := 0
 	for i = len(str) - 1; i >= 0; i-- {
 		idx++
+
 		if idx == 4 {
 			idx = 1
 			f1 = f1 + ","
 		}
+
 		f1 = f1 + string(str[i])
 	}
 
@@ -687,6 +736,7 @@ func roleIsAbove(a, b *discordgo.Role) bool {
 func randInt(args ...interface{}) int {
 	min := int64(0)
 	max := int64(10)
+
 	if len(args) >= 2 {
 		min = ToInt64(args[0])
 		max = ToInt64(args[1])
@@ -695,6 +745,7 @@ func randInt(args ...interface{}) int {
 	}
 
 	r := rand.Int63n(max - min)
+
 	return int(r + min)
 }
 
@@ -702,6 +753,7 @@ func tmplRound(args ...interface{}) float64 {
 	if len(args) < 1 {
 		return 0
 	}
+
 	return math.Round(ToFloat64(args[0]))
 }
 
@@ -709,6 +761,7 @@ func tmplRoundCeil(args ...interface{}) float64 {
 	if len(args) < 1 {
 		return 0
 	}
+
 	return math.Ceil(ToFloat64(args[0]))
 }
 
@@ -716,6 +769,7 @@ func tmplRoundFloor(args ...interface{}) float64 {
 	if len(args) < 1 {
 		return 0
 	}
+
 	return math.Floor(ToFloat64(args[0]))
 }
 
@@ -723,6 +777,7 @@ func tmplRoundEven(args ...interface{}) float64 {
 	if len(args) < 1 {
 		return 0
 	}
+
 	return math.RoundToEven(ToFloat64(args[0]))
 }
 
@@ -757,7 +812,6 @@ func joinStrings(sep string, args ...interface{}) (string, error) {
 			builder.WriteString(fmt.Sprintf("%g", v))
 		case fmt.Stringer:
 			builder.WriteString(t.String())
-
 		}
 
 		if builder.Len() > MaxStringLength {
@@ -779,7 +833,8 @@ func sequence(start, stop int) ([]int, error) {
 
 	out := make([]int, stop-start)
 
-	ri := 0
+	var ri int
+
 	for i := start; i < stop; i++ {
 		out[ri] = i
 		ri++
@@ -796,6 +851,7 @@ func shuffle(seq interface{}) (interface{}, error) {
 
 	seqv := reflect.ValueOf(seq)
 	seqv, isNil := indirect(seqv)
+
 	if isNil {
 		return nil, errors.New("can't iterate over a nil value")
 	}
@@ -819,7 +875,7 @@ func shuffle(seq interface{}) (interface{}, error) {
 	return shuffled.Interface(), nil
 }
 
-func tmplToInt(from interface{}) int {
+func ToInt(from interface{}) int {
 	switch t := from.(type) {
 	case int:
 		return t
@@ -1097,8 +1153,7 @@ func slice(item reflect.Value, indices ...reflect.Value) (reflect.Value, error) 
 
 	switch v.Kind() {
 	case reflect.Array, reflect.Slice, reflect.String:
-		startIndex := 0
-		endIndex := 0
+		var startIndex, endIndex int
 
 		switch len(args) {
 		case 0:
@@ -1192,16 +1247,16 @@ func tmplNewDate(year, monthInt, day, hour, min, sec int, location ...string) (t
 	return time.Date(year, month, day, hour, min, sec, 0, loc), nil
 }
 
-func tmplHumanizeDurationHours(in time.Duration) string {
-	return common.HumanizeDuration(common.DurationPrecisionHours, in)
+func tmplHumanizeDurationHours(in interface{}) string {
+	return common.HumanizeDuration(common.DurationPrecisionHours, ToDuration(in))
 }
 
-func tmplHumanizeDurationMinutes(in time.Duration) string {
-	return common.HumanizeDuration(common.DurationPrecisionMinutes, in)
+func tmplHumanizeDurationMinutes(in interface{}) string {
+	return common.HumanizeDuration(common.DurationPrecisionMinutes, ToDuration(in))
 }
 
-func tmplHumanizeDurationSeconds(in time.Duration) string {
-	return common.HumanizeDuration(common.DurationPrecisionSeconds, in)
+func tmplHumanizeDurationSeconds(in interface{}) string {
+	return common.HumanizeDuration(common.DurationPrecisionSeconds, ToDuration(in))
 }
 
 func tmplHumanizeTimeSinceDays(in time.Time) string {

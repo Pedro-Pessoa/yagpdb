@@ -52,7 +52,7 @@ var Command = &commands.TIDCommand{
 			return nil, err
 		}
 
-		if err = bot.SendDM(data.Msg.Author.ID, "discord.gg/"+invite.Code); err != nil {
+		if _, err = bot.SendDM(data.Msg.Author.ID, "discord.gg/"+invite.Code); err != nil {
 			return fmt.Sprintf("I failed to send the DM :(\nError: %v", err), nil
 		}
 

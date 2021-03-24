@@ -148,10 +148,11 @@ func (m *memberFetcher) RequestMember(guildID, userID int64, requireJoinedAt boo
 		}
 
 		if q == nil {
-			// Qeueu is nil, this guild does not currently have a queue, create one
+			// Queue is nil, this guild does not currently have a queue, create one
 			q = &MemberFetchGuildQueue{
 				Queue: make([]*MemberFetchRequest, 0, 1),
 			}
+
 			m.notFetching[guildID] = q
 		}
 

@@ -6,7 +6,7 @@ require (
 	emperror.dev/errors v0.8.0
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/PuerkitoBio/goquery v1.6.1
-	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
+	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
 	github.com/alfredxing/calc v0.0.0-20180827002445-77daf576f976
 	github.com/araddon/dateparse v0.0.0-20210207001429-0eec95c9db7e
 	github.com/bwmarrin/snowflake v0.3.0
@@ -36,7 +36,7 @@ require (
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/karlseguin/expect v1.0.7 // indirect
 	github.com/karlseguin/rcache v1.0.1
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.10.0
 	github.com/lunixbochs/vtclean v1.0.0
 	github.com/mailru/easyjson v0.7.7
 	github.com/mediocregopher/radix/v3 v3.7.0
@@ -45,26 +45,26 @@ require (
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.9.0
+	github.com/prometheus/client_golang v1.10.0
 	github.com/russross/blackfriday v1.6.0
-	github.com/shirou/gopsutil v3.21.1+incompatible
-	github.com/shurcooL/github_flavored_markdown v0.0.0-20181002035957-2122de532470
-	github.com/sirupsen/logrus v1.8.0
+	github.com/shirou/gopsutil v3.21.2+incompatible
+	github.com/shurcooL/github_flavored_markdown v0.0.0-20210228213109-c3a9aa474629
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/buntdb v1.2.0
-	github.com/tkuchiki/go-timezone v0.2.0
+	github.com/tkuchiki/go-timezone v0.2.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/volatiletech/null v8.0.0+incompatible
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
-	github.com/volatiletech/sqlboiler/v4 v4.4.0
+	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	goji.io v2.0.2+incompatible
-	golang.org/x/crypto v0.0.0-20210218145215-b8e89b74b9df
-	golang.org/x/image v0.0.0-20210216034530-4410531fe030
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/oauth2 v0.0.0-20210218202405-ba52d332ba99
+	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
+	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
+	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
+	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84
 	golang.org/x/text v0.3.5
-	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
-	google.golang.org/api v0.40.0
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
+	google.golang.org/api v0.42.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

@@ -39,28 +39,35 @@ func ContextSession(ctx context.Context) *discordgo.Session {
 	return ctx.Value(common.ContextKeyDiscordSession).(*discordgo.Session)
 }
 
-func SendDM(user int64, msg string) error {
+func SendDM(user int64, msg string) (*discordgo.Message, error) {
 	if strings.TrimSpace(msg) == "" {
-		return nil
+		return nil, nil
 	}
 
 	channel, err := common.BotSession.UserChannelCreate(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = common.BotSession.ChannelMessageSend(channel.ID, msg)
-	return err
+	return common.BotSession.ChannelMessageSend(channel.ID, msg)
 }
 
-func SendDMEmbed(user int64, embed *discordgo.MessageEmbed) error {
+func SendDMEmbed(user int64, embed *discordgo.MessageEmbed) (*discordgo.Message, error) {
 	channel, err := common.BotSession.UserChannelCreate(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = common.BotSession.ChannelMessageSendEmbed(channel.ID, embed)
-	return err
+	return common.BotSession.ChannelMessageSendEmbed(channel.ID, embed)
+}
+
+func SendDMComplex(user int64, msgSend *discordgo.MessageSend) (*discordgo.Message, error) {
+	channel, err := common.BotSession.UserChannelCreate(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return common.BotSession.ChannelMessageSendComplex(channel.ID, msgSend)
 }
 
 var (

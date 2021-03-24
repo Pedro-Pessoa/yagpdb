@@ -567,7 +567,7 @@ func (p *Plugin) sendReminders(m *models.RSVPSession, title, desc string) {
 			continue
 		}
 
-		err := bot.SendDMEmbed(v.UserID, &discordgo.MessageEmbed{
+		_, err := bot.SendDMEmbed(v.UserID, &discordgo.MessageEmbed{
 			Title:       title,
 			Description: desc,
 			Footer: &discordgo.MessageEmbedFooter{

@@ -208,7 +208,7 @@ var cmdGenerateCode = &commands.TIDCommand{
 
 		dm.WriteString("```")
 
-		if err := bot.SendDM(data.Msg.Author.ID, dm.String()); err != nil {
+		if _, err := bot.SendDM(data.Msg.Author.ID, dm.String()); err != nil {
 			return fmt.Sprintf("I wasn't able to send you a DM.\nError:%v", err), err
 		}
 

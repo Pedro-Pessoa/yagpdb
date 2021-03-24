@@ -23,6 +23,9 @@ import (
 // return value evaluates to non-nil during execution, execution terminates and
 // Execute returns that error.
 //
+// Errors returned by Execute wrap the underlying error; call errors.As to
+// uncover them.
+//
 // When template execution invokes a function with an argument list, that list
 // must be assignable to the function's parameter types. Functions meant to
 // apply to arguments of arbitrary type can use parameters of type interface{} or
@@ -91,7 +94,7 @@ func addValueFuncs(out map[string]reflect.Value, in FuncMap) {
 		if v.Kind() != reflect.Func {
 			panic("value for " + name + " not a function")
 		}
-		if !goodFunc(v.Type()) {
+		if !GoodFunc(v.Type()) {
 			panic(fmt.Errorf("can't install method/function %q with %d results", name, v.Type().NumOut()))
 		}
 		out[name] = v
@@ -106,8 +109,8 @@ func addFuncs(out, in FuncMap) {
 	}
 }
 
-// goodFunc reports whether the function or method has the right result signature.
-func goodFunc(typ reflect.Type) bool {
+// GoodFunc reports whether the function or method has the right result signature.
+func GoodFunc(typ reflect.Type) bool {
 	// We allow functions with 1 result or 2 results where the second is an error.
 	switch {
 	case typ.NumOut() == 1:
@@ -154,7 +157,7 @@ func findFunction(name string, tmpl *Template) (reflect.Value, bool) {
 // converts an invalid value to appropriate zero if possible.
 func prepareArg(value reflect.Value, argType reflect.Type) (reflect.Value, error) {
 	if !value.IsValid() {
-		if !canBeNil(argType) {
+		if !CanBeNil(argType) {
 			return reflect.Value{}, fmt.Errorf("value is nil; should be of type %s", argType)
 		}
 		value = reflect.Zero(argType)
@@ -318,7 +321,7 @@ func call(fn reflect.Value, args ...reflect.Value) (reflect.Value, error) {
 	if typ.Kind() != reflect.Func {
 		return reflect.Value{}, fmt.Errorf("non-function of type %s", typ)
 	}
-	if !goodFunc(typ) {
+	if !GoodFunc(typ) {
 		return reflect.Value{}, fmt.Errorf("function called with %d args; should be 1 or 2", typ.NumOut())
 	}
 	numIn := typ.NumIn()
@@ -344,15 +347,15 @@ func call(fn reflect.Value, args ...reflect.Value) (reflect.Value, error) {
 
 		var err error
 		if argv[i], err = prepareArg(arg, argType); err != nil {
-			return reflect.Value{}, fmt.Errorf("arg %d: %s", i, err)
+			return reflect.Value{}, fmt.Errorf("arg %d: %w", i, err)
 		}
 	}
-	return safeCall(fn, argv)
+	return SafeCall(fn, argv)
 }
 
-// safeCall runs fun.Call(args), and returns the resulting value and error, if
+// SafeCall runs fun.Call(args), and returns the resulting value and error, if
 // any. If the call panics, the panic value is returned as an error.
-func safeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err error) {
+func SafeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			if e, ok := r.(error); ok {

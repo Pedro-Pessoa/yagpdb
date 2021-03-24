@@ -214,6 +214,7 @@ func tmplRunCC(ctx *templates.Context) interface{} {
 				newCtx.Msg = ctx.Msg
 				newCtx.Data["Message"] = ctx.Msg
 			}
+
 			newCtx.Data["ExecData"] = data
 			newCtx.Data["StackDepth"] = currentStackDepth + 1
 

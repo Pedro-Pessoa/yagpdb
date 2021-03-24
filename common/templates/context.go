@@ -27,8 +27,9 @@ var (
 	StandardFuncMap = map[string]interface{}{
 		// conversion functions
 		"str":        ToString,
-		"toString":   ToString, // don't ask why we have 2 of these
-		"toInt":      tmplToInt,
+		"toString":   ToString,
+		"toInt":      ToInt,
+		"int":        ToInt,
 		"toInt64":    ToInt64,
 		"toFloat":    ToFloat64,
 		"toDuration": ToDuration,
@@ -187,6 +188,10 @@ func (c *Context) setupContextFuncs() {
 }
 
 func (c *Context) setupBaseData() {
+	botUser := common.BotUser
+	botUser.Email = ""
+	botUser.Token = ""
+
 	if c.GS != nil {
 		var guild *discordgo.Guild
 		if !bot.IsGuildWhiteListed(c.GS.ID) {
@@ -204,6 +209,9 @@ func (c *Context) setupBaseData() {
 		c.Data["Server"] = guild
 		c.Data["server"] = guild
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
+
+		botMember, _ := bot.GetMember(c.GS.ID, botUser.ID)
+		c.Data["BotMember"] = CtxMemberFromMS(botMember)
 	}
 
 	if c.CurrentFrame.CS != nil {
@@ -218,10 +226,7 @@ func (c *Context) setupBaseData() {
 		c.Data["user"] = c.Data["User"]
 	}
 
-	bot := common.BotUser
-	bot.Email = ""
-	bot.Token = ""
-	c.Data["Bot"] = bot
+	c.Data["Bot"] = botUser
 	c.Data["TimeSecond"] = time.Second
 	c.Data["TimeMinute"] = time.Minute
 	c.Data["TimeHour"] = time.Hour
@@ -506,7 +511,9 @@ func (c *Context) LogEntry() *logrus.Entry {
 func baseContextFuncs(c *Context) {
 	// Message functions
 	c.ContextFuncs["sendDM"] = c.tmplSendDM
+	c.ContextFuncs["sendDMWithError"] = c.tmplSendDMWithError
 	c.ContextFuncs["sendTargetDM"] = c.tmplSendTargetDM
+	c.ContextFuncs["sendTargetDMWithError"] = c.tmplSendTargetDMWithError
 	c.ContextFuncs["sendMessage"] = c.tmplSendMessage(true, false)
 	c.ContextFuncs["sendMessageRetID"] = c.tmplSendMessage(true, true)
 	c.ContextFuncs["sendMessageNoEscape"] = c.tmplSendMessage(false, false)
@@ -530,23 +537,48 @@ func baseContextFuncs(c *Context) {
 	// Mentions
 	c.ContextFuncs["mentionEveryone"] = c.tmplMentionEveryone
 	c.ContextFuncs["mentionHere"] = c.tmplMentionHere
-	c.ContextFuncs["mentionRoleName"] = c.tmplMentionRoleName
-	c.ContextFuncs["mentionRoleID"] = c.tmplMentionRoleID
 
 	// Role functions
-	c.ContextFuncs["hasRoleName"] = c.tmplHasRoleName
+	c.ContextFuncs["getRole"] = c.tmplGetRole
+	c.ContextFuncs["mentionRole"] = c.tmplMentionRole
+	c.ContextFuncs["mentionRoleID"] = c.tmplMentionRoleID
+	c.ContextFuncs["mentionRoleName"] = c.tmplMentionRoleName
+	c.ContextFuncs["hasRole"] = c.tmplHasRole
 	c.ContextFuncs["hasRoleID"] = c.tmplHasRoleID
+	c.ContextFuncs["hasRoleName"] = c.tmplHasRoleName
+	c.ContextFuncs["hasRoleWithError"] = c.tmplHasRoleWithError
+	c.ContextFuncs["hasRoleIDWithError"] = c.tmplHasRoleIDWithError
+	c.ContextFuncs["hasRoleNameWithError"] = c.tmplHasRoleNameWithError
+	c.ContextFuncs["targetHasRole"] = c.tmplTargetHasRole
 	c.ContextFuncs["targetHasRoleID"] = c.tmplTargetHasRoleID
 	c.ContextFuncs["targetHasRoleName"] = c.tmplTargetHasRoleName
-	c.ContextFuncs["addRoleID"] = c.tmplAddRoleID
+	c.ContextFuncs["targetHasRoleWithError"] = c.tmplTargetHasRoleWithError
+	c.ContextFuncs["targetHasRoleIDWithError"] = c.tmplTargetHasRoleIDWithError
+	c.ContextFuncs["targetHasRoleNameWithError"] = c.tmplTargetHasRoleNameWithError
+	c.ContextFuncs["giveRole"] = c.tmplGiveRole
 	c.ContextFuncs["giveRoleID"] = c.tmplGiveRoleID
-	c.ContextFuncs["addRoleName"] = c.tmplAddRoleName
 	c.ContextFuncs["giveRoleName"] = c.tmplGiveRoleName
-	c.ContextFuncs["removeRoleID"] = c.tmplRemoveRoleID
+	c.ContextFuncs["giveRoleWithError"] = c.tmplGiveRoleWithError
+	c.ContextFuncs["giveRoleIDWithError"] = c.tmplGiveRoleIDWithError
+	c.ContextFuncs["giveRoleNameWithError"] = c.tmplGiveRoleNameWithError
+	c.ContextFuncs["addRole"] = c.tmplAddRole
+	c.ContextFuncs["addRoleID"] = c.tmplAddRoleID
+	c.ContextFuncs["addRoleName"] = c.tmplAddRoleName
+	c.ContextFuncs["addRoleWithError"] = c.tmplAddRoleWithError
+	c.ContextFuncs["addRoleIDWithError"] = c.tmplAddRoleIDWithError
+	c.ContextFuncs["addRoleNameWithError"] = c.tmplAddRoleNameWithError
+	c.ContextFuncs["takeRole"] = c.tmplTakeRole
 	c.ContextFuncs["takeRoleID"] = c.tmplTakeRoleID
-	c.ContextFuncs["removeRoleName"] = c.tmplRemoveRoleName
 	c.ContextFuncs["takeRoleName"] = c.tmplTakeRoleName
-	c.ContextFuncs["getRole"] = c.tmplGetRole
+	c.ContextFuncs["takeRoleWithError"] = c.tmplTakeRoleWithError
+	c.ContextFuncs["takeRoleIDWithError"] = c.tmplTakeRoleIDWithError
+	c.ContextFuncs["takeRoleNameWithError"] = c.tmplTakeRoleNameWithError
+	c.ContextFuncs["removeRole"] = c.tmplRemoveRole
+	c.ContextFuncs["removeRoleID"] = c.tmplRemoveRoleID
+	c.ContextFuncs["removeRoleName"] = c.tmplRemoveRoleName
+	c.ContextFuncs["removeRoleWithError"] = c.tmplRemoveRoleWithError
+	c.ContextFuncs["removeRoleIDWithError"] = c.tmplRemoveRoleIDWithError
+	c.ContextFuncs["removeRoleNameWithError"] = c.tmplRemoveRoleNameWithError
 	c.ContextFuncs["setRoles"] = c.tmplSetRoles
 
 	// Reactions
@@ -569,6 +601,12 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["getChannel"] = c.tmplGetChannel
 	c.ContextFuncs["createChannel"] = c.tmplCreateChannel
 
+	// TryCall
+	c.ContextFuncs["tryCall"] = c.tmplTryCall
+
+	// Standardize
+	c.ContextFuncs["standardize"] = c.tmplStandardize
+
 	// Misc
 	c.ContextFuncs["getMember"] = c.tmplGetMember
 	c.ContextFuncs["currentUserCreated"] = c.tmplCurrentUserCreated
@@ -583,8 +621,6 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["editNickname"] = c.tmplEditNickname
 	c.ContextFuncs["editTargetNickname"] = c.tmplEditTargetNickName
 	c.ContextFuncs["sort"] = c.tmplSort
-	c.ContextFuncs["tryCall"] = c.tmplTryCall
-	c.ContextFuncs["standardize"] = c.tmplStandardize
 	c.ContextFuncs["generatePerms"] = c.tmplGeneratePerms
 }
 
@@ -725,7 +761,7 @@ func (d Dict) Get(key interface{}) interface{} {
 		case int:
 			out = d[ToInt64(key)]
 		case int64:
-			out = d[tmplToInt(key)]
+			out = d[ToInt(key)]
 		}
 	}
 
@@ -802,7 +838,7 @@ func (s Slice) FilterOut(index int) (Slice, error) {
 }
 
 func (s Slice) Set(index int, item interface{}) (string, error) {
-	if index >= len(s) {
+	if index >= len(s) || len(s) < 0 {
 		return "", errors.New("Index out of bounds")
 	}
 

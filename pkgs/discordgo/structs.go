@@ -705,7 +705,7 @@ type Role struct {
 
 // Mention returns a string which mentions the role
 func (r *Role) Mention() string {
-	return fmt.Sprintf("<@&%d>", r.ID)
+	return "<@&" + StrID(r.ID) + ">"
 }
 
 // Roles are a collection of Role

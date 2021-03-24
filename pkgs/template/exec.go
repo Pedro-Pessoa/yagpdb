@@ -803,7 +803,7 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 	} else if numIn != typ.NumIn() {
 		s.errorf("wrong number of args for %s: want %d got %d", name, typ.NumIn(), numIn)
 	}
-	if !goodFunc(typ) {
+	if !GoodFunc(typ) {
 		// TODO: This could still be a confusing error; maybe goodFunc should provide info.
 		s.errorf("can't call method/function %q with %d results", name, typ.NumOut())
 	}
@@ -837,12 +837,12 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 		}
 		argv[i] = s.validateType(final, t)
 	}
-	v, err := safeCall(fun, argv)
+	v, err := SafeCall(fun, argv)
 	// If we have an error that is not nil, stop execution and return that
 	// error to the caller.
 	if err != nil {
 		s.at(node)
-		s.errorf("error calling %s: %v", name, err)
+		s.errorf("error calling %s: %w", name, err)
 	}
 	if v.Type() == reflectValueType {
 		v = v.Interface().(reflect.Value)
@@ -850,8 +850,8 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 	return v
 }
 
-// canBeNil reports whether an untyped nil can be assigned to the type. See reflect.Zero.
-func canBeNil(typ reflect.Type) bool {
+// CanBeNil reports whether an untyped nil can be assigned to the type. See reflect.Zero.
+func CanBeNil(typ reflect.Type) bool {
 	switch typ.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
 		return true
@@ -868,7 +868,7 @@ func (s *state) validateType(value reflect.Value, typ reflect.Type) reflect.Valu
 			// An untyped nil interface{}. Accept as a proper nil value.
 			return reflect.ValueOf(nil)
 		}
-		if canBeNil(typ) {
+		if CanBeNil(typ) {
 			// Like above, but use the zero value of the non-nil type.
 			return reflect.Zero(typ)
 		}
@@ -951,7 +951,7 @@ func (s *state) evalArg(dot reflect.Value, typ reflect.Type, n parse.Node) refle
 	case *parse.DotNode:
 		return s.validateType(dot, typ)
 	case *parse.NilNode:
-		if canBeNil(typ) {
+		if CanBeNil(typ) {
 			return reflect.Zero(typ)
 		}
 		s.errorf("cannot assign nil to %s", typ)
