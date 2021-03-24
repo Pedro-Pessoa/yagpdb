@@ -19,54 +19,70 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // RoleMenuOption is an object representing the database table.
 type RoleMenuOption struct {
-	ID            int64      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	RoleCommandID null.Int64 `boil:"role_command_id" json:"role_command_id,omitempty" toml:"role_command_id" yaml:"role_command_id,omitempty"`
-	EmojiID       int64      `boil:"emoji_id" json:"emoji_id" toml:"emoji_id" yaml:"emoji_id"`
-	UnicodeEmoji  string     `boil:"unicode_emoji" json:"unicode_emoji" toml:"unicode_emoji" yaml:"unicode_emoji"`
-	RoleMenuID    int64      `boil:"role_menu_id" json:"role_menu_id" toml:"role_menu_id" yaml:"role_menu_id"`
-	EmojiAnimated bool       `boil:"emoji_animated" json:"emoji_animated" toml:"emoji_animated" yaml:"emoji_animated"`
+	ID               int64            `boil:"id" json:"id" toml:"id" yaml:"id"`
+	RoleCommandID    null.Int64       `boil:"role_command_id" json:"role_command_id,omitempty" toml:"role_command_id" yaml:"role_command_id,omitempty"`
+	EmojiID          int64            `boil:"emoji_id" json:"emoji_id" toml:"emoji_id" yaml:"emoji_id"`
+	UnicodeEmoji     string           `boil:"unicode_emoji" json:"unicode_emoji" toml:"unicode_emoji" yaml:"unicode_emoji"`
+	RoleMenuID       int64            `boil:"role_menu_id" json:"role_menu_id" toml:"role_menu_id" yaml:"role_menu_id"`
+	EmojiAnimated    bool             `boil:"emoji_animated" json:"emoji_animated" toml:"emoji_animated" yaml:"emoji_animated"`
+	StandaloneRoleID null.Int64       `boil:"standalone_role_id" json:"standalone_role_id,omitempty" toml:"standalone_role_id" yaml:"standalone_role_id,omitempty"`
+	BlacklistRoles   types.Int64Array `boil:"blacklist_roles" json:"blacklist_roles,omitempty" toml:"blacklist_roles" yaml:"blacklist_roles,omitempty"`
+	WhitelistRoles   types.Int64Array `boil:"whitelist_roles" json:"whitelist_roles,omitempty" toml:"whitelist_roles" yaml:"whitelist_roles,omitempty"`
 
 	R *roleMenuOptionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L roleMenuOptionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var RoleMenuOptionColumns = struct {
-	ID            string
-	RoleCommandID string
-	EmojiID       string
-	UnicodeEmoji  string
-	RoleMenuID    string
-	EmojiAnimated string
+	ID               string
+	RoleCommandID    string
+	EmojiID          string
+	UnicodeEmoji     string
+	RoleMenuID       string
+	EmojiAnimated    string
+	StandaloneRoleID string
+	BlacklistRoles   string
+	WhitelistRoles   string
 }{
-	ID:            "id",
-	RoleCommandID: "role_command_id",
-	EmojiID:       "emoji_id",
-	UnicodeEmoji:  "unicode_emoji",
-	RoleMenuID:    "role_menu_id",
-	EmojiAnimated: "emoji_animated",
+	ID:               "id",
+	RoleCommandID:    "role_command_id",
+	EmojiID:          "emoji_id",
+	UnicodeEmoji:     "unicode_emoji",
+	RoleMenuID:       "role_menu_id",
+	EmojiAnimated:    "emoji_animated",
+	StandaloneRoleID: "standalone_role_id",
+	BlacklistRoles:   "blacklist_roles",
+	WhitelistRoles:   "whitelist_roles",
 }
 
 // Generated where
 
 var RoleMenuOptionWhere = struct {
-	ID            whereHelperint64
-	RoleCommandID whereHelpernull_Int64
-	EmojiID       whereHelperint64
-	UnicodeEmoji  whereHelperstring
-	RoleMenuID    whereHelperint64
-	EmojiAnimated whereHelperbool
+	ID               whereHelperint64
+	RoleCommandID    whereHelpernull_Int64
+	EmojiID          whereHelperint64
+	UnicodeEmoji     whereHelperstring
+	RoleMenuID       whereHelperint64
+	EmojiAnimated    whereHelperbool
+	StandaloneRoleID whereHelpernull_Int64
+	BlacklistRoles   whereHelpertypes_Int64Array
+	WhitelistRoles   whereHelpertypes_Int64Array
 }{
-	ID:            whereHelperint64{field: "\"role_menu_options\".\"id\""},
-	RoleCommandID: whereHelpernull_Int64{field: "\"role_menu_options\".\"role_command_id\""},
-	EmojiID:       whereHelperint64{field: "\"role_menu_options\".\"emoji_id\""},
-	UnicodeEmoji:  whereHelperstring{field: "\"role_menu_options\".\"unicode_emoji\""},
-	RoleMenuID:    whereHelperint64{field: "\"role_menu_options\".\"role_menu_id\""},
-	EmojiAnimated: whereHelperbool{field: "\"role_menu_options\".\"emoji_animated\""},
+	ID:               whereHelperint64{field: "\"role_menu_options\".\"id\""},
+	RoleCommandID:    whereHelpernull_Int64{field: "\"role_menu_options\".\"role_command_id\""},
+	EmojiID:          whereHelperint64{field: "\"role_menu_options\".\"emoji_id\""},
+	UnicodeEmoji:     whereHelperstring{field: "\"role_menu_options\".\"unicode_emoji\""},
+	RoleMenuID:       whereHelperint64{field: "\"role_menu_options\".\"role_menu_id\""},
+	EmojiAnimated:    whereHelperbool{field: "\"role_menu_options\".\"emoji_animated\""},
+	StandaloneRoleID: whereHelpernull_Int64{field: "\"role_menu_options\".\"standalone_role_id\""},
+	BlacklistRoles:   whereHelpertypes_Int64Array{field: "\"role_menu_options\".\"blacklist_roles\""},
+	WhitelistRoles:   whereHelpertypes_Int64Array{field: "\"role_menu_options\".\"whitelist_roles\""},
 }
 
 // RoleMenuOptionRels is where relationship names are stored.
@@ -96,8 +112,8 @@ func (*roleMenuOptionR) NewStruct() *roleMenuOptionR {
 type roleMenuOptionL struct{}
 
 var (
-	roleMenuOptionAllColumns            = []string{"id", "role_command_id", "emoji_id", "unicode_emoji", "role_menu_id", "emoji_animated"}
-	roleMenuOptionColumnsWithoutDefault = []string{"role_command_id", "emoji_id", "unicode_emoji", "role_menu_id"}
+	roleMenuOptionAllColumns            = []string{"id", "role_command_id", "emoji_id", "unicode_emoji", "role_menu_id", "emoji_animated", "standalone_role_id", "blacklist_roles", "whitelist_roles"}
+	roleMenuOptionColumnsWithoutDefault = []string{"role_command_id", "emoji_id", "unicode_emoji", "role_menu_id", "standalone_role_id", "blacklist_roles", "whitelist_roles"}
 	roleMenuOptionColumnsWithDefault    = []string{"id", "emoji_animated"}
 	roleMenuOptionPrimaryKeyColumns     = []string{"id"}
 )

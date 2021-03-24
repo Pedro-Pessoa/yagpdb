@@ -19,94 +19,260 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"github.com/volatiletech/sqlboiler/v4/queries/qmhelper"
+	"github.com/volatiletech/sqlboiler/v4/types"
 	"github.com/volatiletech/strmangle"
 )
 
 // RoleMenu is an object representing the database table.
 type RoleMenu struct {
-	MessageID                  int64      `boil:"message_id" json:"message_id" toml:"message_id" yaml:"message_id"`
-	GuildID                    int64      `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
-	ChannelID                  int64      `boil:"channel_id" json:"channel_id" toml:"channel_id" yaml:"channel_id"`
-	OwnerID                    int64      `boil:"owner_id" json:"owner_id" toml:"owner_id" yaml:"owner_id"`
-	OwnMessage                 bool       `boil:"own_message" json:"own_message" toml:"own_message" yaml:"own_message"`
-	State                      int64      `boil:"state" json:"state" toml:"state" yaml:"state"`
-	NextRoleCommandID          null.Int64 `boil:"next_role_command_id" json:"next_role_command_id,omitempty" toml:"next_role_command_id" yaml:"next_role_command_id,omitempty"`
-	RoleGroupID                null.Int64 `boil:"role_group_id" json:"role_group_id,omitempty" toml:"role_group_id" yaml:"role_group_id,omitempty"`
-	DisableSendDM              bool       `boil:"disable_send_dm" json:"disable_send_dm" toml:"disable_send_dm" yaml:"disable_send_dm"`
-	RemoveRoleOnReactionRemove bool       `boil:"remove_role_on_reaction_remove" json:"remove_role_on_reaction_remove" toml:"remove_role_on_reaction_remove" yaml:"remove_role_on_reaction_remove"`
-	FixedAmount                bool       `boil:"fixed_amount" json:"fixed_amount" toml:"fixed_amount" yaml:"fixed_amount"`
-	SkipAmount                 int        `boil:"skip_amount" json:"skip_amount" toml:"skip_amount" yaml:"skip_amount"`
-	SetupMSGID                 int64      `boil:"setup_msg_id" json:"setup_msg_id" toml:"setup_msg_id" yaml:"setup_msg_id"`
-	EditingOptionID            null.Int64 `boil:"editing_option_id" json:"editing_option_id,omitempty" toml:"editing_option_id" yaml:"editing_option_id,omitempty"`
+	MessageID                     int64            `boil:"message_id" json:"message_id" toml:"message_id" yaml:"message_id"`
+	GuildID                       int64            `boil:"guild_id" json:"guild_id" toml:"guild_id" yaml:"guild_id"`
+	ChannelID                     int64            `boil:"channel_id" json:"channel_id" toml:"channel_id" yaml:"channel_id"`
+	OwnerID                       int64            `boil:"owner_id" json:"owner_id" toml:"owner_id" yaml:"owner_id"`
+	OwnMessage                    bool             `boil:"own_message" json:"own_message" toml:"own_message" yaml:"own_message"`
+	State                         int64            `boil:"state" json:"state" toml:"state" yaml:"state"`
+	NextRoleCommandID             null.Int64       `boil:"next_role_command_id" json:"next_role_command_id,omitempty" toml:"next_role_command_id" yaml:"next_role_command_id,omitempty"`
+	RoleGroupID                   null.Int64       `boil:"role_group_id" json:"role_group_id,omitempty" toml:"role_group_id" yaml:"role_group_id,omitempty"`
+	DisableSendDM                 bool             `boil:"disable_send_dm" json:"disable_send_dm" toml:"disable_send_dm" yaml:"disable_send_dm"`
+	RemoveRoleOnReactionRemove    bool             `boil:"remove_role_on_reaction_remove" json:"remove_role_on_reaction_remove" toml:"remove_role_on_reaction_remove" yaml:"remove_role_on_reaction_remove"`
+	FixedAmount                   bool             `boil:"fixed_amount" json:"fixed_amount" toml:"fixed_amount" yaml:"fixed_amount"`
+	SkipAmount                    int              `boil:"skip_amount" json:"skip_amount" toml:"skip_amount" yaml:"skip_amount"`
+	SetupMSGID                    int64            `boil:"setup_msg_id" json:"setup_msg_id" toml:"setup_msg_id" yaml:"setup_msg_id"`
+	EditingOptionID               null.Int64       `boil:"editing_option_id" json:"editing_option_id,omitempty" toml:"editing_option_id" yaml:"editing_option_id,omitempty"`
+	StandaloneMode                null.Int16       `boil:"standalone_mode" json:"standalone_mode,omitempty" toml:"standalone_mode" yaml:"standalone_mode,omitempty"`
+	StandaloneMultipleMin         null.Int         `boil:"standalone_multiple_min" json:"standalone_multiple_min,omitempty" toml:"standalone_multiple_min" yaml:"standalone_multiple_min,omitempty"`
+	StandaloneMultipleMax         null.Int         `boil:"standalone_multiple_max" json:"standalone_multiple_max,omitempty" toml:"standalone_multiple_max" yaml:"standalone_multiple_max,omitempty"`
+	StandaloneSingleAutoToggleOff null.Bool        `boil:"standalone_single_auto_toggle_off" json:"standalone_single_auto_toggle_off,omitempty" toml:"standalone_single_auto_toggle_off" yaml:"standalone_single_auto_toggle_off,omitempty"`
+	StandaloneSingleRequireOne    null.Bool        `boil:"standalone_single_require_one" json:"standalone_single_require_one,omitempty" toml:"standalone_single_require_one" yaml:"standalone_single_require_one,omitempty"`
+	StandaloneBlacklistRoles      types.Int64Array `boil:"standalone_blacklist_roles" json:"standalone_blacklist_roles,omitempty" toml:"standalone_blacklist_roles" yaml:"standalone_blacklist_roles,omitempty"`
+	StandaloneWhitelistRoles      types.Int64Array `boil:"standalone_whitelist_roles" json:"standalone_whitelist_roles,omitempty" toml:"standalone_whitelist_roles" yaml:"standalone_whitelist_roles,omitempty"`
+	SavedContent                  null.String      `boil:"saved_content" json:"saved_content,omitempty" toml:"saved_content" yaml:"saved_content,omitempty"`
+	SavedEmbed                    null.String      `boil:"saved_embed" json:"saved_embed,omitempty" toml:"saved_embed" yaml:"saved_embed,omitempty"`
+	Kind                          int16            `boil:"kind" json:"kind" toml:"kind" yaml:"kind"`
 
 	R *roleMenuR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L roleMenuL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var RoleMenuColumns = struct {
-	MessageID                  string
-	GuildID                    string
-	ChannelID                  string
-	OwnerID                    string
-	OwnMessage                 string
-	State                      string
-	NextRoleCommandID          string
-	RoleGroupID                string
-	DisableSendDM              string
-	RemoveRoleOnReactionRemove string
-	FixedAmount                string
-	SkipAmount                 string
-	SetupMSGID                 string
-	EditingOptionID            string
+	MessageID                     string
+	GuildID                       string
+	ChannelID                     string
+	OwnerID                       string
+	OwnMessage                    string
+	State                         string
+	NextRoleCommandID             string
+	RoleGroupID                   string
+	DisableSendDM                 string
+	RemoveRoleOnReactionRemove    string
+	FixedAmount                   string
+	SkipAmount                    string
+	SetupMSGID                    string
+	EditingOptionID               string
+	StandaloneMode                string
+	StandaloneMultipleMin         string
+	StandaloneMultipleMax         string
+	StandaloneSingleAutoToggleOff string
+	StandaloneSingleRequireOne    string
+	StandaloneBlacklistRoles      string
+	StandaloneWhitelistRoles      string
+	SavedContent                  string
+	SavedEmbed                    string
+	Kind                          string
 }{
-	MessageID:                  "message_id",
-	GuildID:                    "guild_id",
-	ChannelID:                  "channel_id",
-	OwnerID:                    "owner_id",
-	OwnMessage:                 "own_message",
-	State:                      "state",
-	NextRoleCommandID:          "next_role_command_id",
-	RoleGroupID:                "role_group_id",
-	DisableSendDM:              "disable_send_dm",
-	RemoveRoleOnReactionRemove: "remove_role_on_reaction_remove",
-	FixedAmount:                "fixed_amount",
-	SkipAmount:                 "skip_amount",
-	SetupMSGID:                 "setup_msg_id",
-	EditingOptionID:            "editing_option_id",
+	MessageID:                     "message_id",
+	GuildID:                       "guild_id",
+	ChannelID:                     "channel_id",
+	OwnerID:                       "owner_id",
+	OwnMessage:                    "own_message",
+	State:                         "state",
+	NextRoleCommandID:             "next_role_command_id",
+	RoleGroupID:                   "role_group_id",
+	DisableSendDM:                 "disable_send_dm",
+	RemoveRoleOnReactionRemove:    "remove_role_on_reaction_remove",
+	FixedAmount:                   "fixed_amount",
+	SkipAmount:                    "skip_amount",
+	SetupMSGID:                    "setup_msg_id",
+	EditingOptionID:               "editing_option_id",
+	StandaloneMode:                "standalone_mode",
+	StandaloneMultipleMin:         "standalone_multiple_min",
+	StandaloneMultipleMax:         "standalone_multiple_max",
+	StandaloneSingleAutoToggleOff: "standalone_single_auto_toggle_off",
+	StandaloneSingleRequireOne:    "standalone_single_require_one",
+	StandaloneBlacklistRoles:      "standalone_blacklist_roles",
+	StandaloneWhitelistRoles:      "standalone_whitelist_roles",
+	SavedContent:                  "saved_content",
+	SavedEmbed:                    "saved_embed",
+	Kind:                          "kind",
 }
 
 // Generated where
 
+type whereHelpernull_Int16 struct{ field string }
+
+func (w whereHelpernull_Int16) EQ(x null.Int16) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Int16) NEQ(x null.Int16) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Int16) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Int16) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_Int16) LT(x null.Int16) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Int16) LTE(x null.Int16) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Int16) GT(x null.Int16) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Int16) GTE(x null.Int16) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+type whereHelpernull_Int struct{ field string }
+
+func (w whereHelpernull_Int) EQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Int) NEQ(x null.Int) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_Int) LT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Int) LTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Int) GT(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Int) GTE(x null.Int) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+type whereHelpernull_Bool struct{ field string }
+
+func (w whereHelpernull_Bool) EQ(x null.Bool) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_Bool) NEQ(x null.Bool) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_Bool) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_Bool) LT(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_Bool) LTE(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_Bool) GT(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_Bool) GTE(x null.Bool) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+type whereHelperint16 struct{ field string }
+
+func (w whereHelperint16) EQ(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint16) NEQ(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint16) LT(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint16) LTE(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint16) GT(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint16) GTE(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint16) IN(slice []int16) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperint16) NIN(slice []int16) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var RoleMenuWhere = struct {
-	MessageID                  whereHelperint64
-	GuildID                    whereHelperint64
-	ChannelID                  whereHelperint64
-	OwnerID                    whereHelperint64
-	OwnMessage                 whereHelperbool
-	State                      whereHelperint64
-	NextRoleCommandID          whereHelpernull_Int64
-	RoleGroupID                whereHelpernull_Int64
-	DisableSendDM              whereHelperbool
-	RemoveRoleOnReactionRemove whereHelperbool
-	FixedAmount                whereHelperbool
-	SkipAmount                 whereHelperint
-	SetupMSGID                 whereHelperint64
-	EditingOptionID            whereHelpernull_Int64
+	MessageID                     whereHelperint64
+	GuildID                       whereHelperint64
+	ChannelID                     whereHelperint64
+	OwnerID                       whereHelperint64
+	OwnMessage                    whereHelperbool
+	State                         whereHelperint64
+	NextRoleCommandID             whereHelpernull_Int64
+	RoleGroupID                   whereHelpernull_Int64
+	DisableSendDM                 whereHelperbool
+	RemoveRoleOnReactionRemove    whereHelperbool
+	FixedAmount                   whereHelperbool
+	SkipAmount                    whereHelperint
+	SetupMSGID                    whereHelperint64
+	EditingOptionID               whereHelpernull_Int64
+	StandaloneMode                whereHelpernull_Int16
+	StandaloneMultipleMin         whereHelpernull_Int
+	StandaloneMultipleMax         whereHelpernull_Int
+	StandaloneSingleAutoToggleOff whereHelpernull_Bool
+	StandaloneSingleRequireOne    whereHelpernull_Bool
+	StandaloneBlacklistRoles      whereHelpertypes_Int64Array
+	StandaloneWhitelistRoles      whereHelpertypes_Int64Array
+	SavedContent                  whereHelpernull_String
+	SavedEmbed                    whereHelpernull_String
+	Kind                          whereHelperint16
 }{
-	MessageID:                  whereHelperint64{field: "\"role_menus\".\"message_id\""},
-	GuildID:                    whereHelperint64{field: "\"role_menus\".\"guild_id\""},
-	ChannelID:                  whereHelperint64{field: "\"role_menus\".\"channel_id\""},
-	OwnerID:                    whereHelperint64{field: "\"role_menus\".\"owner_id\""},
-	OwnMessage:                 whereHelperbool{field: "\"role_menus\".\"own_message\""},
-	State:                      whereHelperint64{field: "\"role_menus\".\"state\""},
-	NextRoleCommandID:          whereHelpernull_Int64{field: "\"role_menus\".\"next_role_command_id\""},
-	RoleGroupID:                whereHelpernull_Int64{field: "\"role_menus\".\"role_group_id\""},
-	DisableSendDM:              whereHelperbool{field: "\"role_menus\".\"disable_send_dm\""},
-	RemoveRoleOnReactionRemove: whereHelperbool{field: "\"role_menus\".\"remove_role_on_reaction_remove\""},
-	FixedAmount:                whereHelperbool{field: "\"role_menus\".\"fixed_amount\""},
-	SkipAmount:                 whereHelperint{field: "\"role_menus\".\"skip_amount\""},
-	SetupMSGID:                 whereHelperint64{field: "\"role_menus\".\"setup_msg_id\""},
-	EditingOptionID:            whereHelpernull_Int64{field: "\"role_menus\".\"editing_option_id\""},
+	MessageID:                     whereHelperint64{field: "\"role_menus\".\"message_id\""},
+	GuildID:                       whereHelperint64{field: "\"role_menus\".\"guild_id\""},
+	ChannelID:                     whereHelperint64{field: "\"role_menus\".\"channel_id\""},
+	OwnerID:                       whereHelperint64{field: "\"role_menus\".\"owner_id\""},
+	OwnMessage:                    whereHelperbool{field: "\"role_menus\".\"own_message\""},
+	State:                         whereHelperint64{field: "\"role_menus\".\"state\""},
+	NextRoleCommandID:             whereHelpernull_Int64{field: "\"role_menus\".\"next_role_command_id\""},
+	RoleGroupID:                   whereHelpernull_Int64{field: "\"role_menus\".\"role_group_id\""},
+	DisableSendDM:                 whereHelperbool{field: "\"role_menus\".\"disable_send_dm\""},
+	RemoveRoleOnReactionRemove:    whereHelperbool{field: "\"role_menus\".\"remove_role_on_reaction_remove\""},
+	FixedAmount:                   whereHelperbool{field: "\"role_menus\".\"fixed_amount\""},
+	SkipAmount:                    whereHelperint{field: "\"role_menus\".\"skip_amount\""},
+	SetupMSGID:                    whereHelperint64{field: "\"role_menus\".\"setup_msg_id\""},
+	EditingOptionID:               whereHelpernull_Int64{field: "\"role_menus\".\"editing_option_id\""},
+	StandaloneMode:                whereHelpernull_Int16{field: "\"role_menus\".\"standalone_mode\""},
+	StandaloneMultipleMin:         whereHelpernull_Int{field: "\"role_menus\".\"standalone_multiple_min\""},
+	StandaloneMultipleMax:         whereHelpernull_Int{field: "\"role_menus\".\"standalone_multiple_max\""},
+	StandaloneSingleAutoToggleOff: whereHelpernull_Bool{field: "\"role_menus\".\"standalone_single_auto_toggle_off\""},
+	StandaloneSingleRequireOne:    whereHelpernull_Bool{field: "\"role_menus\".\"standalone_single_require_one\""},
+	StandaloneBlacklistRoles:      whereHelpertypes_Int64Array{field: "\"role_menus\".\"standalone_blacklist_roles\""},
+	StandaloneWhitelistRoles:      whereHelpertypes_Int64Array{field: "\"role_menus\".\"standalone_whitelist_roles\""},
+	SavedContent:                  whereHelpernull_String{field: "\"role_menus\".\"saved_content\""},
+	SavedEmbed:                    whereHelpernull_String{field: "\"role_menus\".\"saved_embed\""},
+	Kind:                          whereHelperint16{field: "\"role_menus\".\"kind\""},
 }
 
 // RoleMenuRels is where relationship names are stored.
@@ -139,9 +305,9 @@ func (*roleMenuR) NewStruct() *roleMenuR {
 type roleMenuL struct{}
 
 var (
-	roleMenuAllColumns            = []string{"message_id", "guild_id", "channel_id", "owner_id", "own_message", "state", "next_role_command_id", "role_group_id", "disable_send_dm", "remove_role_on_reaction_remove", "fixed_amount", "skip_amount", "setup_msg_id", "editing_option_id"}
-	roleMenuColumnsWithoutDefault = []string{"message_id", "guild_id", "channel_id", "owner_id", "own_message", "state", "next_role_command_id", "role_group_id", "editing_option_id"}
-	roleMenuColumnsWithDefault    = []string{"disable_send_dm", "remove_role_on_reaction_remove", "fixed_amount", "skip_amount", "setup_msg_id"}
+	roleMenuAllColumns            = []string{"message_id", "guild_id", "channel_id", "owner_id", "own_message", "state", "next_role_command_id", "role_group_id", "disable_send_dm", "remove_role_on_reaction_remove", "fixed_amount", "skip_amount", "setup_msg_id", "editing_option_id", "standalone_mode", "standalone_multiple_min", "standalone_multiple_max", "standalone_single_auto_toggle_off", "standalone_single_require_one", "standalone_blacklist_roles", "standalone_whitelist_roles", "saved_content", "saved_embed", "kind"}
+	roleMenuColumnsWithoutDefault = []string{"message_id", "guild_id", "channel_id", "owner_id", "own_message", "state", "next_role_command_id", "role_group_id", "editing_option_id", "standalone_mode", "standalone_multiple_min", "standalone_multiple_max", "standalone_single_auto_toggle_off", "standalone_single_require_one", "standalone_blacklist_roles", "standalone_whitelist_roles", "saved_content", "saved_embed"}
+	roleMenuColumnsWithDefault    = []string{"disable_send_dm", "remove_role_on_reaction_remove", "fixed_amount", "skip_amount", "setup_msg_id", "kind"}
 	roleMenuPrimaryKeyColumns     = []string{"message_id"}
 )
 
