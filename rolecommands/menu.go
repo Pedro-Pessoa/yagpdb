@@ -114,6 +114,10 @@ func cmdFuncRoleMenuUpdate(parsed *dcmd.Data) (interface{}, error) {
 		return "Couldn't find menu", nil
 	}
 
+	if !menu.RoleGroupID.Valid {
+		return "Uh oh I haven't added editing of standalone menus yet. (will be added very soon)", nil
+	}
+
 	return UpdateMenu(parsed, menu)
 }
 
@@ -367,7 +371,7 @@ func handleReactionAddRemove(evt *eventsystem.EventData) {
 		return
 	}
 
-	_, checkDB := recentMenusTracker.CheckRecentTrackedMenu(mID)
+	_, checkDB := recentMenusTracker.CheckRecentTrackedMenu(evt.GS.ID, mID)
 	if !checkDB {
 		logger.Debug("skipped db check for menus becuase of recent tracked menus")
 		return
@@ -438,9 +442,6 @@ func handleReactionAddRemove(evt *eventsystem.EventData) {
 }
 
 func MemberChooseOption(ctx context.Context, rm *models.RoleMenu, gs *dstate.GuildState, option *models.RoleMenuOption, userID int64, emoji *discordgo.Emoji, raAdd bool) (resp string, err error) {
-	cmd := option.R.RoleCommand
-	cmd.R.RoleGroup = rm.R.RoleGroup
-
 	member, err := bot.GetMember(gs.ID, userID)
 	if err != nil {
 		if common.IsDiscordErr(err, discordgo.ErrCodeUnknownMember) {
@@ -456,24 +457,31 @@ func MemberChooseOption(ctx context.Context, rm *models.RoleMenu, gs *dstate.Gui
 	}
 
 	var given bool
+	var cr *CommonRoleSettings = nil
+
+	if rm.RoleGroupID.Valid {
+		cr = CommonRoleFromRoleCommand(rm.R.RoleGroup, option.R.RoleCommand)
+	} else {
+		cr = CommonRoleFromRoleMenuCommand(rm, option)
+	}
 
 	if rm.RemoveRoleOnReactionRemove {
 		//  Strictly assign or remove based on wether the reaction was added or removed
 		if raAdd {
-			given, err = AssignRole(ctx, member, cmd)
+			given, err = cr.AssignRole(ctx, member)
 			if err == nil && given {
 				resp = "Gave you the role!"
 			}
 		} else {
 			var removed bool
-			removed, err = RemoveRole(ctx, member, cmd)
+			removed, err = cr.RemoveRole(ctx, member)
 			if err == nil && removed {
 				resp = "Took away the role!"
 			}
 		}
 	} else {
 		// Just toggle...
-		given, err = CheckToggleRole(ctx, member, cmd)
+		given, err = cr.CheckToggleRole(ctx, member)
 		if err == nil {
 			if given {
 				resp = "Gave you the role!"
@@ -494,12 +502,12 @@ func MemberChooseOption(ctx context.Context, rm *models.RoleMenu, gs *dstate.Gui
 			_ = common.BotSession.MessageReactionRemove(rm.ChannelID, rm.MessageID, emoji.APIName(), userID)
 		}
 		resp, err = HumanizeAssignError(gs, err)
-	} else if rm.R.RoleGroup.Mode == GroupModeSingle && given {
+	} else if cr.ParentGroupMode == GroupModeSingle && given {
 		go removeOtherReactions(rm, option, userID)
 	}
 
-	if resp != "" {
-		resp = cmd.Name + ": " + resp
+	if resp != "" && option.R.RoleCommand != nil {
+		resp = option.R.RoleCommand.Name + ": " + resp
 	}
 
 	return
@@ -683,6 +691,10 @@ func cmdFuncRoleMenuEditOption(data *dcmd.Data) (interface{}, error) {
 		return "This menu isn't 'done' (still being edited, or made)", nil
 	}
 
+	if !menu.RoleGroupID.Valid {
+		return "Uh oh I haven't added editing of standalone menus yet. (will be added very soon)", nil
+	}
+
 	menu.State = RoleMenuStateEditingOptionSelecting
 	menu.OwnerID = data.Msg.Author.ID
 	menu.SetupMSGID = 0
@@ -706,6 +718,10 @@ func cmdFuncRoleMenuComplete(data *dcmd.Data) (interface{}, error) {
 
 	if menu.State == RoleMenuStateDone {
 		return "This menu is already marked as done", nil
+	}
+
+	if !menu.RoleGroupID.Valid {
+		return "Uh oh I haven't added editing of standalone menus yet. (will be added very soon)", nil
 	}
 
 	menu.State = RoleMenuStateDone

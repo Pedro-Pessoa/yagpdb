@@ -13,10 +13,8 @@ CREATE TABLE IF NOT EXISTS role_groups (
 	single_auto_toggle_off boolean NOT NULL,
 	single_require_one boolean NOT NULL
 );
-
 `, `
 CREATE INDEX IF NOT EXISTS role_groups_guild_idx ON role_groups(guild_id);
-
 `, `
 CREATE TABLE IF NOT EXISTS role_commands (
 	id bigserial NOT NULL PRIMARY KEY,
@@ -30,7 +28,6 @@ CREATE TABLE IF NOT EXISTS role_commands (
 	ignore_roles bigint[],
 	position bigint NOT NULL
 );
-
 `, `
 CREATE INDEX IF NOT EXISTS role_commands_guild_idx ON role_commands(guild_id);
 `, `
@@ -46,7 +43,6 @@ CREATE TABLE IF NOT EXISTS role_menus (
 	next_role_command_id bigint REFERENCES role_commands(id) ON DELETE SET NULL,
 	role_group_id bigint REFERENCES role_groups(id) ON DELETE CASCADE
 );
-
 `, `
 ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS disable_send_dm BOOLEAN NOT NULL DEFAULT false;
 `, `
@@ -58,6 +54,28 @@ ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS skip_amount INT NOT NULL DEFAULT
 `, `
 ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS setup_msg_id BIGINT NOT NULL DEFAULT 0;
 `, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_mode SMALLINT;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_multiple_min INT;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_multiple_max INT;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_single_auto_toggle_off BOOLEAN;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_single_require_one BOOLEAN;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_blacklist_roles BIGINT[];
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS standalone_whitelist_roles BIGINT[];
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS saved_content TEXT;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS saved_embed TEXT;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS kind SMALLINT NOT NULL DEFAULT 0;
+`, `
+ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS editing_option_id BIGINT;
+`, `
 CREATE INDEX IF NOT EXISTS role_menus_setup_msg_idx ON role_menus(setup_msg_id);
 `, `
 CREATE TABLE IF NOT EXISTS role_menu_options (
@@ -68,17 +86,19 @@ CREATE TABLE IF NOT EXISTS role_menu_options (
 	role_menu_id bigint NOT NULL REFERENCES role_menus(message_id) ON DELETE CASCADE
 );
 `, `
-ALTER TABLE role_menus ADD COLUMN IF NOT EXISTS editing_option_id BIGINT;
+ALTER TABLE role_menu_options ADD COLUMN IF NOT EXISTS standalone_role_id BIGINT;
+`, `
+ALTER TABLE role_menu_options ADD COLUMN IF NOT EXISTS blacklist_roles BIGINT[];
+`, `
+ALTER TABLE role_menu_options ADD COLUMN IF NOT EXISTS whitelist_roles BIGINT[];
 `, `
 DO $$
 BEGIN
-
   BEGIN
     ALTER TABLE role_menus ADD CONSTRAINT role_menus_editing_option_id_fkey FOREIGN KEY (editing_option_id) REFERENCES role_menu_options(id) ON DELETE SET NULL;
   EXCEPTION
     WHEN duplicate_object THEN RAISE NOTICE 'Table constraint role_menus.role_menus_editing_option_id_fkey already exists';
   END;
-
 END $$;
 `, `
 ALTER TABLE role_menu_options ADD COLUMN IF NOT EXISTS emoji_animated BOOLEAN NOT NULL DEFAULT false;

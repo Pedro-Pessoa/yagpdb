@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
 	"github.com/sirupsen/logrus"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dcmd"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
+	"github.com/Pedro-Pessoa/tidbot/rolecommands/models"
 )
 
 func (p *Plugin) AddCommands() {
@@ -164,6 +164,7 @@ func (p *Plugin) BotInit() {
 	scheduledevents2.RegisterHandler("remove_member_role", ScheduledMemberRoleRemoveData{}, handleRemoveMemberRole)
 	pubsub.AddHandler("role_commands_evict_menus", func(evt *pubsub.Event) {
 		ClearRolemenuCache(evt.TargetGuildInt)
+		recentMenusTracker.GuildReset(evt.TargetGuildInt)
 	}, nil)
 }
 
