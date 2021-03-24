@@ -34,7 +34,7 @@ require (
 	github.com/jonas747/when v0.0.2
 	github.com/justinian/dice v1.0.1 // indirect
 	github.com/karlseguin/ccache v2.0.3+incompatible
-	github.com/karlseguin/expect v1.0.7 // indirect
+	github.com/karlseguin/expect v1.0.8 // indirect
 	github.com/karlseguin/rcache v1.0.1
 	github.com/lib/pq v1.10.0
 	github.com/lunixbochs/vtclean v1.0.0
@@ -59,10 +59,10 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	goji.io v2.0.2+incompatible
-	golang.org/x/crypto v0.0.0-20210317152858-513c2a44f670
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
-	golang.org/x/oauth2 v0.0.0-20210313182246-cd4f82c27b84
+	golang.org/x/net v0.0.0-20210323141857-08027d57d8cf
+	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/text v0.3.5
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	google.golang.org/api v0.42.0
