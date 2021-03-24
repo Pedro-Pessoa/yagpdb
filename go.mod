@@ -55,13 +55,14 @@ require (
 	github.com/tkuchiki/go-timezone v0.2.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/volatiletech/null v8.0.0+incompatible
+	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler v3.7.1+incompatible
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210323141857-08027d57d8cf
+	golang.org/x/net v0.0.0-20210324051636-2c4c8ecb7826
 	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
 	golang.org/x/text v0.3.5
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba

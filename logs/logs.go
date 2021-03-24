@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"emperror.dev/errors"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/net/context"

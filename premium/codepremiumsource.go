@@ -13,7 +13,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/lib/pq"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 

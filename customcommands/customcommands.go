@@ -13,7 +13,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/karlseguin/ccache"
 	"github.com/mediocregopher/radix/v3"
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"github.com/Pedro-Pessoa/tidbot/common"

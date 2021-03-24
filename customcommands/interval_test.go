@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/volatiletech/null"
+	"github.com/volatiletech/null/v8"
 
 	"github.com/Pedro-Pessoa/tidbot/customcommands/models"
 )
