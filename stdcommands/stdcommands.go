@@ -34,6 +34,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/memstats"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/ping"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/poll"
+	"github.com/Pedro-Pessoa/tidbot/stdcommands/roleinfo"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/roll"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/serverinfo"
 	"github.com/Pedro-Pessoa/tidbot/stdcommands/setstatus"
@@ -106,6 +107,7 @@ func (p *Plugin) AddCommands() {
 		edtn.Command,
 		throw.Command,
 		serverinfo.Command,
+		roleinfo.Command,
 
 		//Tibia
 		//Chars
