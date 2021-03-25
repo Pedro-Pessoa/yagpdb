@@ -1,7 +1,6 @@
 package discordgo
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jonas747/gojay"
@@ -87,7 +86,7 @@ func (u *User) String() string {
 
 // Mention return a string which mentions the user
 func (u *User) Mention() string {
-	return fmt.Sprintf("<@%d>", u.ID)
+	return "<@" + StrID(u.ID) + ">"
 }
 
 // implement gojay.UnmarshalerJSONObject

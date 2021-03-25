@@ -13,7 +13,6 @@ package discordgo
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 	"strings"
@@ -275,7 +274,7 @@ func (c *Channel) GetGuildID() int64 {
 
 // Mention returns a string which mentions the channel
 func (c *Channel) Mention() string {
-	return fmt.Sprintf("<#%d>", c.ID)
+	return "<#" + StrID(c.ID) + ">"
 }
 
 // A ChannelEdit holds Channel Field data for a channel edit.
@@ -845,7 +844,7 @@ type Member struct {
 
 // Mention creates a member mention
 func (m *Member) Mention() string {
-	return fmt.Sprintf("<@!%d>", m.User.ID)
+	return "<@" + StrID(m.User.ID) + ">"
 }
 
 func (m *Member) GetGuildID() int64 {

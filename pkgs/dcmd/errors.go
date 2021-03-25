@@ -2,6 +2,8 @@ package dcmd
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +72,7 @@ type ChannelNotFound struct {
 }
 
 func (c *ChannelNotFound) Error() string {
-	return fmt.Sprintf("Channel %d not found", c.ID)
+	return "Channel " + strconv.FormatInt(c.ID, 10) + " not found"
 }
 
 func (c *ChannelNotFound) IsUserError() bool {
