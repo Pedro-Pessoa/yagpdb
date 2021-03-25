@@ -178,6 +178,7 @@ func CreateEmbed(values ...interface{}) (*discordgo.MessageEmbed, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		m = dict
 	}
 

@@ -19,9 +19,9 @@ import (
 
 var Command = &commands.TIDCommand{
 	CmdCategory: commands.CategoryGeneral,
-	Name:        "serverinfo",
+	Name:        "Serverinfo",
 	Aliases:     []string{"sinfo"},
-	Description: "Shows some informations about the server",
+	Description: "Shows informations about the server",
 	Cooldown:    5,
 	RunFunc: func(data *dcmd.Data) (interface{}, error) {
 		embed := embedCreator(data, nil, false)
@@ -48,7 +48,7 @@ var AdminCommand = &commands.TIDCommand{
 			return embedCreator(data, nil, false), nil
 		}
 
-		gs := bot.State.Guild(false, data.Args[0].Int64())
+		gs := bot.State.Guild(true, data.Args[0].Int64())
 		if gs == nil {
 			return "Guild is not in state", nil
 		}
@@ -73,6 +73,8 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 		return nil
 	}
 
+	gs.RLock()
+	thumbUrl := gs.Guild.IconURL()
 	guild := gs.DeepCopy(false, true, true, true, true)
 	guild.Members = make([]*discordgo.Member, len(gs.Members))
 	i := 0
@@ -277,11 +279,15 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 	prefix := common.BotUser.Mention() + "\n" + prfx.GetPrefixIgnoreError(guild.ID)
 
 	created := discordgo.SnowflakeTimestamp(guild.ID)
+	gs.RUnlock()
 
 	embed := &discordgo.MessageEmbed{
 		Title:       title,
 		Description: description,
 		Color:       int(rand.Int63n(16777215)),
+		Thumbnail: &discordgo.MessageEmbedThumbnail{
+			URL: thumbUrl,
+		},
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:   "Owner",

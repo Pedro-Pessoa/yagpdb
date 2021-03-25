@@ -649,24 +649,24 @@ func (c *Context) FindRole(role interface{}) *discordgo.Role {
 	case string:
 		parsed, err := strconv.ParseInt(t, 10, 64)
 		if err == nil {
-			return c.GS.Role(true, ToInt64(parsed))
+			return c.GS.RoleCopy(true, ToInt64(parsed))
 		}
 
 		if strings.HasPrefix(t, "<@&") && strings.HasSuffix(t, ">") && (len(t) > 4) {
 			parsedMention, err := strconv.ParseInt(t[2:len(t)-1], 10, 64)
 			if err == nil {
-				return c.GS.Role(true, ToInt64(parsedMention))
+				return c.GS.RoleCopy(true, ToInt64(parsedMention))
 			}
 		}
 
-		return c.GS.RoleByName(true, t)
+		return c.GS.RoleCopyByName(true, t)
 	default:
 		int64Role := ToInt64(t)
 		if int64Role == 0 {
 			return nil
 		}
 
-		return c.GS.Role(true, int64Role)
+		return c.GS.RoleCopy(true, int64Role)
 	}
 }
 
@@ -1460,84 +1460,6 @@ func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel
 			return nil, err
 		}
 		m = dict
-	}
-
-	for k, v := range m {
-		switch k {
-		case "parent_id":
-			value, valid := channelValueValidation(v)
-			if !valid {
-				return nil, errors.Errorf("parent_id %v is not valid", v)
-			}
-
-			m["parent_id"] = value
-		case "permission_overwrites":
-			val := reflect.ValueOf(v)
-			switch val.Kind() {
-			case reflect.Slice, reflect.Array:
-				for i := 0; i < val.Len(); i++ {
-					innerVal := reflect.ValueOf(val.Index(i).Interface())
-					switch innerVal.Kind() {
-					case reflect.Map:
-						innerMap, err := StringKeyDictionary(val.Index(i).Interface())
-						if err != nil {
-							return nil, errors.Errorf("Could not convert value to a map. Invalid permission_overwrites field value provided of type %s", innerVal.Type())
-						}
-
-						for key, value := range innerMap {
-							switch key {
-							case "id", "allow", "deny":
-								newValue, valid := channelValueValidation(value)
-								if !valid {
-									return nil, errors.Errorf("Invalid id or perm provided for permission_overwrites: %s", value)
-								}
-
-								_, err = innerMap.Set(key, newValue)
-								if err != nil {
-									return nil, err
-								}
-							case "type":
-								switch mapT := value.(type) {
-								case string:
-									switch mapT {
-									case "role", "0":
-										_, err = innerMap.Set("type", 0)
-										if err != nil {
-											return nil, err
-										}
-									case "member", "1":
-										_, err = innerMap.Set("type", 1)
-										if err != nil {
-											return nil, err
-										}
-									default:
-										return nil, errors.Errorf("Unknown overwrite type %s", mapT)
-									}
-								case int, int64, float64:
-									number := ToInt(mapT)
-									if number != 0 && number != 1 {
-										return nil, errors.Errorf("Invalid type value: %v", mapT)
-									}
-
-									_, err = innerMap.Set("type", number)
-									if err != nil {
-										return nil, err
-									}
-								default:
-									return nil, errors.Errorf("Type %v is not valid.", mapT)
-								}
-							default:
-								return nil, errors.Errorf("Key %s is not a valid key for permission_overwrites", key)
-							}
-						}
-					default:
-						return nil, errors.Errorf("Invalid permission_overwrites field value provided of type %s", innerVal.Type())
-					}
-				}
-			default:
-				return nil, errors.Errorf("Invalid permission_overwrites value provided of type %s", val.Type())
-			}
-		}
 	}
 
 	encoded, err := json.Marshal(m)

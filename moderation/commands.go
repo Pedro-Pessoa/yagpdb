@@ -1207,7 +1207,6 @@ func AdvancedDeleteMessages(channelID int64, filterUser int64, regex string, che
 
 func FindRole(gs *dstate.GuildState, roleS string) *discordgo.Role {
 	parsedNumber, parseErr := strconv.ParseInt(roleS, 10, 64)
-	var name string
 	var id int64
 
 	if parseErr != nil { // it's a mention or a name
@@ -1215,28 +1214,17 @@ func FindRole(gs *dstate.GuildState, roleS string) *discordgo.Role {
 			id, _ = strconv.ParseInt(roleS[3:len(roleS)-1], 10, 64) // parse the id
 		} else {
 			// it's a name afterall
-			name = roleS
+			return gs.RoleCopyByName(true, roleS)
 		}
 	} else {
 		id = parsedNumber
 	}
 
-	gs.RLock()
-	defer gs.RUnlock()
-	if name != "" { // it was a name
-		for _, v := range gs.Guild.Roles {
-			if strings.EqualFold(strings.TrimSpace(v.Name), name) {
-				return v
-			}
-		}
-	} else { // was a number, try looking by id
-		r := gs.RoleCopy(false, id)
-		if r != nil {
-			return r
-		}
+	if id == 0 {
+		return nil
 	}
 
-	return nil // couldn't find the role :(
+	return gs.RoleCopy(true, id)
 }
 
 func PaginateWarnings(parsed *dcmd.Data) func(p *paginatedmessages.PaginatedMessage, page int) (*discordgo.MessageEmbed, error) {

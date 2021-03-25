@@ -20,30 +20,6 @@ func emojiArg(emoji string) string {
 	return emoji
 }
 
-func channelValueValidation(input interface{}) (out string, valid bool) {
-	switch t := input.(type) {
-	case string:
-		_, err := strconv.ParseInt(t, 10, 64)
-		if err != nil {
-			return "", false
-		}
-
-		return t, true
-	default:
-		newValue := ToString(t)
-		if newValue == "" {
-			return "", false
-		}
-
-		_, err := strconv.ParseInt(newValue, 10, 64)
-		if err != nil {
-			return "", false
-		}
-
-		return newValue, true
-	}
-}
-
 var permMap = map[string]int64{
 	"view_channel":           discordgo.PermissionViewChannel,
 	"read_messages":          discordgo.PermissionViewChannel, // deprecated, let here for convinience
