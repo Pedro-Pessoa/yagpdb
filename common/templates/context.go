@@ -190,9 +190,8 @@ func (c *Context) setupContextFuncs() {
 }
 
 func (c *Context) setupBaseData() {
-	botUser := common.BotUser
-	botUser.Email = ""
-	botUser.Token = ""
+	c.BotUser.Email = ""
+	c.BotUser.Token = ""
 
 	if c.GS != nil {
 		var guild *discordgo.Guild
@@ -212,7 +211,7 @@ func (c *Context) setupBaseData() {
 		c.Data["server"] = guild
 		c.Data["ServerPrefix"] = prefix.GetPrefixIgnoreError(c.GS.ID)
 
-		botMember, _ := bot.GetMember(c.GS.ID, botUser.ID)
+		botMember, _ := bot.GetMember(c.GS.ID, c.BotUser.ID)
 		c.Data["BotMember"] = CtxMemberFromMS(botMember)
 	}
 
@@ -228,7 +227,7 @@ func (c *Context) setupBaseData() {
 		c.Data["user"] = c.Data["User"]
 	}
 
-	c.Data["Bot"] = botUser
+	c.Data["Bot"] = c.BotUser
 	c.Data["TimeSecond"] = time.Second
 	c.Data["TimeMinute"] = time.Minute
 	c.Data["TimeHour"] = time.Hour
