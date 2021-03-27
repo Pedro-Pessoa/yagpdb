@@ -68,7 +68,7 @@ func HandleGuildMemberAdd(evtData *eventsystem.EventData) (retry bool, err error
 
 			go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_msg")
 
-			if sendTemplate(thinCState, config.JoinDMMsg, ms, "join dm", false) {
+			if sendTemplate(thinCState, config.JoinDMMsg, ms, "join dm", false, false) {
 				return true, nil
 			}
 		}
@@ -87,7 +87,7 @@ func HandleGuildMemberAdd(evtData *eventsystem.EventData) (retry bool, err error
 		go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_dm")
 
 		chanMsg := config.JoinServerMsgs[rand.Intn(len(config.JoinServerMsgs))]
-		if sendTemplate(channel, chanMsg, ms, "join server msg", config.CensorInvites) {
+		if sendTemplate(channel, chanMsg, ms, "join server msg", config.CensorInvites, false) {
 			return true, nil
 		}
 	}
@@ -155,7 +155,7 @@ func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err er
 
 			go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_msg")
 
-			if sendTemplate(thinCState, config.JoinDMMsg, ms, "join dm", false) {
+			if sendTemplate(thinCState, config.JoinDMMsg, ms, "join dm", false, false) {
 				return true, nil
 			}
 		}
@@ -170,7 +170,7 @@ func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err er
 		go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_join_server_dm")
 
 		chanMsg := config.JoinServerMsgs[rand.Intn(len(config.JoinServerMsgs))]
-		if sendTemplate(channel, chanMsg, ms, "join server msg", config.CensorInvites) {
+		if sendTemplate(channel, chanMsg, ms, "join server msg", config.CensorInvites, false) {
 			return true, nil
 		}
 	}
@@ -205,7 +205,7 @@ func HandleGuildMemberRemove(evt *eventsystem.EventData) (retry bool, err error)
 
 	go analytics.RecordActiveUnit(gs.ID, &Plugin{}, "posted_leave_server_msg")
 
-	if sendTemplate(channel, chanMsg, ms, "leave", config.CensorInvites) {
+	if sendTemplate(channel, chanMsg, ms, "leave", config.CensorInvites, true) {
 		return true, nil
 	}
 
@@ -213,9 +213,10 @@ func HandleGuildMemberRemove(evt *eventsystem.EventData) (retry bool, err error)
 }
 
 // sendTemplate parses and executes the provided template, returns wether an error occured that we can retry from (temporary network failures and the like)
-func sendTemplate(cs *dstate.ChannelState, tmpl string, ms *dstate.MemberState, name string, censorInvites bool) bool {
+func sendTemplate(cs *dstate.ChannelState, tmpl string, ms *dstate.MemberState, name string, censorInvites, isLeaveMsg bool) bool {
 	ctx := templates.NewContext(cs.Guild, cs, ms)
 	ctx.CurrentFrame.SendResponseInDM = cs.Type == discordgo.ChannelTypeDM
+	ctx.IsExecedByLeaveMessage = isLeaveMsg
 
 	ctx.Data["RealUsername"] = ms.Username
 	if censorInvites {

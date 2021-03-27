@@ -134,6 +134,8 @@ type Context struct {
 	RegexCache map[string]*regexp.Regexp
 
 	CurrentFrame *contextFrame
+
+	IsExecedByLeaveMessage bool
 }
 
 type contextFrame struct {
@@ -279,6 +281,7 @@ func (c *Context) Execute(source string) (string, error) {
 	if c.GS != nil {
 		c.GS.RLock()
 	}
+
 	c.setupBaseData()
 	if c.GS != nil {
 		c.GS.RUnlock()
@@ -288,6 +291,7 @@ func (c *Context) Execute(source string) (string, error) {
 	if err != nil {
 		return "", errors.WithMessage(err, "Failed parsing template")
 	}
+
 	c.CurrentFrame.parsedTemplate = parsed
 
 	return c.executeParsed()
@@ -305,6 +309,10 @@ func (c *Context) executeParsed() (r string, err error) {
 			err = errors.WithMessage(err, "bot unexpectedly panicked")
 		}
 	}()
+
+	if c.CurrentFrame.SendResponseInDM && c.IsExecedByLeaveMessage {
+		return "", errors.New("Can not send DM on leave message")
+	}
 
 	parsed := c.CurrentFrame.parsedTemplate
 	if c.IsPremium {

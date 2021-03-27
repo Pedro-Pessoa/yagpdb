@@ -64,7 +64,7 @@ func (c *Context) buildDM(gName string, s ...interface{}) *discordgo.MessageSend
 }
 
 func (c *Context) tmplSendDM(s ...interface{}) string {
-	if len(s) < 1 || c.IncreaseCheckCallCounter("send_dm", 1) || c.IncreaseCheckGenericAPICall() || c.MS == nil {
+	if len(s) < 1 || c.IncreaseCheckCallCounter("send_dm", 1) || c.IncreaseCheckGenericAPICall() || c.MS == nil || c.IsExecedByLeaveMessage {
 		return ""
 	}
 
@@ -94,6 +94,10 @@ func (c *Context) tmplSendDMWithError(s ...interface{}) (string, error) {
 		return "", ErrTooManyAPICalls
 	}
 
+	if c.IsExecedByLeaveMessage {
+		return "", errors.New("Can't use sendDM on leave msg")
+	}
+
 	if c.MS == nil {
 		return "", errors.New("SendDM called on context with nil MemberState")
 	}
@@ -113,7 +117,7 @@ func (c *Context) tmplSendDMWithError(s ...interface{}) (string, error) {
 
 func (c *Context) tmplSendTargetDM(target interface{}, s ...interface{}) string {
 	if bot.IsGuildWhiteListed(c.GS.ID) {
-		if len(s) < 1 || c.IncreaseCheckCallCounter("send_dm", 1) || c.IncreaseCheckGenericAPICall() {
+		if len(s) < 1 || c.IncreaseCheckCallCounter("send_dm", 1) || c.IncreaseCheckGenericAPICall() || c.IsExecedByLeaveMessage {
 			return ""
 		}
 
@@ -145,6 +149,10 @@ func (c *Context) tmplSendTargetDMWithError(target interface{}, s ...interface{}
 
 		if c.IncreaseCheckGenericAPICall() {
 			return "", ErrTooManyAPICalls
+		}
+
+		if c.IsExecedByLeaveMessage {
+			return "", errors.New("Can't use sendTargetDM on leave msg")
 		}
 
 		ts, err := c.getMember(target)
@@ -502,6 +510,10 @@ func (c *Context) tmplSendTemplate(channel interface{}, name string, data ...int
 }
 
 func (c *Context) tmplSendTemplateDM(name string, data ...interface{}) (interface{}, error) {
+	if c.IsExecedByLeaveMessage {
+		return "", errors.New("Can't use sendDM on leave msg")
+	}
+
 	return c.sendNestedTemplate(nil, true, false, name, data...)
 }
 
