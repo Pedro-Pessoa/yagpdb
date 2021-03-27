@@ -182,7 +182,7 @@ type TargetUserType int
 
 // Block contains known TargetUserType values
 const (
-	TargetUserTypeStream TargetUserType = iota
+	TargetUserTypeStream TargetUserType = iota + 1
 )
 
 // ChannelType is the type of a Channel

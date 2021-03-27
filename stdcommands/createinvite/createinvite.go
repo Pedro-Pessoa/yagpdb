@@ -42,10 +42,9 @@ var Command = &commands.TIDCommand{
 		}
 
 		invite, err := common.BotSession.ChannelInviteCreate(channelID, discordgo.Invite{
-			MaxAge:    120,
-			MaxUses:   1,
-			Temporary: true,
-			Unique:    true,
+			MaxAge:  120,
+			MaxUses: 1,
+			Unique:  true,
 		})
 
 		if err != nil {
