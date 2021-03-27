@@ -137,6 +137,10 @@ func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err er
 
 	// Beware of the pyramid and its curses
 	if config.JoinDMEnabled && !evt.User.Bot {
+		if !config.JoinDMWaitForPendingEnabled {
+			return
+		}
+
 		cid, err := common.BotSession.UserChannelCreate(evt.User.ID)
 		if err != nil {
 			if bot.CheckDiscordErrRetry(err) {
@@ -162,6 +166,10 @@ func HandleGuildMemberUpdate(evtData *eventsystem.EventData) (retry bool, err er
 	}
 
 	if config.JoinServerEnabled && len(config.JoinServerMsgs) > 0 {
+		if !config.JoinServerWaitForPendingEnabled {
+			return
+		}
+
 		channel := gs.Channel(true, config.JoinServerChannelInt())
 		if channel == nil {
 			return
