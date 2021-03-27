@@ -543,6 +543,10 @@ type Guild struct {
 
 	// Permissions of our user
 	Permissions int64 `json:"permissions,string"`
+
+	// The welcome screen of a Community guild, shown to new members
+	// Returned when in the invite object
+	WelcomeScreen *WelcomeScreen `json:"welcome_screen"`
 }
 
 // IconURL returns a URL to the guild's icon.
@@ -580,6 +584,18 @@ func (g *Guild) Channel(id int64) *Channel {
 	}
 
 	return nil
+}
+
+type WelcomeScreen struct {
+	Description     string                  `json:"description,omitempty"`
+	WelcomeChannels []WelcomeScreenChannels `json:"welcome_channels"`
+}
+
+type WelcomeScreenChannels struct {
+	ID          int64  `json:"channel_id"`
+	Description string `json:"description"`
+	EmojiID     int64  `json:"emoji_id,omitempty"`
+	EmojiName   string `json:"emoji_name,omitempty"`
 }
 
 // A GuildPreview holds data related to a specific public Discord Guild, even if the user is not in the guild.
