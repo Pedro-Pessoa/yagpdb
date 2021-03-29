@@ -587,8 +587,8 @@ func (g *Guild) Channel(id int64) *Channel {
 }
 
 type WelcomeScreen struct {
-	Description     string                  `json:"description,omitempty"`
-	WelcomeChannels []WelcomeScreenChannels `json:"welcome_channels"`
+	Description     string                   `json:"description,omitempty"`
+	WelcomeChannels []*WelcomeScreenChannels `json:"welcome_channels"`
 }
 
 type WelcomeScreenChannels struct {
