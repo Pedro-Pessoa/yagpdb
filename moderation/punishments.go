@@ -313,7 +313,10 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 	}
 
 	if role == nil {
-		return "No role with the Name or ID `" + roleS + "` found.", nil
+		role = FindRole(gs, roleS)
+		if role == nil {
+			return "No role with the Name or ID `" + roleS + "` found.", nil
+		}
 	}
 
 	gs.RLock()
