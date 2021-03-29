@@ -301,15 +301,16 @@ func LockUnlockRole(config *Config, lock bool, gs *dstate.GuildState, channel *d
 		return nil, common.ErrWithCaller(err)
 	}
 
+	var role *discordgo.Role
+
 	if roleS == "" {
 		switch roleStr := config.DefaultLockRole; roleStr {
 		case "":
-			roleS = "@everyone"
+			role = gs.RoleCopy(true, gs.ID)
 		default:
-			roleS = roleStr
+			role = FindRole(gs, roleStr)
 		}
 	}
-	role := FindRole(gs, roleS)
 
 	if role == nil {
 		return "No role with the Name or ID `" + roleS + "` found.", nil

@@ -102,18 +102,11 @@ func embedCreator(data *dcmd.Data, customGuild *dstate.GuildState, createInvite 
 
 	var channelOutput strings.Builder
 	var textCount, textLockedCount, categoryCount, newsCount, voiceCount, voiceLockedCount, storeCount, total int
-	var everyoneID int64
 	var inviteSet, inviteErrored bool
 	var inviteErr error
 	var invite *discordgo.Invite
 	var err error
-
-	for _, r := range guild.Roles {
-		if r.Name == "@everyone" {
-			everyoneID = r.ID
-			break
-		}
-	}
+	everyoneID := gs.ID
 
 	for _, c := range guild.Channels {
 		total++
