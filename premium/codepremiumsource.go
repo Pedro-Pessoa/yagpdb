@@ -237,10 +237,10 @@ var cmdDeleteCode = &commands.TIDCommand{
 				return "Código não encontrado", nil
 			}
 
-			return amount, err
+			return fmt.Sprintf("Deleted %d with the following error:\nRaw error: `%#v`\nString error: `%s`", amount, err, err), err
 		}
 
-		return "Code " + code + " deleted.\nTotal amount: " + fmt.Sprintln(amount), nil
+		return "Code " + code + " deleted.\nTotal amount: " + discordgo.StrID(amount), nil
 	}),
 }
 
@@ -257,22 +257,22 @@ func DeletePremiumCode(ctx context.Context, code string) (amount int64, err erro
 
 	slot, err := LookUpSlot(ctx, dbCode.ID)
 	if err != nil && err != ErrCodeNotFound {
-		return 0, errors.WithMessage(err, "error 1")
+		return amount, errors.WithMessage(err, "error 1")
 	}
 
 	if err == nil {
 		err = DetachSlotFromGuild(ctx, slot.ID, slot.UserID)
 		if err != nil {
-			return 0, errors.WithMessage(err, "error detaching from guild")
+			return amount, errors.WithMessage(err, "error detaching from guild")
 		}
 
 		_, err = slot.DeleteG(ctx)
 		if err != nil {
-			return 0, errors.WithMessage(err, "error 2")
+			return amount, errors.WithMessage(err, "error 2")
 		}
 	}
 
-	return amount, nil
+	return amount, err
 }
 
 var cmdPremiumInfo = &commands.TIDCommand{
@@ -287,7 +287,7 @@ var cmdPremiumInfo = &commands.TIDCommand{
 		host := common.ConfHost.GetString()
 
 		thumb := &discordgo.MessageEmbedThumbnail{
-			URL: common.BotUser.AvatarURL("512"),
+			URL: common.BotUser.AvatarURL("1024"),
 		}
 
 		cor := int(rand.Int63n(16777215))

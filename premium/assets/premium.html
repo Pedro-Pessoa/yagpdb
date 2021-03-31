@@ -111,7 +111,6 @@
                 <header class="card-header">
                     <h2 class="card-title">Slot: {{.Title}}</h2>
                 </header>
-
                 <div class="card-body">
                     <ul>
                         <li>
@@ -121,7 +120,6 @@
                         </li>
                         {{with .Message}}<li>{{.}}</li>{{end}}
                     </ul>
-
                     <form action="/premium/updateslot/{{.ID}}" method="post" data-async-form>
                         <div class="form-group">
                             <label for="slot-{{.ID}}">Escolha o servidor</label>
@@ -140,7 +138,6 @@
                                 {{end}}
                             </select>
                         </div>
-
                         <button type="submit" class="btn btn-success mt-2">Update slot premium</button>
                     </form>
                 </div>
