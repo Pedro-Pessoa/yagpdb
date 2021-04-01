@@ -26,8 +26,6 @@ type GuildState struct {
 	Members  map[int64]*MemberState  `json:"members"`
 	Channels map[int64]*ChannelState `json:"channels"`
 
-	Emojis map[int64]*discordgo.Emoji
-
 	MaxMessages          int           // Absolute max number of messages cached in a channel
 	MaxMessageDuration   time.Duration // Max age of messages, if 0 ignored. (Only checks age whena new message is received on the channel)
 	RemoveOfflineMembers bool
@@ -75,6 +73,10 @@ func NewGuildState(guild *discordgo.Guild, state *State) *GuildState {
 		if !state.TrackPresences {
 			gCop.Presences = nil
 		}
+	}
+
+	if state != nil && !state.TrackEmojis {
+		gCop.Emojis = nil
 	}
 
 	gCop.Members = nil
@@ -740,24 +742,13 @@ func (g *GuildState) Copy() *GuildState {
 }
 
 // EmojisAddUpdate adds or updates the guilds emojis
-func (g *GuildState) EmojisAddUpdate(lock bool, newEmojis []*discordgo.Emoji) {
+func (g *GuildState) EmojisAddUpdate(lock bool, emojis []*discordgo.Emoji) {
 	if lock {
 		g.Lock()
 		defer g.Unlock()
 	}
 
-	if g.Emojis == nil {
-		g.Emojis = make(map[int64]*discordgo.Emoji)
-	}
-
-	for _, e := range newEmojis {
-		if e == nil {
-			continue
-		}
-
-		eCopy := *e
-		g.Emojis[e.ID] = &eCopy
-	}
+	g.Guild.Emojis = emojis
 }
 
 // Emoji returns the specified emoji, nil if not found
@@ -767,5 +758,5 @@ func (g *GuildState) Emoji(lock bool, emojiID int64) *discordgo.Emoji {
 		defer g.Unlock()
 	}
 
-	return g.Emojis[emojiID]
+	return g.Guild.Emojis[emojiID]
 }

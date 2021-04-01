@@ -38,6 +38,7 @@ type State struct {
 	TrackRoles           bool
 	TrackVoice           bool
 	TrackPresences       bool
+	TrackEmojis          bool
 	TrackMessages        bool
 	ThrowAwayDMMessages  bool // Don't track dm messages if set
 
@@ -125,6 +126,7 @@ func NewState() *State {
 		KeepDeletedMessages:  true,
 		ThrowAwayDMMessages:  true,
 		TrackMessages:        true,
+		TrackEmojis:          true,
 
 		cacheMiss: new(int64),
 		cacheHits: new(int64),
@@ -740,6 +742,9 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 	case *discordgo.Ready:
 		s.HandleReady(evt)
 	case *discordgo.GuildEmojisUpdate:
+		if !s.TrackEmojis {
+			return
+		}
 		g := s.Guild(true, evt.GuildID)
 		if g != nil {
 			if s.TrackBeforeStates {
