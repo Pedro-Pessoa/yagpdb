@@ -410,9 +410,7 @@ func (c *Context) tmplGetMessage(channel, msgID interface{}) (*discordgo.Message
 
 	mID := ToInt64(msgID)
 
-	message, _ := common.BotSession.ChannelMessage(cID, mID)
-
-	return message, nil
+	return common.BotSession.ChannelMessage(cID, mID)
 }
 
 func (c *Context) tmplGetMessageReactors(channel, msg interface{}, emoji string, limit int, before, after interface{}) ([]*discordgo.User, error) {

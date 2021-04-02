@@ -19,7 +19,9 @@ type ChannelState struct {
 	Type                 discordgo.ChannelType            `json:"type"`
 	Topic                string                           `json:"topic"`
 	LastMessageID        int64                            `json:"last_message_id"`
+	LastPinTimestamp     time.Time                        `json:"last_pin_timestamp"`
 	NSFW                 bool                             `json:"nsfw"`
+	Icon                 string                           `json:"icon"`
 	Position             int                              `json:"position"`
 	Bitrate              int                              `json:"bitrate"`
 	PermissionOverwrites []*discordgo.PermissionOverwrite `json:"permission_overwrites"`
@@ -37,10 +39,19 @@ type ChannelState struct {
 	// but in some cases (embed edits for example) the edit can come before the create event
 	// for those edge cases we store the last edited unknown message here, then apply it as an update
 	LastUnknownMsgEdit *discordgo.Message `json:"last_unknown_msg_edit"`
+
+	// Amount of seconds a user has to wait before sending another message (0-21600)
+	// bots, as well as users with the permission manage_messages or manage_channel, are unaffected
+	RateLimitPerUser int `json:"rate_limit_per_user"`
+
+	// ID of the DM creator Zeroed if guild channel
+	OwnerID int64 `json:"owner_id"`
+
+	// ApplicationID of the DM creator Zeroed if guild channel or not a bot user
+	ApplicationID int64 `json:"application_id"`
 }
 
 func NewChannelState(guild *GuildState, owner RWLocker, channel *discordgo.Channel) *ChannelState {
-
 	cs := &ChannelState{
 		Owner: owner,
 		Guild: guild,
@@ -59,9 +70,14 @@ func NewChannelState(guild *GuildState, owner RWLocker, channel *discordgo.Chann
 		Bitrate:              channel.Bitrate,
 		PermissionOverwrites: channel.PermissionOverwrites,
 		ParentID:             channel.ParentID,
+		OwnerID:              channel.OwnerID,
+		ApplicationID:        channel.ApplicationID,
+		RateLimitPerUser:     channel.RateLimitPerUser,
 
 		Recipients: channel.Recipients,
 	}
+
+	cs.LastPinTimestamp, _ = channel.LastPinTimestamp.Parse()
 
 	return cs
 }

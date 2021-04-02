@@ -529,9 +529,9 @@ func handleGuildMemberRemoveSticky(evt *eventsystem.EventData) (retry bool, err 
 		return false, nil
 	}
 
-	bot.State.BeforeStateLocker.Lock()
+	bot.State.BeforeStateMemberLocker.Lock()
 	oldMember := bot.State.BeforeStateMemberMap[update.Member.User.ID]
-	bot.State.BeforeStateLocker.Unlock()
+	bot.State.BeforeStateMemberLocker.Unlock()
 
 	if oldMember == nil || oldMember.MemberState == nil {
 		return false, nil

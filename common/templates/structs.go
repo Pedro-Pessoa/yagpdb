@@ -1,6 +1,8 @@
 package templates
 
 import (
+	"time"
+
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 )
@@ -17,11 +19,13 @@ type CtxChannel struct {
 	Type                 discordgo.ChannelType            `json:"type"`
 	Topic                string                           `json:"topic"`
 	LastMessageID        int64                            `json:"last_message_id"`
+	LastPinTimestamp     time.Time                        `json:"last_pin_timestamp"`
 	NSFW                 bool                             `json:"nsfw"`
 	Position             int                              `json:"position"`
 	Bitrate              int                              `json:"bitrate"`
 	PermissionOverwrites []*discordgo.PermissionOverwrite `json:"permission_overwrites"`
 	ParentID             int64                            `json:"parent_id"`
+	RateLimitPerUser     int                              `json:"rate_limit_per_user"`
 }
 
 func CtxChannelFromCS(cs *dstate.ChannelState) *CtxChannel {
@@ -37,6 +41,7 @@ func CtxChannelFromCS(cs *dstate.ChannelState) *CtxChannel {
 		Bitrate:              cs.Bitrate,
 		PermissionOverwrites: cs.PermissionOverwrites,
 		ParentID:             cs.ParentID,
+		RateLimitPerUser:     cs.RateLimitPerUser,
 	}
 
 	if !cs.IsPrivate {
@@ -62,6 +67,7 @@ func CtxChannelFromCSLocked(cs *dstate.ChannelState) *CtxChannel {
 		Bitrate:              cs.Bitrate,
 		PermissionOverwrites: cs.PermissionOverwrites,
 		ParentID:             cs.ParentID,
+		RateLimitPerUser:     cs.RateLimitPerUser,
 	}
 
 	if !cs.IsPrivate {
@@ -83,6 +89,7 @@ func CtxChannelFromDGoChannel(dc *discordgo.Channel) *CtxChannel {
 		Bitrate:              dc.Bitrate,
 		PermissionOverwrites: dc.PermissionOverwrites,
 		ParentID:             dc.ParentID,
+		RateLimitPerUser:     dc.RateLimitPerUser,
 	}
 
 	if !dstate.IsPrivate(ctxChannel.Type) {

@@ -38,10 +38,8 @@ type LightActivity struct {
 
 // MemberState represents the state of a member
 type MemberState struct {
-	Guild *GuildState `json:"-" msgpack:"-"`
-
-	// The ID of the member, safe to access without locking
-	ID int64 `json:"id"`
+	// The guild ID on which the member exists.
+	GuildID int64 `json:"guild_id,string"`
 
 	// The time at which the member joined the guild, in ISO8601.
 	// This may be zero if the member hasnt been updated
@@ -50,8 +48,35 @@ type MemberState struct {
 	// The nickname of the member, if they have one.
 	Nick string `json:"nick"`
 
+	// Whether the member is deafened at a guild level.
+	Deaf bool `json:"deaf"`
+
+	// Whether the member is muted at a guild level.
+	Mute bool `json:"mute"`
+
+	// The user object.
+	User *discordgo.User `json:"user"`
+
 	// A list of IDs of the roles which are possessed by the member.
 	Roles []int64 `json:"roles"`
+
+	// When the user used their Nitro boost on the server
+	PremiumSince time.Time `json:"premium_since"`
+
+	// Whether the user has passed the guild's Membership Screening requirements
+	Pending bool `json:"pending"`
+
+	// Total permissions of the member in the channel, including overrides, returned when in the interaction object.
+	Permissions int64 `json:"permissions"`
+
+	//////////////////////////////////////
+	// NON STANDARD MEMBER FIELDS BELOW //
+	//////////////////////////////////////
+
+	Guild *GuildState `json:"-" msgpack:"-"`
+
+	// The ID of the member, safe to access without locking
+	ID int64 `json:"id"`
 
 	PresenceStatus     PresenceStatus   `json:"presence_status"`
 	PresenceActivities []*LightActivity `json:"presence_activity"`
@@ -59,37 +84,41 @@ type MemberState struct {
 	// The users username.
 	Username string `json:"username"`
 
-	// The user object.
-	User *discordgo.User `json:"user"`
-
 	// The hash of the user's avatar. Use Session.UserAvatar
 	// to retrieve the avatar itself.
 	Avatar [16]byte `json:"avatar"`
+
 	// The discriminator of the user (4 numbers after name).
 	Discriminator int32 `json:"discriminator"`
 
+	// Wether the user avatar is animated
 	AnimatedAvatar bool `json:"animated_avatar"`
 
 	// Whether the user is a bot, safe to access without locking
-	Bot       bool `json:"bot"`
+	Bot bool `json:"bot"`
+
+	// Wheter the member was set
 	MemberSet bool `json:"member_set"`
+
 	// Wether the presence Information was set
 	PresenceSet bool `json:"presence_set"`
-
-	// Whether the user has passed the guild's Membership Screening requirements
-	Pending bool `json:"pending"`
 }
 
 func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
 	ms := &MemberState{
-		Guild:     gs,
-		ID:        member.User.ID,
-		Roles:     member.Roles,
-		Username:  member.User.Username,
-		Nick:      member.Nick,
-		Bot:       member.User.Bot,
-		User:      member.User,
-		Pending:   member.Pending,
+		Guild:       gs,
+		GuildID:     member.GuildID,
+		ID:          member.User.ID,
+		Roles:       member.Roles,
+		Username:    member.User.Username,
+		Nick:        member.Nick,
+		Bot:         member.User.Bot,
+		User:        member.User,
+		Pending:     member.Pending,
+		Permissions: member.Permissions,
+		Deaf:        member.Deaf,
+		Mute:        member.Mute,
+
 		MemberSet: true,
 	}
 
@@ -99,6 +128,7 @@ func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
 	ms.Discriminator = int32(discrim)
 
 	ms.JoinedAt, _ = member.JoinedAt.Parse()
+	ms.PremiumSince, _ = member.PremiumSince.Parse()
 
 	return ms
 }
