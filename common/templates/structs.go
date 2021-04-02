@@ -36,6 +36,7 @@ func CtxChannelFromCS(cs *dstate.ChannelState) *CtxChannel {
 		Type:                 cs.Type,
 		Topic:                cs.Topic,
 		LastMessageID:        cs.LastMessageID,
+		LastPinTimestamp:     cs.LastPinTimestamp,
 		NSFW:                 cs.NSFW,
 		Position:             cs.Position,
 		Bitrate:              cs.Bitrate,
@@ -62,6 +63,7 @@ func CtxChannelFromCSLocked(cs *dstate.ChannelState) *CtxChannel {
 		Type:                 cs.Type,
 		Topic:                cs.Topic,
 		LastMessageID:        cs.LastMessageID,
+		LastPinTimestamp:     cs.LastPinTimestamp,
 		NSFW:                 cs.NSFW,
 		Position:             cs.Position,
 		Bitrate:              cs.Bitrate,
@@ -98,6 +100,8 @@ func CtxChannelFromDGoChannel(dc *discordgo.Channel) *CtxChannel {
 	} else {
 		ctxChannel.IsPrivate = true
 	}
+
+	ctxChannel.LastPinTimestamp, _ = dc.LastPinTimestamp.Parse()
 
 	return ctxChannel
 }
