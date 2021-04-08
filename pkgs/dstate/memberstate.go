@@ -61,7 +61,7 @@ type MemberState struct {
 	Roles []int64 `json:"roles"`
 
 	// When the user used their Nitro boost on the server
-	PremiumSince time.Time `json:"premium_since"`
+	PremiumSince *time.Time `json:"premium_since"`
 
 	// Whether the user has passed the guild's Membership Screening requirements
 	Pending bool `json:"pending"`
@@ -133,7 +133,8 @@ func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
 	ms.JoinedAt, _ = member.JoinedAt.Parse()
 
 	if member.PremiumSince != "" {
-		ms.PremiumSince, _ = member.PremiumSince.Parse()
+		msTime, _ := member.PremiumSince.Parse()
+		ms.PremiumSince = &msTime
 	}
 
 	return ms
@@ -175,7 +176,8 @@ func (m *MemberState) UpdateMember(member *discordgo.Member) {
 	}
 
 	if member.PremiumSince != "" {
-		m.PremiumSince, _ = member.PremiumSince.Parse()
+		mTime, _ := member.PremiumSince.Parse()
+		m.PremiumSince = &mTime
 	}
 }
 

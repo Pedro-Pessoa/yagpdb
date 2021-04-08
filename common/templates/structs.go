@@ -19,7 +19,7 @@ type CtxChannel struct {
 	Type                 discordgo.ChannelType            `json:"type"`
 	Topic                string                           `json:"topic"`
 	LastMessageID        int64                            `json:"last_message_id"`
-	LastPinTimestamp     time.Time                        `json:"last_pin_timestamp"`
+	LastPinTimestamp     *time.Time                       `json:"last_pin_timestamp"`
 	NSFW                 bool                             `json:"nsfw"`
 	Position             int                              `json:"position"`
 	Bitrate              int                              `json:"bitrate"`
@@ -105,7 +105,10 @@ func CtxChannelFromDGoChannel(dc *discordgo.Channel) *CtxChannel {
 		ctxChannel.IsPrivate = true
 	}
 
-	ctxChannel.LastPinTimestamp, _ = dc.LastPinTimestamp.Parse()
+	if dc.LastPinTimestamp != "" {
+		ctxTime, _ := dc.LastPinTimestamp.Parse()
+		ctxChannel.LastPinTimestamp = &ctxTime
+	}
 
 	return ctxChannel
 }
@@ -131,7 +134,7 @@ type CtxMember struct {
 	Mute         bool            `json:"mute"`
 	User         *discordgo.User `json:"user"`
 	Roles        []int64         `json:"roles"`
-	PremiumSince time.Time       `json:"premium_since"`
+	PremiumSince *time.Time      `json:"premium_since"`
 	Pending      bool            `json:"pending"`
 
 	//////////////////////////////////////

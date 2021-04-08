@@ -19,7 +19,7 @@ type ChannelState struct {
 	Type                 discordgo.ChannelType            `json:"type"`
 	Topic                string                           `json:"topic"`
 	LastMessageID        int64                            `json:"last_message_id"`
-	LastPinTimestamp     time.Time                        `json:"last_pin_timestamp"`
+	LastPinTimestamp     *time.Time                       `json:"last_pin_timestamp"`
 	NSFW                 bool                             `json:"nsfw"`
 	Icon                 string                           `json:"icon"`
 	Position             int                              `json:"position"`
@@ -80,7 +80,8 @@ func NewChannelState(guild *GuildState, owner RWLocker, channel *discordgo.Chann
 	}
 
 	if channel.LastPinTimestamp != "" {
-		cs.LastPinTimestamp, _ = channel.LastPinTimestamp.Parse()
+		csTime, _ := channel.LastPinTimestamp.Parse()
+		cs.LastPinTimestamp = &csTime
 	}
 
 	return cs
@@ -174,7 +175,8 @@ func (c *ChannelState) Update(lock bool, newChannel *discordgo.Channel) {
 	}
 
 	if newChannel.LastPinTimestamp != "" {
-		c.LastPinTimestamp, _ = newChannel.LastPinTimestamp.Parse()
+		cTime, _ := newChannel.LastPinTimestamp.Parse()
+		c.LastPinTimestamp = &cTime
 	}
 
 	c.Name = newChannel.Name
