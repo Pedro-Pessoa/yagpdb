@@ -40,18 +40,18 @@ require (
 	github.com/lunixbochs/vtclean v1.0.0
 	github.com/mailru/easyjson v0.7.7
 	github.com/mediocregopher/radix/v3 v3.7.0
-	github.com/microcosm-cc/bluemonday v1.0.4
+	github.com/microcosm-cc/bluemonday v1.0.6
 	github.com/miolini/datacounter v1.0.2
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
 	github.com/russross/blackfriday v1.6.0
-	github.com/shirou/gopsutil v3.21.2+incompatible
+	github.com/shirou/gopsutil v3.21.3+incompatible
 	github.com/shurcooL/github_flavored_markdown v0.0.0-20210228213109-c3a9aa474629
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/buntdb v1.2.0
+	github.com/tidwall/buntdb v1.2.3
 	github.com/tkuchiki/go-timezone v0.2.2
 	github.com/vmihailenco/msgpack v4.0.4+incompatible
 	github.com/volatiletech/null v8.0.0+incompatible
@@ -62,10 +62,10 @@ require (
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210324205630-d1beb07c2056
-	golang.org/x/oauth2 v0.0.0-20210323180902-22b0adad7558
-	golang.org/x/text v0.3.5
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+	golang.org/x/text v0.3.6
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/api v0.43.0
+	google.golang.org/api v0.44.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

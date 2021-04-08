@@ -12,12 +12,12 @@ import (
 type PresenceStatus int32
 
 const (
-	StatusNotSet       PresenceStatus = 0
-	StatusOnline       PresenceStatus = 1
-	StatusIdle         PresenceStatus = 2
-	StatusDoNotDisturb PresenceStatus = 3
-	StatusInvisible    PresenceStatus = 4
-	StatusOffline      PresenceStatus = 5
+	StatusNotSet PresenceStatus = iota
+	StatusOnline
+	StatusIdle
+	StatusDoNotDisturb
+	StatusInvisible
+	StatusOffline
 )
 
 type LightActivity struct {
@@ -102,6 +102,9 @@ type MemberState struct {
 
 	// Wether the presence Information was set
 	PresenceSet bool `json:"presence_set"`
+
+	// Client status of the member (web, mobile, dektop)
+	ClientStatus discordgo.ClientStatus `json:"client_status"`
 }
 
 func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
@@ -115,9 +118,9 @@ func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
 		Bot:         member.User.Bot,
 		User:        member.User,
 		Pending:     member.Pending,
-		Permissions: member.Permissions,
 		Deaf:        member.Deaf,
 		Mute:        member.Mute,
+		Permissions: member.Permissions,
 
 		MemberSet: true,
 	}
@@ -128,7 +131,10 @@ func MSFromDGoMember(gs *GuildState, member *discordgo.Member) *MemberState {
 	ms.Discriminator = int32(discrim)
 
 	ms.JoinedAt, _ = member.JoinedAt.Parse()
-	ms.PremiumSince, _ = member.PremiumSince.Parse()
+
+	if member.PremiumSince != "" {
+		ms.PremiumSince, _ = member.PremiumSince.Parse()
+	}
 
 	return ms
 }
@@ -160,6 +166,17 @@ func (m *MemberState) UpdateMember(member *discordgo.Member) {
 	m.MemberSet = true
 
 	m.Pending = member.Pending
+
+	m.Deaf = member.Deaf
+	m.Mute = member.Mute
+
+	if member.Permissions != 0 {
+		m.Permissions = member.Permissions
+	}
+
+	if member.PremiumSince != "" {
+		m.PremiumSince, _ = member.PremiumSince.Parse()
+	}
 }
 
 func (m *MemberState) UpdatePresence(presence *discordgo.Presence) {
@@ -199,6 +216,8 @@ func (m *MemberState) UpdatePresence(presence *discordgo.Presence) {
 		}
 	}
 
+	m.ClientStatus = presence.ClientStatus
+
 	// update the rest
 	if presence.User.Username != "" {
 		m.Username = presence.User.Username
@@ -218,7 +237,6 @@ func (m *MemberState) UpdatePresence(presence *discordgo.Presence) {
 	}
 
 	if presence.Status != "" {
-
 		switch presence.Status {
 		case discordgo.StatusOnline:
 			m.PresenceStatus = StatusOnline
@@ -272,13 +290,19 @@ func (m *MemberState) StrAvatar() string {
 }
 
 func (m *MemberState) DGoCopy() *discordgo.Member {
-	return &discordgo.Member{
-		User:     m.DGoUser(),
-		Nick:     m.Nick,
-		Roles:    m.Roles,
-		JoinedAt: discordgo.Timestamp(m.JoinedAt.Format(time.RFC3339)),
-		Pending:  m.Pending,
+	out := &discordgo.Member{
+		User:         m.DGoUser(),
+		Nick:         m.Nick,
+		Roles:        m.Roles,
+		JoinedAt:     discordgo.Timestamp(m.JoinedAt.Format(time.RFC3339)),
+		Pending:      m.Pending,
+		Deaf:         m.Deaf,
+		Mute:         m.Mute,
+		Permissions:  m.Permissions,
+		PremiumSince: discordgo.Timestamp(m.PremiumSince.Format(time.RFC3339)),
 	}
+
+	return out
 }
 
 func (m *MemberState) DGoUser() *discordgo.User {
@@ -288,6 +312,14 @@ func (m *MemberState) DGoUser() *discordgo.User {
 		Bot:           m.Bot,
 		Avatar:        m.StrAvatar(),
 		Discriminator: m.StrDiscriminator(),
+	}
+
+	if m.User != nil {
+		user.Locale = m.User.Locale
+		user.Verified = m.User.Verified
+		user.PublicFlags = m.User.PublicFlags
+		user.PremiumType = m.User.PremiumType
+		user.System = m.User.System
 	}
 
 	return user

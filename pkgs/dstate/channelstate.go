@@ -26,6 +26,7 @@ type ChannelState struct {
 	Bitrate              int                              `json:"bitrate"`
 	PermissionOverwrites []*discordgo.PermissionOverwrite `json:"permission_overwrites"`
 	ParentID             int64                            `json:"parent_id"`
+	UserLimit            int                              `json:"user_limit"`
 
 	// Safe to access in a copy, but not write to in a copy
 	Recipients []*discordgo.User `json:"recipients"`
@@ -73,11 +74,14 @@ func NewChannelState(guild *GuildState, owner RWLocker, channel *discordgo.Chann
 		OwnerID:              channel.OwnerID,
 		ApplicationID:        channel.ApplicationID,
 		RateLimitPerUser:     channel.RateLimitPerUser,
+		UserLimit:            channel.UserLimit,
 
 		Recipients: channel.Recipients,
 	}
 
-	cs.LastPinTimestamp, _ = channel.LastPinTimestamp.Parse()
+	if channel.LastPinTimestamp != "" {
+		cs.LastPinTimestamp, _ = channel.LastPinTimestamp.Parse()
+	}
 
 	return cs
 }
@@ -99,6 +103,12 @@ func (c *ChannelState) DGoCopy() *discordgo.Channel {
 		PermissionOverwrites: c.PermissionOverwrites,
 		ParentID:             c.ParentID,
 		Recipients:           c.Recipients,
+		LastPinTimestamp:     discordgo.Timestamp(c.LastPinTimestamp.Format(time.RFC3339)),
+		Icon:                 c.Icon,
+		UserLimit:            c.UserLimit,
+		RateLimitPerUser:     c.RateLimitPerUser,
+		OwnerID:              c.OwnerID,
+		ApplicationID:        c.ApplicationID,
 	}
 
 	if c.Guild != nil {
@@ -163,6 +173,10 @@ func (c *ChannelState) Update(lock bool, newChannel *discordgo.Channel) {
 		c.Recipients = newChannel.Recipients
 	}
 
+	if newChannel.LastPinTimestamp != "" {
+		c.LastPinTimestamp, _ = newChannel.LastPinTimestamp.Parse()
+	}
+
 	c.Name = newChannel.Name
 	c.Topic = newChannel.Topic
 	c.LastMessageID = newChannel.LastMessageID
@@ -170,6 +184,12 @@ func (c *ChannelState) Update(lock bool, newChannel *discordgo.Channel) {
 	c.Position = newChannel.Position
 	c.Bitrate = newChannel.Bitrate
 	c.ParentID = newChannel.ParentID
+	c.ApplicationID = newChannel.ApplicationID
+	c.Bitrate = newChannel.Bitrate
+	c.Icon = newChannel.Icon
+	c.OwnerID = newChannel.OwnerID
+	c.RateLimitPerUser = newChannel.RateLimitPerUser
+	c.UserLimit = newChannel.UserLimit
 }
 
 // Message returns a message REFERENCE by id or nil if none found

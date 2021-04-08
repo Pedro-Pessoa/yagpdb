@@ -433,6 +433,7 @@ func HandleMessageCreate(evt *eventsystem.EventData) {
 	if ms != nil {
 		member.PresenceStatus = ms.PresenceStatus
 		member.PresenceActivities = ms.PresenceActivities
+		member.ClientStatus = ms.ClientStatus
 	}
 
 	var matchedCustomCommands []*TriggeredCC

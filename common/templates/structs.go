@@ -26,6 +26,7 @@ type CtxChannel struct {
 	PermissionOverwrites []*discordgo.PermissionOverwrite `json:"permission_overwrites"`
 	ParentID             int64                            `json:"parent_id"`
 	RateLimitPerUser     int                              `json:"rate_limit_per_user"`
+	UserLimit            int                              `json:"user_limit"`
 }
 
 func CtxChannelFromCS(cs *dstate.ChannelState) *CtxChannel {
@@ -43,6 +44,7 @@ func CtxChannelFromCS(cs *dstate.ChannelState) *CtxChannel {
 		PermissionOverwrites: cs.PermissionOverwrites,
 		ParentID:             cs.ParentID,
 		RateLimitPerUser:     cs.RateLimitPerUser,
+		UserLimit:            cs.UserLimit,
 	}
 
 	if !cs.IsPrivate {
@@ -70,6 +72,7 @@ func CtxChannelFromCSLocked(cs *dstate.ChannelState) *CtxChannel {
 		PermissionOverwrites: cs.PermissionOverwrites,
 		ParentID:             cs.ParentID,
 		RateLimitPerUser:     cs.RateLimitPerUser,
+		UserLimit:            cs.UserLimit,
 	}
 
 	if !cs.IsPrivate {
@@ -92,6 +95,7 @@ func CtxChannelFromDGoChannel(dc *discordgo.Channel) *CtxChannel {
 		PermissionOverwrites: dc.PermissionOverwrites,
 		ParentID:             dc.ParentID,
 		RateLimitPerUser:     dc.RateLimitPerUser,
+		UserLimit:            dc.UserLimit,
 	}
 
 	if !dstate.IsPrivate(ctxChannel.Type) {
@@ -120,7 +124,26 @@ func (c CtxExecReturn) String() string {
 }
 
 type CtxMember struct {
-	*discordgo.Member
+	GuildID      int64           `json:"guild_id"`
+	JoinedAt     time.Time       `json:"joined_at"`
+	Nick         string          `json:"nick"`
+	Deaf         bool            `json:"deaf"`
+	Mute         bool            `json:"mute"`
+	User         *discordgo.User `json:"user"`
+	Roles        []int64         `json:"roles"`
+	PremiumSince time.Time       `json:"premium_since"`
+	Pending      bool            `json:"pending"`
+
+	//////////////////////////////////////
+	// NON STANDARD MEMBER FIELDS BELOW //
+	//////////////////////////////////////
+	ID             int64                  `json:"id"`
+	Username       string                 `json:"username"`
+	Discriminator  int32                  `json:"discriminator"`
+	AnimatedAvatar bool                   `json:"animated_avatar"`
+	Bot            bool                   `json:"bot"`
+	ClientStatus   discordgo.ClientStatus `json:"client_status"`
+
 	//extra fields from Member State
 	Status     dstate.PresenceStatus   `json:"status"`
 	Activities []*dstate.LightActivity `json:"activity"`
@@ -128,9 +151,24 @@ type CtxMember struct {
 
 func CtxMemberFromMS(ms *dstate.MemberState) *CtxMember {
 	ctxMember := &CtxMember{
-		Member:     ms.DGoCopy(),
-		Status:     ms.PresenceStatus,
-		Activities: ms.PresenceActivities,
+		GuildID:      ms.GuildID,
+		JoinedAt:     ms.JoinedAt,
+		Nick:         ms.Nick,
+		Deaf:         ms.Deaf,
+		Mute:         ms.Mute,
+		User:         ms.DGoUser(),
+		Roles:        ms.Roles,
+		PremiumSince: ms.PremiumSince,
+		Pending:      ms.Pending,
+
+		ID:             ms.ID,
+		Username:       ms.Username,
+		Discriminator:  ms.Discriminator,
+		AnimatedAvatar: ms.AnimatedAvatar,
+		Bot:            ms.Bot,
+		ClientStatus:   ms.ClientStatus,
+		Status:         ms.PresenceStatus,
+		Activities:     ms.PresenceActivities,
 	}
 
 	return ctxMember

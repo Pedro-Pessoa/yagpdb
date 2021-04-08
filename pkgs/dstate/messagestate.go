@@ -170,6 +170,33 @@ func (m *MessageState) Update(msg *discordgo.Message) {
 	if msg.MentionRoles != nil {
 		m.MentionRoles = msg.MentionRoles
 	}
+	if msg.Activity != nil {
+		m.Activity = msg.Activity
+	}
+	if msg.Application != nil {
+		m.Application = msg.Application
+	}
+	if msg.Flags != 0 {
+		m.Flags = msg.Flags
+	}
+	if msg.Member != nil {
+		m.Member = msg.Member
+	}
+	if msg.MentionChannels != nil {
+		m.MentionChannels = msg.MentionChannels
+	}
+	if msg.MessageReference != nil {
+		m.MessageReference = msg.MessageReference
+	}
+	if msg.Reactions != nil {
+		m.Reactions = msg.Reactions
+	}
+	if msg.Stickers != nil {
+		m.Stickers = msg.Stickers
+	}
+
+	m.MentionEveryone = msg.MentionEveryone
+	m.Pinned = msg.Pinned
 
 	m.parseTimes(msg.Timestamp, msg.EditedTimestamp)
 }
