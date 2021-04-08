@@ -65,6 +65,10 @@ var (
 	ConfAdsTxt = config.RegisterOption("yagpdb.ads.ads_txt", "Path to the ads.txt file for monetization using ad networks", "")
 
 	confDisableRequestLogging = config.RegisterOption("yagpdb.disable_request_logging", "Disable logging of http requests to web server", false)
+
+	// Can be overriden by plugins
+	// Main prurpose is to plug in a onboarding process through a properietary plugin
+	SelectServerHomePageHandler http.Handler = RenderHandler(HandleSelectServer, "cp_selectserver")
 )
 
 type Advertisement struct {
@@ -293,8 +297,8 @@ func setupRoutes() *goji.Mux {
 	ServerPublicAPIMux.Handle(pat.Get("/channelperms/:channel"), RequireActiveServer(APIHandler(HandleChanenlPermissions)))
 
 	// Server selection has its own handler
-	RootMux.Handle(pat.Get("/manage"), RenderHandler(HandleSelectServer, "cp_selectserver"))
-	RootMux.Handle(pat.Get("/manage/"), RenderHandler(HandleSelectServer, "cp_selectserver"))
+	RootMux.Handle(pat.Get("/manage"), SelectServerHomePageHandler)
+	RootMux.Handle(pat.Get("/manage/"), SelectServerHomePageHandler)
 	RootMux.Handle(pat.Get("/status"), ControllerHandler(HandleStatusHTML, "cp_status"))
 	RootMux.Handle(pat.Get("/status/"), ControllerHandler(HandleStatusHTML, "cp_status"))
 	RootMux.Handle(pat.Get("/status.json"), APIHandler(HandleStatusJSON))

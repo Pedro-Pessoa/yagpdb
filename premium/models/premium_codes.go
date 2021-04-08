@@ -34,6 +34,7 @@ type PremiumCode struct {
 	GuildID   null.Int64 `boil:"guild_id" json:"guild_id,omitempty" toml:"guild_id" yaml:"guild_id,omitempty"`
 	Permanent bool       `boil:"permanent" json:"permanent" toml:"permanent" yaml:"permanent"`
 	Duration  int64      `boil:"duration" json:"duration" toml:"duration" yaml:"duration"`
+	Tier      int        `boil:"tier" json:"tier" toml:"tier" yaml:"tier"`
 
 	R *premiumCodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L premiumCodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -50,6 +51,7 @@ var PremiumCodeColumns = struct {
 	GuildID   string
 	Permanent string
 	Duration  string
+	Tier      string
 }{
 	ID:        "id",
 	Code:      "code",
@@ -61,6 +63,7 @@ var PremiumCodeColumns = struct {
 	GuildID:   "guild_id",
 	Permanent: "permanent",
 	Duration:  "duration",
+	Tier:      "tier",
 }
 
 // Generated where
@@ -187,6 +190,29 @@ func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field
 func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
+type whereHelperint struct{ field string }
+
+func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint) IN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperint) NIN(slice []int) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var PremiumCodeWhere = struct {
 	ID        whereHelperint64
 	Code      whereHelperstring
@@ -198,6 +224,7 @@ var PremiumCodeWhere = struct {
 	GuildID   whereHelpernull_Int64
 	Permanent whereHelperbool
 	Duration  whereHelperint64
+	Tier      whereHelperint
 }{
 	ID:        whereHelperint64{field: "\"premium_codes\".\"id\""},
 	Code:      whereHelperstring{field: "\"premium_codes\".\"code\""},
@@ -209,6 +236,7 @@ var PremiumCodeWhere = struct {
 	GuildID:   whereHelpernull_Int64{field: "\"premium_codes\".\"guild_id\""},
 	Permanent: whereHelperbool{field: "\"premium_codes\".\"permanent\""},
 	Duration:  whereHelperint64{field: "\"premium_codes\".\"duration\""},
+	Tier:      whereHelperint{field: "\"premium_codes\".\"tier\""},
 }
 
 // PremiumCodeRels is where relationship names are stored.
@@ -232,9 +260,9 @@ func (*premiumCodeR) NewStruct() *premiumCodeR {
 type premiumCodeL struct{}
 
 var (
-	premiumCodeAllColumns            = []string{"id", "code", "message", "created_at", "used_at", "slot_id", "user_id", "guild_id", "permanent", "duration"}
+	premiumCodeAllColumns            = []string{"id", "code", "message", "created_at", "used_at", "slot_id", "user_id", "guild_id", "permanent", "duration", "tier"}
 	premiumCodeColumnsWithoutDefault = []string{"code", "message", "created_at", "used_at", "slot_id", "user_id", "guild_id", "permanent", "duration"}
-	premiumCodeColumnsWithDefault    = []string{"id"}
+	premiumCodeColumnsWithDefault    = []string{"id", "tier"}
 	premiumCodePrimaryKeyColumns     = []string{"id"}
 )
 

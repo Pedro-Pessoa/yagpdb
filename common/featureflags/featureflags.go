@@ -7,6 +7,8 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/mediocregopher/radix/v3"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 
 	"github.com/Pedro-Pessoa/tidbot/common"
 	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
@@ -18,6 +20,15 @@ type PluginWithFeatureFlags interface {
 
 	UpdateFeatureFlags(guildID int64) ([]string, error)
 	AllFeatureFlags() []string
+}
+
+// This provides a way to batch update flags initially during init
+// for example with premium, we can get all the premium guilds in 1 db query
+// as opposed to querying each individual guild individually
+type PluginWithBatchFeatureFlags interface {
+	PluginWithFeatureFlags
+
+	UpdateFeatureFlagsBatch() (map[int64][]string, error)
 }
 
 func keyGuildFlags(guildID int64) string {
@@ -196,17 +207,15 @@ func GuildHasFlagOrLogError(guildID int64, flag string) bool {
 	return hasFlag
 }
 
+var metricsFeatureFlagsUpdated = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "yagpdb_featureflags_updated_guilds_total",
+	Help: "Guilds featureflags has been updated for",
+})
+
 const evictCachePubSubEvent = "feature_flags_updated"
 
 // UpdateGuildFlags updates the provided guilds feature flags
 func UpdateGuildFlags(guildID int64) error {
-	keyLock := fmt.Sprintf("feature_flags_updating:%d", guildID)
-	err := common.BlockingLockRedisKey(keyLock, time.Second*60, 60)
-	if err != nil {
-		return errors.WithStackIf(err)
-	}
-
-	defer common.UnlockRedisKey(keyLock)
 	defer func() { _ = pubsub.Publish(evictCachePubSubEvent, guildID, nil) }()
 
 	var lastErr error
@@ -218,6 +227,8 @@ func UpdateGuildFlags(guildID int64) error {
 			}
 		}
 	}
+
+	metricsFeatureFlagsUpdated.Inc()
 
 	return lastErr
 }
@@ -284,4 +295,26 @@ func updatePluginFeatureFlags(guildID int64, p PluginWithFeatureFlags) error {
 	}
 
 	return nil
+}
+
+// in some scenarios manual flag management is usefull and since updating flags
+// dosen't trample over unknown flags its completely reliable aswelll
+func AddManualGuildFlags(guildID int64, flags ...string) error {
+	err := common.RedisPool.Do(radix.Cmd(nil, "SADD", append([]string{keyGuildFlags(guildID)}, flags...)...))
+	if err == nil {
+		pubsub.PublishLogErr(evictCachePubSubEvent, guildID, nil)
+	}
+
+	return err
+}
+
+// in some scenarios manual flag management is usefull and since updating flags
+// dosen't trample over unknown flags its completely reliable aswelll
+func RemoveManualGuildFlags(guildID int64, flags ...string) error {
+	err := common.RedisPool.Do(radix.Cmd(nil, "SREM", append([]string{keyGuildFlags(guildID)}, flags...)...))
+	if err == nil {
+		pubsub.PublishLogErr(evictCachePubSubEvent, guildID, nil)
+	}
+
+	return err
 }

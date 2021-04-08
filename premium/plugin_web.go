@@ -2,25 +2,32 @@ package premium
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"html"
 	"html/template"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/didip/tollbooth"
 	"github.com/didip/tollbooth/limiter"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"goji.io"
 	"goji.io/pat"
 
 	"github.com/Pedro-Pessoa/tidbot/common"
+	"github.com/Pedro-Pessoa/tidbot/premium/models"
 	"github.com/Pedro-Pessoa/tidbot/web"
 )
 
 type CtxKey int
 
-var CtxKeyIsPremium CtxKey = 1
+var (
+	CtxKeyIsPremium   CtxKey = 1
+	CtxKeyPremiumTier CtxKey = 2
+)
 
 var _ web.Plugin = (*Plugin)(nil)
 
@@ -48,9 +55,11 @@ func (p *Plugin) InitWeb() {
 	submux.Handle(pat.Post("/lookupcode"), tollbooth.LimitHandler(limiter, web.ControllerPostHandler(HandlePostLookupCode, mainHandler, nil)))
 	submux.Handle(pat.Post("/redeemcode"), tollbooth.LimitHandler(limiter, web.ControllerPostHandler(HandlePostRedeemCode, mainHandler, nil)))
 	submux.Handle(pat.Post("/updateslot/:slotID"), web.ControllerPostHandler(HandlePostUpdateSlot, mainHandler, UpdateData{}))
+
+	web.CPMux.Handle(pat.Post("/premium/detach"), web.ControllerPostHandler(HandlePostDetachGuildSlot, web.RenderHandler(nil, "cp_premium_detach"), nil))
 }
 
-// Add in a template var wether the guild is premium or not
+// PremiumGuildMW adds premium data to context and tmpl vars
 func PremiumGuildMW(inner http.Handler) http.Handler {
 	mw := func(w http.ResponseWriter, r *http.Request) {
 		guild, tmpl := web.GetBaseCPContextData(r.Context())
@@ -60,9 +69,21 @@ func PremiumGuildMW(inner http.Handler) http.Handler {
 			web.CtxLogger(r.Context()).WithError(err).Error("Failed checking if guild is premium")
 		}
 
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, CtxKeyIsPremium, isPremium)
 		tmpl["IsGuildPremium"] = isPremium
 
-		inner.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), CtxKeyIsPremium, isPremium)))
+		if isPremium {
+			tier, err := GuildPremiumTier(guild.ID)
+			if err != nil {
+				web.CtxLogger(ctx).WithError(err).Error("Failed retrieving guild premium tier")
+			}
+
+			tmpl["GuildPremiumTier"] = tier
+			ctx = context.WithValue(ctx, CtxKeyPremiumTier, tier)
+		}
+
+		inner.ServeHTTP(w, r.WithContext(ctx))
 	}
 
 	return http.HandlerFunc(mw)
@@ -158,6 +179,14 @@ func ContextPremium(ctx context.Context) bool {
 	return false
 }
 
+func ContextPremiumTier(ctx context.Context) PremiumTier {
+	if v := ctx.Value(CtxKeyPremiumTier); v != nil {
+		return v.(PremiumTier)
+	}
+
+	return PremiumTierNone
+}
+
 var _ web.PluginWithServerHomeWidget = (*Plugin)(nil)
 var _ web.ServerHomeWidgetWithOrder = (*Plugin)(nil)
 
@@ -165,32 +194,73 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 	ag, templateData := web.GetBaseCPContextData(r.Context())
 	templateData["WidgetTitle"] = "Premium Status"
 	templateData["WidgetTitlePT"] = "Status de Premium"
-	footer := "<p><a href=\"/premium\">Manage your premium slots</a></p>"
+
+	isPT := templateData["IsPT"] == true
+
+	footer := "<p><a href=\"/premium\">Manage your user premium slots</a></p>"
+	if isPT {
+		footer = "<p><a href=\"/premium\">Gerencia seus slots premium de usuário</a></p>"
+	}
 
 	if ContextPremium(r.Context()) {
-		username := ""
-		discrim := ""
+		detForm := fmt.Sprintf(`<form data-async-form action="/manage/%d/premium/detach">
+			<button type="submit" class="btn btn-danger">Detach premium slot</button>
+		</form>`, ag.ID)
 
-		premiumBy, err := PremiumProvidedBy(ag.ID)
-		if err != nil {
-			return templateData, err
+		detFormPT := fmt.Sprintf(`<form data-async-form action="/manage/%d/premium/detach">
+			<button type="submit" class="btn btn-danger">Remover slot premium</button>
+		</form>`, ag.ID)
+
+		body := strings.Builder{}
+
+		for _, v := range GuildPremiumSources {
+			tier, status, err := v.GuildPremiumDetails(ag.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			if tier <= PremiumTierNone {
+				continue
+			}
+
+			if _, ok := v.(*SlotGuildPremiumSource); ok {
+				// special handling for this since i was a bit lazy
+				var username, discrim string
+
+				premiumBy, err := PremiumProvidedBy(ag.ID)
+				if err != nil {
+					return templateData, err
+				}
+
+				user, err := common.BotSession.User(premiumBy)
+				if err == nil {
+					username = user.Username
+					discrim = user.Discriminator
+				}
+
+				if !isPT {
+					body.WriteString(fmt.Sprintf("<p>Premium tier <b>%s</b> active and provided by user <code>%s#%s (%d)</p></code>\n\n%s", tier.String(), html.EscapeString(username), html.EscapeString(discrim), premiumBy, detForm))
+				} else {
+					body.WriteString(fmt.Sprintf("<p>Premium nível <b>%s</b> ativada e provida pelo usuário <code>%s#%s (%d)</p></code>\n\n%s", tier.String(), html.EscapeString(username), html.EscapeString(discrim), premiumBy, detFormPT))
+				}
+			} else {
+				if !isPT {
+					body.WriteString(fmt.Sprintf("<p class=\"mt-3\">Premium tier <b>%s</b> active and provided by %s: %s</p>", tier.String(), v.Name(), status))
+				} else {
+					body.WriteString(fmt.Sprintf("<p class=\"mt-3\">Premium nível <b>%s</b> ativada e provida por %s: %s</p>", tier.String(), v.Name(), status))
+				}
+			}
 		}
 
-		user, err := common.BotSession.User(premiumBy)
-		if err == nil {
-			username = user.Username
-			discrim = user.Discriminator
-		}
-
-		if templateData["IsPT"] == true {
-			templateData["WidgetBodyPT"] = template.HTML(fmt.Sprintf("<p>Premium ativada e provida por <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+		if isPT {
+			templateData["WidgetBodyPT"] = template.HTML(body.String() + footer)
 		} else {
-			templateData["WidgetBody"] = template.HTML(fmt.Sprintf("<p>Premium active and provided by <code>%s#%s (%d)</p></code>\n\n%s", html.EscapeString(username), html.EscapeString(discrim), premiumBy, footer))
+			templateData["WidgetBody"] = template.HTML(body.String() + footer)
 		}
 
 		templateData["WidgetEnabled"] = true
 
-		return templateData, err
+		return templateData, nil
 	} else {
 		templateData["WidgetDisabled"] = true
 
@@ -206,4 +276,21 @@ func (p *Plugin) LoadServerHomeWidget(w http.ResponseWriter, r *http.Request) (w
 
 func (p *Plugin) ServerHomeWidgetOrder() int {
 	return 10
+}
+
+func HandlePostDetachGuildSlot(w http.ResponseWriter, r *http.Request) (tmpl web.TemplateData, err error) {
+	activeGuild, templateData := web.GetBaseCPContextData(r.Context())
+
+	slot, err := models.PremiumSlots(qm.Where("guild_id = ?", activeGuild.ID)).OneG(r.Context())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			templateData.AddAlerts(web.ErrorAlert("No premium slot attached to this server"))
+			return templateData, nil
+		}
+
+		return templateData, err
+	}
+
+	err = DetachSlotFromGuild(r.Context(), slot.ID, slot.UserID)
+	return templateData, err
 }

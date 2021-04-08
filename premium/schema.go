@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS premium_slots (
 	duration_remaining BIGINT NOT NULL
 );
 `, `
+ALTER TABLE premium_slots ADD COLUMN IF NOT EXISTS tier INT NOT NULL DEFAULT 1;
+`, `
 CREATE TABLE IF NOT EXISTS premium_codes (
 	id BIGSERIAL PRIMARY KEY,
 
@@ -36,6 +38,8 @@ CREATE TABLE IF NOT EXISTS premium_codes (
 	permanent BOOLEAN NOT NULL,
 	duration BIGINT NOT NULL
 );
+`, `
+ALTER TABLE premium_codes ADD COLUMN IF NOT EXISTS tier INT NOT NULL DEFAULT 1;
 `, `
 CREATE INDEX IF NOT EXISTS premium_codes_code_idx ON premium_codes(code);
 `}

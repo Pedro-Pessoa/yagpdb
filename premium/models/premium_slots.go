@@ -36,6 +36,7 @@ type PremiumSlot struct {
 	FullDuration      int64      `boil:"full_duration" json:"full_duration" toml:"full_duration" yaml:"full_duration"`
 	Permanent         bool       `boil:"permanent" json:"permanent" toml:"permanent" yaml:"permanent"`
 	DurationRemaining int64      `boil:"duration_remaining" json:"duration_remaining" toml:"duration_remaining" yaml:"duration_remaining"`
+	Tier              int        `boil:"tier" json:"tier" toml:"tier" yaml:"tier"`
 
 	R *premiumSlotR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L premiumSlotL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -54,6 +55,7 @@ var PremiumSlotColumns = struct {
 	FullDuration      string
 	Permanent         string
 	DurationRemaining string
+	Tier              string
 }{
 	ID:                "id",
 	CreatedAt:         "created_at",
@@ -67,6 +69,7 @@ var PremiumSlotColumns = struct {
 	FullDuration:      "full_duration",
 	Permanent:         "permanent",
 	DurationRemaining: "duration_remaining",
+	Tier:              "tier",
 }
 
 // Generated where
@@ -84,6 +87,7 @@ var PremiumSlotWhere = struct {
 	FullDuration      whereHelperint64
 	Permanent         whereHelperbool
 	DurationRemaining whereHelperint64
+	Tier              whereHelperint
 }{
 	ID:                whereHelperint64{field: "\"premium_slots\".\"id\""},
 	CreatedAt:         whereHelpertime_Time{field: "\"premium_slots\".\"created_at\""},
@@ -97,6 +101,7 @@ var PremiumSlotWhere = struct {
 	FullDuration:      whereHelperint64{field: "\"premium_slots\".\"full_duration\""},
 	Permanent:         whereHelperbool{field: "\"premium_slots\".\"permanent\""},
 	DurationRemaining: whereHelperint64{field: "\"premium_slots\".\"duration_remaining\""},
+	Tier:              whereHelperint{field: "\"premium_slots\".\"tier\""},
 }
 
 // PremiumSlotRels is where relationship names are stored.
@@ -120,9 +125,9 @@ func (*premiumSlotR) NewStruct() *premiumSlotR {
 type premiumSlotL struct{}
 
 var (
-	premiumSlotAllColumns            = []string{"id", "created_at", "attached_at", "user_id", "guild_id", "title", "message", "source", "source_id", "full_duration", "permanent", "duration_remaining"}
+	premiumSlotAllColumns            = []string{"id", "created_at", "attached_at", "user_id", "guild_id", "title", "message", "source", "source_id", "full_duration", "permanent", "duration_remaining", "tier"}
 	premiumSlotColumnsWithoutDefault = []string{"created_at", "attached_at", "user_id", "guild_id", "title", "message", "source", "source_id", "full_duration", "permanent", "duration_remaining"}
-	premiumSlotColumnsWithDefault    = []string{"id"}
+	premiumSlotColumnsWithDefault    = []string{"id", "tier"}
 	premiumSlotPrimaryKeyColumns     = []string{"id"}
 )
 
