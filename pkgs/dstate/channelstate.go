@@ -104,12 +104,17 @@ func (c *ChannelState) DGoCopy() *discordgo.Channel {
 		PermissionOverwrites: c.PermissionOverwrites,
 		ParentID:             c.ParentID,
 		Recipients:           c.Recipients,
-		LastPinTimestamp:     discordgo.Timestamp(c.LastPinTimestamp.Format(time.RFC3339)),
 		Icon:                 c.Icon,
 		UserLimit:            c.UserLimit,
 		RateLimitPerUser:     c.RateLimitPerUser,
 		OwnerID:              c.OwnerID,
 		ApplicationID:        c.ApplicationID,
+	}
+
+	if c.LastPinTimestamp != nil {
+		channel.LastPinTimestamp = discordgo.Timestamp(c.LastPinTimestamp.Format(time.RFC3339))
+	} else {
+		channel.LastPinTimestamp = ""
 	}
 
 	if c.Guild != nil {

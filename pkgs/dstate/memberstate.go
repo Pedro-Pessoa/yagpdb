@@ -293,15 +293,20 @@ func (m *MemberState) StrAvatar() string {
 
 func (m *MemberState) DGoCopy() *discordgo.Member {
 	out := &discordgo.Member{
-		User:         m.DGoUser(),
-		Nick:         m.Nick,
-		Roles:        m.Roles,
-		JoinedAt:     discordgo.Timestamp(m.JoinedAt.Format(time.RFC3339)),
-		Pending:      m.Pending,
-		Deaf:         m.Deaf,
-		Mute:         m.Mute,
-		Permissions:  m.Permissions,
-		PremiumSince: discordgo.Timestamp(m.PremiumSince.Format(time.RFC3339)),
+		User:        m.DGoUser(),
+		Nick:        m.Nick,
+		Roles:       m.Roles,
+		JoinedAt:    discordgo.Timestamp(m.JoinedAt.Format(time.RFC3339)),
+		Pending:     m.Pending,
+		Deaf:        m.Deaf,
+		Mute:        m.Mute,
+		Permissions: m.Permissions,
+	}
+
+	if m.PremiumSince != nil {
+		out.PremiumSince = discordgo.Timestamp(m.PremiumSince.Format(time.RFC3339))
+	} else {
+		out.PremiumSince = ""
 	}
 
 	return out
