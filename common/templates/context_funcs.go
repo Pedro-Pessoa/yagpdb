@@ -172,7 +172,7 @@ func (c *Context) tmplSendTargetDMWithError(target interface{}, s ...interface{}
 	return "", nil
 }
 
-func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) func(channel interface{}, msg interface{}, replyData ...interface{}) (interface{}, error) {
+func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool, ignoreError bool) func(channel interface{}, msg interface{}, replyData ...interface{}) (interface{}, error) {
 	parseMentions := []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers}
 	if !filterSpecialMentions {
 		parseMentions = append(parseMentions, discordgo.AllowedMentionTypeRoles, discordgo.AllowedMentionTypeEveryone)
@@ -180,15 +180,27 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 	return func(channel interface{}, msg interface{}, replyData ...interface{}) (interface{}, error) {
 		if c.IncreaseCheckCallCounterPremium("send_msg", 10, 20) {
+			if ignoreError {
+				return "", nil
+			}
+
 			return nil, ErrTooManyCalls
 		}
 
 		if c.IncreaseCheckGenericAPICall() {
+			if ignoreError {
+				return "", nil
+			}
+
 			return "", ErrTooManyAPICalls
 		}
 
 		cid := c.ChannelArg(channel)
 		if cid == 0 {
+			if ignoreError {
+				return "", nil
+			}
+
 			return "", errors.New("Invalid channel provided for SendMessage")
 		}
 
@@ -244,6 +256,10 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 		case 0:
 			m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
 			if err != nil {
+				if ignoreError {
+					return "", nil
+				}
+
 				return "", err
 			}
 
@@ -258,14 +274,26 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 			case reflect.Map:
 				dict, err = StringKeyDictionary(replyData[0])
 				if err != nil {
+					if ignoreError {
+						return "", nil
+					}
+
 					return "", err
 				}
 			default:
+				if ignoreError {
+					return "", nil
+				}
+
 				return "", errors.Errorf("Invalid argument for ReplyData of type %s. Must be a map", val.Type().Name())
 			}
 		default:
 			dict, err = StringKeyDictionary(replyData...)
 			if err != nil {
+				if ignoreError {
+					return "", nil
+				}
+
 				return "", err
 			}
 		}
@@ -274,6 +302,10 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 		replyMessageID := ToInt64(dict.Get("message_id"))
 
 		if replyChannelID == 0 || replyMessageID == 0 {
+			if ignoreError {
+				return "", nil
+			}
+
 			return "", errors.New("Invalid channel or message ID provided for ReplyData")
 		}
 
@@ -290,6 +322,10 @@ func (c *Context) tmplSendMessage(filterSpecialMentions bool, returnID bool) fun
 
 		m, err = common.BotSession.ChannelMessageSendComplex(cid, msgSend)
 		if err != nil {
+			if ignoreError {
+				return "", nil
+			}
+
 			return "", err
 		}
 
