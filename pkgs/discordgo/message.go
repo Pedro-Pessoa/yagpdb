@@ -36,9 +36,12 @@ const (
 	MessageTypeUserPremiumGuildSubscriptionTierTwo
 	MessageTypeUserPremiumGuildSubscriptionTierThree
 	MessageTypeChannelFollowAdd
+
 	MessageTypeGuildDiscoveryDisqualified = iota + 1
 	MessageTypeGuildDiscoveryRequalified
-	MessageTypeReply = iota + 4
+	MessageTypeGuildDiscoveryGracePeriodInitialWarning
+	MessageTypeGuildDiscoveryGracePeriodFinalWarning
+	MessageTypeReply = iota + 1
 	MessageTypeApplicationCommand
 )
 
@@ -116,7 +119,7 @@ type Message struct {
 	Activity *MessageActivity `json:"activity"`
 
 	// Is sent with Rich Presence-related chat embeds
-	Application *MessageApplication `json:"application"`
+	Application *Application `json:"application"`
 
 	// MessageReference contains reference data sent with crossposted messages
 	MessageReference *MessageReference `json:"message_reference"`
@@ -142,6 +145,8 @@ const (
 	MessageFlagsSupressEmbeds
 	MessageFlagsSourceMessageDeleted
 	MessageFlagsUrgent
+	MessageEphemeral
+	MessageLoading
 )
 
 func (m *Message) GetGuildID() int64 {
@@ -394,20 +399,12 @@ const (
 	MessageFlagSuppressEmbeds
 )
 
-// MessageApplication is sent with Rich Presence-related chat embeds
-type MessageApplication struct {
-	ID          int64  `json:"id,string"`
-	CoverImage  string `json:"cover_image"`
-	Description string `json:"description"`
-	Icon        string `json:"icon"`
-	Name        string `json:"name"`
-}
-
 // MessageReference contains reference data sent with crossposted messages
 type MessageReference struct {
-	MessageID int64 `json:"message_id,string"`
-	ChannelID int64 `json:"channel_id,string"`
-	GuildID   int64 `json:"guild_id,string,omitempty"`
+	MessageID       int64 `json:"message_id,string"`
+	ChannelID       int64 `json:"channel_id,string,omitempty"`
+	GuildID         int64 `json:"guild_id,string,omitempty"`
+	FailIfNotExists bool  `json:"fail_if_not_exists,omitempty"`
 }
 
 // Reference returns MessageReference of given message

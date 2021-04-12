@@ -72,7 +72,7 @@ type MessageState struct {
 	Activity *discordgo.MessageActivity `json:"activity"`
 
 	// Is sent with Rich Presence-related chat embeds
-	Application *discordgo.MessageApplication `json:"application"`
+	Application *discordgo.Application `json:"application"`
 
 	// MessageReference contains reference data sent with crossposted messages
 	MessageReference *discordgo.MessageReference `json:"message_reference"`

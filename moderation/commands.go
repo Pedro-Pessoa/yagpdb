@@ -627,6 +627,10 @@ var ModerationCommands = []*commands.TIDCommand{
 
 			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, checkAttachs, attach, toID, ma, minAge, pe, onlyBots, num, limitFetch)
 
+			defer func() {
+				common.BotSession.ChannelMessageSend(parsed.CS.ID, "defer func ran")
+			}()
+
 			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), err
 		},
 	},

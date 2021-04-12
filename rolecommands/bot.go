@@ -157,11 +157,18 @@ type ScheduledMemberRoleRemoveData struct {
 	RoleID  int64 `json:"role_id"`
 }
 
+type ScheduledEventUpdateMenuMessageData struct {
+	GuildID   int64 `json:"guild_id"`
+	MessageID int64 `json:"message_id"`
+}
+
 func (p *Plugin) BotInit() {
 	eventsystem.AddHandlerAsyncLastLegacy(p, handleReactionAddRemove, eventsystem.EventMessageReactionAdd, eventsystem.EventMessageReactionRemove)
 	eventsystem.AddHandlerAsyncLastLegacy(p, handleMessageRemove, eventsystem.EventMessageDelete, eventsystem.EventMessageDeleteBulk)
 
 	scheduledevents2.RegisterHandler("remove_member_role", ScheduledMemberRoleRemoveData{}, handleRemoveMemberRole)
+	scheduledevents2.RegisterHandler("rolemenu_update_message", ScheduledEventUpdateMenuMessageData{}, handleUpdateRolemenuMessage)
+
 	pubsub.AddHandler("role_commands_evict_menus", func(evt *pubsub.Event) {
 		ClearRolemenuCache(evt.TargetGuildInt)
 		recentMenusTracker.GuildReset(evt.TargetGuildInt)
@@ -282,6 +289,22 @@ func StringCommands(cmds []*models.RoleCommand) string {
 	output.WriteString("```\n")
 
 	return output.String()
+}
+
+func handleUpdateRolemenuMessage(evt *schEvtsModels.ScheduledEvent, data interface{}) (retry bool, err error) {
+	dataCast := data.(*ScheduledEventUpdateMenuMessageData)
+
+	fullMenu, err := FindRolemenuFull(context.Background(), dataCast.MessageID, dataCast.GuildID)
+	if err != nil {
+		return false, err
+	}
+
+	err = UpdateRoleMenuMessage(context.Background(), fullMenu)
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
 
 func handleRemoveMemberRole(evt *schEvtsModels.ScheduledEvent, data interface{}) (retry bool, err error) {

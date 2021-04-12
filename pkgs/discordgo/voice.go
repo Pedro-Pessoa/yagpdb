@@ -56,7 +56,7 @@ type VoiceConnection struct {
 
 	sessionID string
 	token     string
-	endpoint  string
+	endpoint  *string
 
 	// Used to send a close signal to goroutines
 	close chan struct{}
@@ -310,7 +310,11 @@ func (v *VoiceConnection) open() (err error) {
 	}
 
 	// Connect to VoiceConnection Websocket
-	vg := "wss://" + strings.TrimSuffix(v.endpoint, ":80")
+	if v.endpoint == nil {
+		return
+	}
+
+	vg := "wss://" + strings.TrimSuffix(*v.endpoint, ":80")
 	v.log(LogInformational, "connecting to voice endpoint %s", vg)
 	v.wsConn, _, err = websocket.DefaultDialer.Dial(vg, nil)
 	if err != nil {
@@ -364,7 +368,7 @@ func (v *VoiceConnection) wsListen(wsConn *websocket.Conn, close <-chan struct{}
 			v.RUnlock()
 			if sameConnection {
 
-				v.log(LogError, "voice endpoint %s websocket closed unexpectantly, %s", v.endpoint, err)
+				v.log(LogError, "voice endpoint %v websocket closed unexpectantly, %s", v.endpoint, err)
 
 				// Start reconnect goroutine then exit.
 				go v.reconnect(nil)
@@ -495,7 +499,7 @@ func (v *VoiceConnection) wsHeartbeat(wsConn *websocket.Conn, close <-chan struc
 		err = wsConn.WriteJSON(voiceHeartbeatOp{3, int(time.Now().Unix())})
 		v.wsMutex.Unlock()
 		if err != nil {
-			v.log(LogError, "error sending heartbeat to voice endpoint %s, %s", v.endpoint, err)
+			v.log(LogError, "error sending heartbeat to voice endpoint %v, %s", v.endpoint, err)
 			return
 		}
 
@@ -820,7 +824,7 @@ func (v *VoiceConnection) opusReceiver(udpConn *net.UDPConn, close <-chan struct
 			v.RUnlock()
 			if sameConnection {
 
-				v.log(LogError, "udp read error, %s, %s", v.endpoint, err)
+				v.log(LogError, "udp read error, %v, %s", v.endpoint, err)
 				v.log(LogDebug, "voice struct: %#v\n", v)
 
 				go v.reconnect(nil)

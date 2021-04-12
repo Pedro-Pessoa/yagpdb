@@ -349,9 +349,9 @@ type UserNoteUpdate struct {
 
 // VoiceServerUpdate is the data for a VoiceServerUpdate event.
 type VoiceServerUpdate struct {
-	Token    string `json:"token"`
-	GuildID  int64  `json:"guild_id,string"`
-	Endpoint string `json:"endpoint"`
+	Token    string  `json:"token"`
+	GuildID  int64   `json:"guild_id,string"`
+	Endpoint *string `json:"endpoint"`
 }
 
 func (e *VoiceServerUpdate) GetGuildID() int64 {

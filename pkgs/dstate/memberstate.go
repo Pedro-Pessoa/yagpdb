@@ -21,19 +21,19 @@ const (
 )
 
 type LightActivity struct {
-	Name       string                    `json:"name"`
-	URL        string                    `json:"url,omitempty"`
-	Details    string                    `json:"details,omitempty"`
-	State      string                    `json:"state,omitempty"`
-	Type       discordgo.ActivityType    `json:"type"`
-	CreatedAt  int                       `json:"created_at"`
-	Timestamps discordgo.TimeStamps      `json:"timestamps,omitempty"`
-	Emoji      discordgo.ActivityEmoji   `json:"emoji,omitempty"`
-	Party      discordgo.ActivityParty   `json:"party,omitempty"`
-	Assets     discordgo.ActivityAssets  `json:"assets,omitempty"`
-	Secrets    discordgo.ActivitySecrets `json:"secrets,omitempty"`
-	Instance   bool                      `json:"instance,omitempty"`
-	Flags      discordgo.ActivityFlags   `json:"flags,omitempty"`
+	Name       string                     `json:"name"`
+	URL        string                     `json:"url,omitempty"`
+	Details    string                     `json:"details,omitempty"`
+	State      string                     `json:"state,omitempty"`
+	Type       discordgo.ActivityType     `json:"type"`
+	CreatedAt  int                        `json:"created_at"`
+	Timestamps discordgo.TimeStamps       `json:"timestamps,omitempty"`
+	Emoji      *discordgo.ActivityEmoji   `json:"emoji,omitempty"`
+	Party      *discordgo.ActivityParty   `json:"party,omitempty"`
+	Assets     *discordgo.ActivityAssets  `json:"assets,omitempty"`
+	Secrets    *discordgo.ActivitySecrets `json:"secrets,omitempty"`
+	Instance   bool                       `json:"instance,omitempty"`
+	Flags      discordgo.ActivityFlags    `json:"flags,omitempty"`
 }
 
 // MemberState represents the state of a member
@@ -199,19 +199,9 @@ func (m *MemberState) UpdatePresence(presence *discordgo.Presence) {
 				Assets:     p.Assets,
 				Secrets:    p.Secrets,
 				Flags:      p.Flags,
-			}
-
-			// update the rest
-			if p.Details != nil {
-				lightActivity.Details = *p.Details
-			}
-
-			if p.State != nil {
-				lightActivity.State = *p.State
-			}
-
-			if p.Emoji != nil {
-				lightActivity.Emoji = *p.Emoji
+				Details:    p.Details,
+				State:      p.State,
+				Emoji:      p.Emoji,
 			}
 
 			m.PresenceActivities = append(m.PresenceActivities, lightActivity)

@@ -44,17 +44,19 @@ type Team struct {
 type Application struct {
 	ID                  int64     `json:"id,string,omitempty"`
 	Name                string    `json:"name"`
-	Description         string    `json:"description,omitempty"`
 	Icon                string    `json:"icon,omitempty"`
-	Secret              string    `json:"secret,omitempty"`
-	RedirectURIs        *[]string `json:"redirect_uris,omitempty"`
+	Description         string    `json:"description,omitempty"`
+	RPCOrigins          *[]string `json:"rpc_origins,omitempty"`
+	BotPublic           bool      `json:"bot_public"`
 	BotRequireCodeGrant bool      `json:"bot_require_code_grant,omitempty"`
-	BotPublic           bool      `json:"bot_public,omitempty"`
-	RPCApplicationState int       `json:"rpc_application_state,omitempty"`
-	Flags               int       `json:"flags,omitempty"`
 	Owner               *User     `json:"owner"`
-	Bot                 *User     `json:"bot"`
+	Summary             string    `json:"summary"`
+	VerifyKey           string    `json:"verify_key"`
 	Team                *Team     `json:"team"`
+	GuildID             int64     `json:"guild_id,string"`
+	PrimarySkuID        int64     `json:"primary_sku_id,string"`
+	Slug                string    `json:"slug,omitempty"`
+	Flags               int       `json:"flags,omitempty"`
 }
 
 // Application returns an Application structure of a specific Application
@@ -91,7 +93,7 @@ func (s *Session) ApplicationCreate(ap *Application) (st *Application, err error
 		Name         string    `json:"name"`
 		Description  string    `json:"description"`
 		RedirectURIs *[]string `json:"redirect_uris,omitempty"`
-	}{ap.Name, ap.Description, ap.RedirectURIs}
+	}{ap.Name, ap.Description, ap.RPCOrigins}
 
 	body, err := s.RequestWithBucketID("POST", EndpointOAuth2Applications, data, EndpointOAuth2Applications)
 	if err != nil {
@@ -110,7 +112,7 @@ func (s *Session) ApplicationUpdate(appID int64, ap *Application) (st *Applicati
 		Name         string    `json:"name"`
 		Description  string    `json:"description"`
 		RedirectURIs *[]string `json:"redirect_uris,omitempty"`
-	}{ap.Name, ap.Description, ap.RedirectURIs}
+	}{ap.Name, ap.Description, ap.RPCOrigins}
 
 	body, err := s.RequestWithBucketID("PUT", EndpointOAuth2Application(appID), data, EndpointOAuth2Application(0))
 	if err != nil {
