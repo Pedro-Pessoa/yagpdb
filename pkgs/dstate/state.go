@@ -652,6 +652,7 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if channel == nil {
 			return
 		}
+
 		if channel.IsPrivate && s.ThrowAwayDMMessages {
 			return
 		}
@@ -685,15 +686,17 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 		if channel == nil {
 			return
 		}
+
 		if channel.IsPrivate && s.ThrowAwayDMMessages {
 			return
 		}
+
 		channel.Owner.Lock()
 		defer channel.Owner.Unlock()
 
 		for _, v := range evt.Messages {
 			if s.TrackBeforeStates {
-				old := channel.Message(true, v)
+				old := channel.Message(false, v)
 				if old != nil {
 					s.BeforeStateMessageBulkLocker.Lock()
 
@@ -714,6 +717,7 @@ func (s *State) HandleEvent(session *discordgo.Session, i interface{}) {
 					s.BeforeStateMessageBulkLocker.Unlock()
 				}
 			}
+
 			channel.MessageRemove(false, v, s.KeepDeletedMessages)
 		}
 

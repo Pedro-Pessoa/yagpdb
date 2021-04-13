@@ -191,7 +191,11 @@ func createMuteRole(config *Config, guildID int64) (int64, error) {
 	err = config.Save(guildID)
 	if err != nil {
 		// failed saving config, attempt to delete the role
-		common.BotSession.GuildRoleDelete(guildID, r.ID)
+		err2 := common.BotSession.GuildRoleDelete(guildID, r.ID)
+		if err2 != nil {
+			logger.Errorf("Failed deleting role. String error -> %s || Raw error -> %#v", err, err)
+		}
+
 		return 0, err
 	}
 
