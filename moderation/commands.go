@@ -173,7 +173,7 @@ var ModerationCommands = []*commands.TIDCommand{
 			{Name: "Motivo", Type: dcmd.String},
 		},
 		RunFunc: func(parsed *dcmd.Data) (interface{}, error) {
-			config, _, err := MBaseCmd(parsed, 0) //in most situations, the target will not be a part of server, hence no point in doing unnecessary api calls(i.e. bot.GetMember)
+			config, _, err := MBaseCmd(parsed, 0) // In most situations, the target will not be a part of server, hence no point in doing unnecessary api calls(i.e. bot.GetMember)
 			if err != nil {
 				return nil, err
 			}
@@ -191,7 +191,7 @@ var ModerationCommands = []*commands.TIDCommand{
 				ID:            targetID,
 			}
 
-			targetMem := parsed.GS.MemberCopy(true, targetID)
+			targetMem, _ := bot.GetMember(parsed.GS.ID, targetID)
 			if targetMem != nil {
 				return "Esse usuário não está banido!", nil
 			}

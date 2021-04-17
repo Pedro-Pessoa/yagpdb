@@ -466,7 +466,7 @@ func UnbanUser(config *Config, guildID int64, author *discordgo.User, reason str
 		// check if they're already banned
 		guildBan, err := common.BotSession.GuildBan(guildID, user.ID)
 		if err != nil {
-			notbanned, err := checkErr(err)
+			notbanned, err := isNotFound(err)
 			return notbanned, err
 		}
 		user = guildBan.User
@@ -477,7 +477,7 @@ func UnbanUser(config *Config, guildID int64, author *discordgo.User, reason str
 
 	err = common.BotSession.GuildBanDelete(guildID, user.ID)
 	if err != nil {
-		notbanned, err := checkErr(err)
+		notbanned, err := isNotFound(err)
 		return notbanned, err
 	}
 
@@ -491,13 +491,14 @@ func UnbanUser(config *Config, guildID int64, author *discordgo.User, reason str
 	return false, err
 }
 
-func checkErr(err error) (bool, error) {
+func isNotFound(err error) (bool, error) {
 	if err != nil {
 		if cast, ok := err.(*discordgo.RESTError); ok && cast.Response != nil {
 			if cast.Response.StatusCode == 404 {
 				return true, nil // Not found
 			}
 		}
+
 		return false, err
 	}
 

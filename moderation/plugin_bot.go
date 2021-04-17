@@ -177,7 +177,7 @@ func createMuteRole(config *Config, guildID int64) (int64, error) {
 	}
 
 	r, err := common.BotSession.GuildRoleCreateComplex(guildID, discordgo.RoleCreate{
-		Name:        "Muted - (by yagpdb)",
+		Name:        "Muted - (by tidbot)",
 		Permissions: "0",
 		Mentionable: false,
 		Color:       0,
@@ -313,10 +313,10 @@ func HandleGuildBanAddRemove(evt *eventsystem.EventData) {
 			// The bot was the one that performed the unban
 			_ = common.RedisPool.Do(radix.Cmd(nil, "DEL", RedisKeyUnbannedUser(guildID, user.ID)))
 			if i == 2 {
-				//Bot perfrmed non-scheduled unban, don't make duplicate entries in the modlog
+				// Bot performed non-scheduled unban, don't make duplicate entries in the modlog
 				return
 			}
-			// Bot perfermed scheduled unban, modlog entry must be handled
+			// Bot performed scheduled unban, modlog entry must be handled
 			botPerformed = true
 		}
 	default:

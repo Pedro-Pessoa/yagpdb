@@ -532,25 +532,13 @@ func tmplDBCount(ctx *templates.Context) interface{} {
 				pattern.String = patternStr
 				pattern.Valid = true
 			default:
-				dict, err := templates.StringKeyDictionary(arg)
-				if err != nil {
-					return "", err
-				}
-
-				var q Query
-				encoded, err := json.Marshal(dict)
-				if err != nil {
-					return "", err
-				}
-
-				err = json.Unmarshal(encoded, &q)
+				q, err := queryFromArg(arg)
 				if err != nil {
 					return "", err
 				}
 
 				userID = q.UserID
 				pattern = q.Pattern
-				pattern.String = limitString(pattern.String, 256)
 			}
 
 		}
@@ -837,20 +825,7 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 			return "", templates.ErrTooManyCalls
 		}
 
-		ctx.GS.UserCacheDel(CacheKeyDBLimits)
-
-		dict, err := templates.StringKeyDictionary(query)
-		if err != nil {
-			return "", err
-		}
-
-		var q Query
-		encoded, err := json.Marshal(dict)
-		if err != nil {
-			return "", err
-		}
-
-		err = json.Unmarshal(encoded, &q)
+		q, err := queryFromArg(query)
 		if err != nil {
 			return "", err
 		}
@@ -861,6 +836,7 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 		}
 
 		skip := int(templates.ToInt64(iSkip))
+
 		orderby := "value_num DESC, id DESC"
 		if q.Reverse {
 			orderby = "value_num ASC, id ASC"
@@ -881,7 +857,7 @@ func tmplDBDelMultiple(ctx *templates.Context) interface{} {
 		}
 
 		cleared, err := rows.DeleteAllG(context.Background())
-
+		ctx.GS.UserCacheDel(CacheKeyDBLimits)
 		return cleared, err
 	}
 }
@@ -896,18 +872,7 @@ func tmplDBRank(ctx *templates.Context) interface{} {
 			return "", templates.ErrTooManyCalls
 		}
 
-		dict, err := templates.StringKeyDictionary(query)
-		if err != nil {
-			return "", err
-		}
-
-		var q Query
-		encoded, err := json.Marshal(dict)
-		if err != nil {
-			return "", err
-		}
-
-		err = json.Unmarshal(encoded, &q)
+		q, err := queryFromArg(query)
 		if err != nil {
 			return "", err
 		}
@@ -917,7 +882,6 @@ func tmplDBRank(ctx *templates.Context) interface{} {
 			order = `ASC`
 		}
 
-		q.Pattern.String = limitString(q.Pattern.String, 256)
 		if q.UserID.Valid && (q.UserID.Int64 != userID) { // some optimization
 			return 0, nil
 		}
@@ -944,5 +908,28 @@ WHERE user_id = $5 AND key = $6`
 		}
 
 		return rank, err
+
 	}
+}
+
+func queryFromArg(query interface{}) (*Query, error) {
+	dict, err := templates.StringKeyDictionary(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var q Query
+	encoded, err := json.Marshal(dict)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(encoded, &q)
+	if err != nil {
+		return nil, err
+	}
+
+	q.Pattern.String = limitString(q.Pattern.String, 256)
+
+	return &q, nil
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/common/cplogs"
 	"github.com/Pedro-Pessoa/tidbot/common/models"
 	"github.com/Pedro-Pessoa/tidbot/common/patreon"
+	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/web/discordblog"
 )
@@ -499,6 +500,8 @@ func HandlePostCoreSettings(w http.ResponseWriter, r *http.Request) (TemplateDat
 	if err != nil {
 		return templateData, err
 	}
+
+	pubsub.Publish("evict_core_config_cache", g.ID, nil)
 
 	templateData["CoreConfig"] = m
 

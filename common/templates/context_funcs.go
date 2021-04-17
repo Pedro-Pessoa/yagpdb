@@ -1406,13 +1406,13 @@ func (c *Context) reReplace(r string, s string, repl string) (string, error) {
 	return compiled.ReplaceAllString(s, repl), nil
 }
 
-func (c *Context) reSplit(r, s string) ([]string, error) {
+func (c *Context) reSplit(r, s string, i int) ([]string, error) {
 	compiled, err := c.compileRegex(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return compiled.Split(s, 1000), nil
+	return compiled.Split(s, i), nil
 }
 
 // Channels functions
