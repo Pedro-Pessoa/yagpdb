@@ -626,8 +626,11 @@ var ModerationCommands = []*commands.TIDCommand{
 			time.Sleep(time.Second)
 
 			numDeleted, err := AdvancedDeleteMessages(parsed.Msg.ChannelID, userFilter, re, checkAttachs, attach, toID, ma, minAge, pe, onlyBots, num, limitFetch)
+			if err != nil {
+				return fmt.Sprintf("Error while purging messages: `%s`", err), err
+			}
 
-			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), err
+			return dcmd.NewTemporaryResponse(time.Second*5, fmt.Sprintf("Apaguei %d mensagens! :')", numDeleted), true), nil
 		},
 	},
 	{
