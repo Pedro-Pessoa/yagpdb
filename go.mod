@@ -17,7 +17,7 @@ require (
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/friendsofgo/errors v0.9.2
 	github.com/getsentry/sentry-go v0.10.0
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.1
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/gobwas/ws v1.0.4
 	github.com/google/safebrowsing v0.0.0-20190624211811-bbf0d20d26b3
@@ -26,7 +26,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/jarcoal/httpmock v1.0.8 // indirect
 	github.com/jinzhu/gorm v1.9.16
-	github.com/jmoiron/sqlx v1.3.1
+	github.com/jmoiron/sqlx v1.3.3
 	github.com/jonas747/dice v0.0.0-20170619144252-7735f6ee7b69
 	github.com/jonas747/go-reddit v0.1.2
 	github.com/jonas747/go-twitter v0.0.0-20200706234916-1d17060b92bc
@@ -40,7 +40,7 @@ require (
 	github.com/lunixbochs/vtclean v1.0.0
 	github.com/mailru/easyjson v0.7.7
 	github.com/mediocregopher/radix/v3 v3.7.0
-	github.com/microcosm-cc/bluemonday v1.0.6
+	github.com/microcosm-cc/bluemonday v1.0.8
 	github.com/miolini/datacounter v1.0.2
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -60,12 +60,12 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	goji.io v2.0.2+incompatible
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/crypto v0.0.0-20210415154028-4f45737414dc
 	golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
-	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602
+	golang.org/x/net v0.0.0-20210420072503-d25e30425868
+	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78
 	golang.org/x/text v0.3.6
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/api v0.44.0
+	google.golang.org/api v0.45.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

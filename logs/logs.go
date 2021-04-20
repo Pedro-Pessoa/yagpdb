@@ -27,6 +27,11 @@ var (
 	logger = common.GetPluginLogger(&Plugin{})
 )
 
+const (
+	AccessModeMembers  = 0
+	AccessModeEveryone = 1
+)
+
 type Plugin struct{}
 
 func (p *Plugin) PluginInfo() *common.PluginInfo {

@@ -34,6 +34,7 @@ type GuildLoggingConfig struct {
 	ManageMessagesCanViewDeleted null.Bool        `boil:"manage_messages_can_view_deleted" json:"manage_messages_can_view_deleted,omitempty" toml:"manage_messages_can_view_deleted" yaml:"manage_messages_can_view_deleted,omitempty"`
 	EveryoneCanViewDeleted       null.Bool        `boil:"everyone_can_view_deleted" json:"everyone_can_view_deleted,omitempty" toml:"everyone_can_view_deleted" yaml:"everyone_can_view_deleted,omitempty"`
 	MessageLogsAllowedRoles      types.Int64Array `boil:"message_logs_allowed_roles" json:"message_logs_allowed_roles,omitempty" toml:"message_logs_allowed_roles" yaml:"message_logs_allowed_roles,omitempty"`
+	AccessMode                   int16            `boil:"access_mode" json:"access_mode" toml:"access_mode" yaml:"access_mode"`
 
 	R *guildLoggingConfigR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L guildLoggingConfigL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -49,6 +50,7 @@ var GuildLoggingConfigColumns = struct {
 	ManageMessagesCanViewDeleted string
 	EveryoneCanViewDeleted       string
 	MessageLogsAllowedRoles      string
+	AccessMode                   string
 }{
 	GuildID:                      "guild_id",
 	CreatedAt:                    "created_at",
@@ -59,6 +61,7 @@ var GuildLoggingConfigColumns = struct {
 	ManageMessagesCanViewDeleted: "manage_messages_can_view_deleted",
 	EveryoneCanViewDeleted:       "everyone_can_view_deleted",
 	MessageLogsAllowedRoles:      "message_logs_allowed_roles",
+	AccessMode:                   "access_mode",
 }
 
 // Generated where
@@ -178,6 +181,29 @@ func (w whereHelpertypes_Int64Array) GTE(x types.Int64Array) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelperint16 struct{ field string }
+
+func (w whereHelperint16) EQ(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint16) NEQ(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint16) LT(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint16) LTE(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint16) GT(x int16) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint16) GTE(x int16) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint16) IN(slice []int16) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperint16) NIN(slice []int16) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var GuildLoggingConfigWhere = struct {
 	GuildID                      whereHelperint64
 	CreatedAt                    whereHelpernull_Time
@@ -188,6 +214,7 @@ var GuildLoggingConfigWhere = struct {
 	ManageMessagesCanViewDeleted whereHelpernull_Bool
 	EveryoneCanViewDeleted       whereHelpernull_Bool
 	MessageLogsAllowedRoles      whereHelpertypes_Int64Array
+	AccessMode                   whereHelperint16
 }{
 	GuildID:                      whereHelperint64{field: "\"guild_logging_configs\".\"guild_id\""},
 	CreatedAt:                    whereHelpernull_Time{field: "\"guild_logging_configs\".\"created_at\""},
@@ -198,6 +225,7 @@ var GuildLoggingConfigWhere = struct {
 	ManageMessagesCanViewDeleted: whereHelpernull_Bool{field: "\"guild_logging_configs\".\"manage_messages_can_view_deleted\""},
 	EveryoneCanViewDeleted:       whereHelpernull_Bool{field: "\"guild_logging_configs\".\"everyone_can_view_deleted\""},
 	MessageLogsAllowedRoles:      whereHelpertypes_Int64Array{field: "\"guild_logging_configs\".\"message_logs_allowed_roles\""},
+	AccessMode:                   whereHelperint16{field: "\"guild_logging_configs\".\"access_mode\""},
 }
 
 // GuildLoggingConfigRels is where relationship names are stored.
@@ -217,9 +245,9 @@ func (*guildLoggingConfigR) NewStruct() *guildLoggingConfigR {
 type guildLoggingConfigL struct{}
 
 var (
-	guildLoggingConfigAllColumns            = []string{"guild_id", "created_at", "updated_at", "username_logging_enabled", "nickname_logging_enabled", "blacklisted_channels", "manage_messages_can_view_deleted", "everyone_can_view_deleted", "message_logs_allowed_roles"}
+	guildLoggingConfigAllColumns            = []string{"guild_id", "created_at", "updated_at", "username_logging_enabled", "nickname_logging_enabled", "blacklisted_channels", "manage_messages_can_view_deleted", "everyone_can_view_deleted", "message_logs_allowed_roles", "access_mode"}
 	guildLoggingConfigColumnsWithoutDefault = []string{"guild_id", "created_at", "updated_at", "username_logging_enabled", "nickname_logging_enabled", "blacklisted_channels", "manage_messages_can_view_deleted", "everyone_can_view_deleted", "message_logs_allowed_roles"}
-	guildLoggingConfigColumnsWithDefault    = []string{}
+	guildLoggingConfigColumnsWithDefault    = []string{"access_mode"}
 	guildLoggingConfigPrimaryKeyColumns     = []string{"guild_id"}
 )
 
