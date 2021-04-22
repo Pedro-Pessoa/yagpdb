@@ -38,7 +38,8 @@ type Tree struct {
 type Mode uint
 
 const (
-	ParseComments Mode = 1 << iota // parse comments and add them to AST
+	ParseComments  Mode = 1 << iota // parse comments and add them to AST
+	DeferFuncCheck                  // defer type checking functions until template is executed
 )
 
 // Copy returns a copy of the Tree. Any parsing state is discarded.
@@ -281,6 +282,7 @@ func IsEmptyTree(n Node) bool {
 	case *RangeNode:
 	case *WhileNode:
 	case *TemplateNode:
+	case *TryNode:
 	case *ReturnNode:
 	case *TextNode:
 		return len(bytes.TrimSpace(n.Text)) == 0
@@ -311,7 +313,7 @@ func (t *Tree) parse() {
 			t.backup2(delim)
 		}
 		switch n := t.textOrAction(); n.Type() {
-		case nodeEnd, nodeElse:
+		case nodeEnd, nodeElse, nodeCatch:
 			t.errorf("unexpected %s", n)
 		default:
 			t.Root.append(n)
@@ -342,13 +344,13 @@ func (t *Tree) parseDefinition() {
 
 // itemList:
 //	textOrAction*
-// Terminates at {{end}} or {{else}}, returned separately.
+// Terminates at {{end}}, {{else}} or {{catch}}, returned separately.
 func (t *Tree) itemList() (list *ListNode, next Node) {
 	list = t.newList(t.peekNonSpace().pos)
 	for t.peekNonSpace().typ != itemEOF {
 		n := t.textOrAction()
 		switch n.Type() {
-		case nodeEnd, nodeElse:
+		case nodeEnd, nodeElse, nodeCatch:
 			return list, n
 		}
 		list.append(n)
@@ -388,6 +390,8 @@ func (t *Tree) action() (n Node) {
 	switch token := t.nextNonSpace(); token.typ {
 	case itemBlock:
 		return t.blockControl()
+	case itemCatch:
+		return t.catchControl()
 	case itemElse:
 		return t.elseControl()
 	case itemEnd:
@@ -400,6 +404,8 @@ func (t *Tree) action() (n Node) {
 		return t.whileControl()
 	case itemTemplate:
 		return t.templateControl()
+	case itemTry:
+		return t.tryControl()
 	case itemWith:
 		return t.withControl()
 	case itemBreak:
@@ -527,6 +533,8 @@ func (t *Tree) parseControl(allowElseIf bool, context string) (pos Pos, line int
 		if next.Type() != nodeEnd {
 			t.errorf("expected end; found %s", next)
 		}
+	case nodeCatch:
+		t.errorf("expected end or else; found %s", next)
 	}
 	return pipe.Position(), pipe.Line, pipe, list, elseList
 }
@@ -647,6 +655,34 @@ func (t *Tree) blockControl() Node {
 	return t.newTemplate(token.pos, token.line, name, pipe)
 }
 
+// Catch:
+// 	{{catch}}
+// Catch keyword is past.
+func (t *Tree) catchControl() Node {
+	return t.newCatch(t.expect(itemRightDelim, "catch").pos)
+}
+
+// Try:
+// 	{{try}} itemList {{catch}} itemList {{end}}
+// Try keyword is past.
+// The catch list is mandatory.
+func (t *Tree) tryControl() Node {
+	token := t.expect(itemRightDelim, "catch")
+
+	defer t.popVars(len(t.vars))
+	list, next := t.itemList()
+	if next.Type() != nodeCatch {
+		t.errorf("expected catch; found %s", next)
+	}
+
+	catchList, next := t.itemList()
+	if next.Type() != nodeEnd {
+		t.errorf("expected end; found %s", next)
+	}
+
+	return t.newTry(token.pos, list, catchList)
+}
+
 // Template:
 //	{{template stringValue pipeline}}
 // Template keyword is past. The name must be something that can evaluate
@@ -754,7 +790,8 @@ func (t *Tree) operand() Node {
 func (t *Tree) term() Node {
 	switch token := t.nextNonSpace(); token.typ {
 	case itemIdentifier:
-		if !t.hasFunction(token.val) {
+		checkFunc := t.Mode&DeferFuncCheck == 0
+		if checkFunc && !t.hasFunction(token.val) {
 			t.errorf("function %q not defined", token.val)
 		}
 		return NewIdentifier(token.val).SetTree(t).SetPos(token.pos)

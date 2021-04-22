@@ -55,6 +55,7 @@ const (
 	NodeBool                       // A boolean constant.
 	NodeChain                      // A sequence of field accesses.
 	NodeCommand                    // An element of a pipeline.
+	nodeCatch                      // A catch action. Not added to tree.
 	NodeDot                        // The cursor, dot.
 	nodeElse                       // An else action. Not added to tree.
 	nodeEnd                        // An end action. Not added to tree.
@@ -68,6 +69,7 @@ const (
 	NodeRange                      // A range action.
 	NodeWhile                      // A while action.
 	NodeString                     // A string constant.
+	NodeTry                        // A try action.
 	NodeTemplate                   // A template invocation action.
 	NodeVariable                   // A $ variable.
 	NodeWith                       // A with action.
@@ -953,24 +955,30 @@ type ReturnNode struct {
 func (t *Tree) newReturn(pos Pos, pipe *PipeNode) *ReturnNode {
 	return &ReturnNode{NodeType: NodeReturn, Pos: pos, tr: t, Pipe: pipe}
 }
+
 func (r *ReturnNode) Type() NodeType {
 	return r.NodeType
 }
+
 func (r *ReturnNode) String() string {
 	if r.Pipe != nil {
 		return "{{exit}}"
 	}
 	return fmt.Sprintf("{{exit %s}}", r.Pipe)
 }
+
 func (r *ReturnNode) writeTo(sb *strings.Builder) {
 	sb.WriteString(r.String())
 }
+
 func (r *ReturnNode) Copy() Node {
 	return r.tr.newReturn(r.Pos, r.Pipe)
 }
+
 func (r *ReturnNode) Position() Pos {
 	return r.Pos
 }
+
 func (r *ReturnNode) tree() *Tree {
 	return r.tr
 }
@@ -985,21 +993,27 @@ type BreakNode struct {
 func (t *Tree) newBreak(pos Pos) *BreakNode {
 	return &BreakNode{NodeType: NodeBreak, Pos: pos, tr: t}
 }
+
 func (b *BreakNode) Type() NodeType {
 	return b.NodeType
 }
+
 func (b *BreakNode) String() string {
 	return "{{break}}"
 }
+
 func (b *BreakNode) writeTo(sb *strings.Builder) {
 	sb.WriteString(b.String())
 }
+
 func (b *BreakNode) Copy() Node {
 	return b.tr.newBreak(b.Pos)
 }
+
 func (b *BreakNode) Position() Pos {
 	return b.Pos
 }
+
 func (b *BreakNode) tree() *Tree {
 	return b.tr
 }
@@ -1014,21 +1028,27 @@ type ContinueNode struct {
 func (t *Tree) newContinue(pos Pos) *ContinueNode {
 	return &ContinueNode{NodeType: NodeContinue, Pos: pos, tr: t}
 }
+
 func (c *ContinueNode) Type() NodeType {
 	return c.NodeType
 }
+
 func (c *ContinueNode) String() string {
 	return "{{continue}}"
 }
+
 func (c *ContinueNode) writeTo(sb *strings.Builder) {
 	sb.WriteString(c.String())
 }
+
 func (c *ContinueNode) Copy() Node {
 	return c.tr.newContinue(c.Pos)
 }
+
 func (c *ContinueNode) Position() Pos {
 	return c.Pos
 }
+
 func (c *ContinueNode) tree() *Tree {
 	return c.tr
 }
@@ -1044,6 +1064,70 @@ func (t *Tree) newWith(pos Pos, line int, pipe *PipeNode, list, elseList *ListNo
 
 func (w *WithNode) Copy() Node {
 	return w.tr.newWith(w.Pos, w.Line, w.Pipe.CopyPipe(), w.List.CopyList(), w.ElseList.CopyList())
+}
+
+// CatchNode represents a {{catch}} action. Does not appear in the final tree.
+type catchNode struct {
+	NodeType
+	Pos
+	tr *Tree
+}
+
+func (t *Tree) newCatch(pos Pos) *catchNode {
+	return &catchNode{tr: t, NodeType: nodeCatch, Pos: pos}
+}
+
+func (c *catchNode) Type() NodeType {
+	return nodeCatch
+}
+
+func (c *catchNode) String() string {
+	return "{{catch}}"
+}
+
+func (c *catchNode) writeTo(sb *strings.Builder) {
+	sb.WriteString(c.String())
+}
+
+func (c *catchNode) tree() *Tree {
+	return c.tr
+}
+
+func (c *catchNode) Copy() Node {
+	return c.tr.newCatch(c.Pos)
+}
+
+// TryNode represents a {{try}} action and its commands.
+type TryNode struct {
+	NodeType
+	Pos
+	tr        *Tree
+	List      *ListNode // what to attempt to execute.
+	CatchList *ListNode // what to execute if execution resulted in an error.
+}
+
+func (t *Tree) newTry(pos Pos, list, catchList *ListNode) *TryNode {
+	return &TryNode{NodeType: NodeTry, Pos: pos, tr: t, List: list, CatchList: catchList}
+}
+
+func (t *TryNode) Type() NodeType {
+	return NodeTry
+}
+
+func (t *TryNode) String() string {
+	return fmt.Sprintf("{{try}}%s{{catch}}%s{{end}}", t.List, t.CatchList)
+}
+
+func (t *TryNode) writeTo(sb *strings.Builder) {
+	sb.WriteString(t.String())
+}
+
+func (t *TryNode) tree() *Tree {
+	return t.tr
+}
+
+func (t *TryNode) Copy() Node {
+	return t.tr.newTry(t.Pos, t.List.CopyList(), t.CatchList.CopyList())
 }
 
 // TemplateNode represents a {{template}} action.

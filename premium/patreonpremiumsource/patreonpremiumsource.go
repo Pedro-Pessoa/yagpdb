@@ -78,7 +78,7 @@ func UpdatePremiumSlots(ctx context.Context) error {
 
 	patrons := patreon.ActivePoller.GetPatrons()
 	if len(patrons) == 0 {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return nil
 	}
 

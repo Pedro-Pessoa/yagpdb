@@ -501,7 +501,7 @@ func HandlePostCoreSettings(w http.ResponseWriter, r *http.Request) (TemplateDat
 		return templateData, err
 	}
 
-	pubsub.Publish("evict_core_config_cache", g.ID, nil)
+	_ = pubsub.Publish("evict_core_config_cache", g.ID, nil)
 
 	templateData["CoreConfig"] = m
 

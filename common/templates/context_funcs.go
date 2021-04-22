@@ -551,7 +551,7 @@ func (c *Context) tmplSendTemplateDM(name string, data ...interface{}) (interfac
 	return c.sendNestedTemplate(nil, true, false, name, data...)
 }
 
-func (c *Context) tmplExecTemplate(channel interface{}, name string, data ...interface{}) (interface{}, error) {
+func (c *Context) tmplWalkTemplate(channel interface{}, name string, data ...interface{}) (interface{}, error) {
 	return c.sendNestedTemplate(channel, false, true, name, data...)
 }
 
@@ -1481,8 +1481,35 @@ func (c *Context) tmplGetChannel(channel interface{}) (*CtxChannel, error) {
 
 }
 
-func (c *Context) tmplCreateChannel(channelDataArgs ...interface{}) (*CtxChannel, error) {
-	if c.IncreaseCheckCallCounterPremium("msg_reactors", 1, 2) {
+func (c *Context) tmplCreateChannel(name string, ctype interface{}) (*CtxChannel, error) {
+	if c.IncreaseCheckCallCounterPremium("create_channel", 1, 2) {
+		return nil, ErrTooManyCalls
+	}
+
+	if c.IncreaseCheckGenericAPICall() {
+		return nil, ErrTooManyAPICalls
+	}
+
+	if name == "" {
+		return nil, errors.New("Channel name can not be empty")
+	}
+
+	ctypeInt := ToInt(ctype)
+	switch ctypeInt {
+	case 1, 3, 5, 6:
+		return nil, errors.Errorf("Can not create a channel of type %d", ctypeInt)
+	}
+
+	dChannel, err := common.BotSession.GuildChannelCreate(c.GS.ID, name, discordgo.ChannelType(ctypeInt))
+	if err != nil {
+		return nil, err
+	}
+
+	return CtxChannelFromDGoChannel(dChannel), nil
+}
+
+func (c *Context) tmplCreateChannelComplex(channelDataArgs ...interface{}) (*CtxChannel, error) {
+	if c.IncreaseCheckCallCounterPremium("create_channel", 1, 2) {
 		return nil, ErrTooManyCalls
 	}
 
@@ -1598,7 +1625,7 @@ func (c *Context) tmplTryCall(name string, args ...reflect.Value) ([]interface{}
 		}
 	}
 
-	v, err := template.SafeCall(funVal, argv)
+	v, err, _ := template.SafeCall(funVal, argv)
 	if err != nil {
 		return []interface{}{nil, err}, nil
 	}

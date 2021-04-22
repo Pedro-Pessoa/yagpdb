@@ -542,7 +542,7 @@ func baseContextFuncs(c *Context) {
 	// Templates
 	c.ContextFuncs["sendTemplate"] = c.tmplSendTemplate
 	c.ContextFuncs["sendTemplateDM"] = c.tmplSendTemplateDM
-	c.ContextFuncs["execTemplate"] = c.tmplExecTemplate
+	c.ContextFuncs["walkTemplate"] = c.tmplWalkTemplate
 	c.ContextFuncs["addReturn"] = c.tmplAddReturn
 
 	// Mentions
@@ -611,6 +611,7 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["editChannelName"] = c.tmplEditChannelName
 	c.ContextFuncs["getChannel"] = c.tmplGetChannel
 	c.ContextFuncs["createChannel"] = c.tmplCreateChannel
+	c.ContextFuncs["createChannelComplex"] = c.tmplCreateChannelComplex
 
 	// TryCall
 	c.ContextFuncs["tryCall"] = c.tmplTryCall

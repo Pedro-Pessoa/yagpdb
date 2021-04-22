@@ -350,14 +350,16 @@ func call(fn reflect.Value, args ...reflect.Value) (reflect.Value, error) {
 			return reflect.Value{}, fmt.Errorf("arg %d: %w", i, err)
 		}
 	}
-	return SafeCall(fn, argv)
+	out, err, _ := SafeCall(fn, argv)
+	return out, err
 }
 
 // SafeCall runs fun.Call(args), and returns the resulting value and error, if
 // any. If the call panics, the panic value is returned as an error.
-func SafeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err error) {
+func SafeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err error, paniced bool) {
 	defer func() {
 		if r := recover(); r != nil {
+			paniced = true
 			if e, ok := r.(error); ok {
 				err = e
 			} else {
@@ -367,9 +369,9 @@ func SafeCall(fun reflect.Value, args []reflect.Value) (val reflect.Value, err e
 	}()
 	ret := fun.Call(args)
 	if len(ret) == 2 && !ret[1].IsNil() {
-		return ret[0], ret[1].Interface().(error)
+		return ret[0], ret[1].Interface().(error), false
 	}
-	return ret[0], nil
+	return ret[0], nil, false
 }
 
 // Boolean logic.

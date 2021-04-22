@@ -815,9 +815,9 @@ func testExecute(execTests []execTest, template *Template, t *testing.T) {
 		var tmpl *Template
 		var err error
 		if template == nil {
-			tmpl, err = New(test.name).MaxOps(1_000_000).Funcs(funcs).Parse(test.input)
+			tmpl, err = New(test.name).Funcs(funcs).MaxOps(1_000_000).Parse(test.input)
 		} else {
-			tmpl, err = template.New(test.name).MaxOps(1_000_000).Funcs(funcs).Parse(test.input)
+			tmpl, err = template.New(test.name).Funcs(funcs).MaxOps(1_000_000).Parse(test.input)
 		}
 		if err != nil {
 			t.Errorf("%s: parse error: %s", test.name, err)
