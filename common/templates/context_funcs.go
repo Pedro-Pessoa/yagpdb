@@ -23,7 +23,6 @@ import (
 var (
 	ErrTooManyCalls    = errors.New("Too many calls to this function")
 	ErrTooManyAPICalls = errors.New("Too many potential discord api calls function")
-	reflectValueType   = reflect.TypeOf((*reflect.Value)(nil)).Elem()
 )
 
 // Message Functions
