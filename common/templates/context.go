@@ -122,9 +122,10 @@ type Context struct {
 	Msg     *discordgo.Message
 	BotUser *discordgo.User
 
-	ContextFuncs map[string]interface{}
-	Data         map[string]interface{}
-	Counters     map[string]int
+	ContextFuncs         map[string]interface{}
+	DisabledContextFuncs []string
+	Data                 map[string]interface{}
+	Counters             map[string]int
 
 	FixedOutput  string
 	secondsSlept int
@@ -136,6 +137,8 @@ type Context struct {
 	CurrentFrame *contextFrame
 
 	IsExecedByLeaveMessage bool
+
+	contextFuncsAdded bool
 }
 
 type contextFrame struct {
@@ -178,8 +181,6 @@ func NewContext(gs *dstate.GuildState, cs *dstate.ChannelState, ms *dstate.Membe
 		ctx.IsPremium, _ = GuildPremiumFunc(gs.ID)
 	}
 
-	ctx.setupContextFuncs()
-
 	return ctx
 }
 
@@ -187,6 +188,8 @@ func (c *Context) setupContextFuncs() {
 	for _, f := range contextSetupFuncs {
 		f(c)
 	}
+
+	c.contextFuncsAdded = true
 }
 
 func (c *Context) setupBaseData() {
@@ -237,6 +240,10 @@ func (c *Context) setupBaseData() {
 }
 
 func (c *Context) Parse(source string) (*template.Template, error) {
+	if !c.contextFuncsAdded {
+		c.setupContextFuncs()
+	}
+
 	tmpl := template.New(c.Name)
 	tmpl.Funcs(StandardFuncMap)
 	tmpl.Funcs(c.ContextFuncs)
@@ -515,122 +522,134 @@ func (c *Context) LogEntry() *logrus.Entry {
 	return f
 }
 
+func (c *Context) funcDisabled(input ...interface{}) string {
+	return ""
+}
+
+func (c *Context) addContextFunc(name string, f interface{}) {
+	if common.ContainsStringSlice(c.DisabledContextFuncs, name) {
+		f = c.funcDisabled
+	}
+
+	c.ContextFuncs[name] = f
+}
+
 func baseContextFuncs(c *Context) {
 	// Message functions
-	c.ContextFuncs["sendDM"] = c.tmplSendDM
-	c.ContextFuncs["sendDMWithError"] = c.tmplSendDMWithError
-	c.ContextFuncs["sendTargetDM"] = c.tmplSendTargetDM
-	c.ContextFuncs["sendTargetDMWithError"] = c.tmplSendTargetDMWithError
-	c.ContextFuncs["sendMessage"] = c.tmplSendMessage(true, false, true)
-	c.ContextFuncs["sendMessageRetID"] = c.tmplSendMessage(true, true, true)
-	c.ContextFuncs["sendMessageNoEscape"] = c.tmplSendMessage(false, false, true)
-	c.ContextFuncs["sendMessageNoEscapeRetID"] = c.tmplSendMessage(false, true, true)
-	c.ContextFuncs["sendMessageWithError"] = c.tmplSendMessage(true, false, false)
-	c.ContextFuncs["sendMessageRetIDWithError"] = c.tmplSendMessage(true, true, false)
-	c.ContextFuncs["sendMessageNoEscapeWithError"] = c.tmplSendMessage(false, false, false)
-	c.ContextFuncs["sendMessageNoEscapeRetIDWithError"] = c.tmplSendMessage(false, true, false)
-	c.ContextFuncs["editMessage"] = c.tmplEditMessage(true)
-	c.ContextFuncs["editMessageNoEscape"] = c.tmplEditMessage(false)
-	c.ContextFuncs["deleteResponse"] = c.tmplDelResponse
-	c.ContextFuncs["deleteTrigger"] = c.tmplDelTrigger
-	c.ContextFuncs["deleteMessage"] = c.tmplDelMessage
-	c.ContextFuncs["getMessage"] = c.tmplGetMessage
-	c.ContextFuncs["getMessageReactors"] = c.tmplGetMessageReactors
-	c.ContextFuncs["pinMessage"] = c.tmplPinMessage
-	c.ContextFuncs["unpinMessage"] = c.tmplUnpinMessage
+	c.addContextFunc("sendDM", c.tmplSendDM)
+	c.addContextFunc("sendDMWithError", c.tmplSendDMWithError)
+	c.addContextFunc("sendTargetDM", c.tmplSendTargetDM)
+	c.addContextFunc("sendTargetDMWithError", c.tmplSendTargetDMWithError)
+	c.addContextFunc("sendMessage", c.tmplSendMessage(true, false, true))
+	c.addContextFunc("sendMessageRetID", c.tmplSendMessage(true, true, true))
+	c.addContextFunc("sendMessageNoEscape", c.tmplSendMessage(false, false, true))
+	c.addContextFunc("sendMessageNoEscapeRetID", c.tmplSendMessage(false, true, true))
+	c.addContextFunc("sendMessageWithError", c.tmplSendMessage(true, false, false))
+	c.addContextFunc("sendMessageRetIDWithError", c.tmplSendMessage(true, true, false))
+	c.addContextFunc("sendMessageNoEscapeWithError", c.tmplSendMessage(false, false, false))
+	c.addContextFunc("sendMessageNoEscapeRetIDWithError", c.tmplSendMessage(false, true, false))
+	c.addContextFunc("editMessage", c.tmplEditMessage(true))
+	c.addContextFunc("editMessageNoEscape", c.tmplEditMessage(false))
+	c.addContextFunc("deleteResponse", c.tmplDelResponse)
+	c.addContextFunc("deleteTrigger", c.tmplDelTrigger)
+	c.addContextFunc("deleteMessage", c.tmplDelMessage)
+	c.addContextFunc("getMessage", c.tmplGetMessage)
+	c.addContextFunc("getMessageReactors", c.tmplGetMessageReactors)
+	c.addContextFunc("pinMessage", c.tmplPinMessage)
+	c.addContextFunc("unpinMessage", c.tmplUnpinMessage)
 
 	// Templates
-	c.ContextFuncs["sendTemplate"] = c.tmplSendTemplate
-	c.ContextFuncs["sendTemplateDM"] = c.tmplSendTemplateDM
-	c.ContextFuncs["walkTemplate"] = c.tmplWalkTemplate
-	c.ContextFuncs["addReturn"] = c.tmplAddReturn
+	c.addContextFunc("sendTemplate", c.tmplSendTemplate)
+	c.addContextFunc("sendTemplateDM", c.tmplSendTemplateDM)
+	c.addContextFunc("walkTemplate", c.tmplWalkTemplate)
+	c.addContextFunc("addReturn", c.tmplAddReturn)
 
 	// Mentions
-	c.ContextFuncs["mentionEveryone"] = c.tmplMentionEveryone
-	c.ContextFuncs["mentionHere"] = c.tmplMentionHere
+	c.addContextFunc("mentionEveryone", c.tmplMentionEveryone)
+	c.addContextFunc("mentionHere", c.tmplMentionHere)
 
 	// Role functions
-	c.ContextFuncs["getRole"] = c.tmplGetRole
-	c.ContextFuncs["mentionRole"] = c.tmplMentionRole
-	c.ContextFuncs["mentionRoleID"] = c.tmplMentionRoleID
-	c.ContextFuncs["mentionRoleName"] = c.tmplMentionRoleName
-	c.ContextFuncs["hasRole"] = c.tmplHasRole
-	c.ContextFuncs["hasRoleID"] = c.tmplHasRoleID
-	c.ContextFuncs["hasRoleName"] = c.tmplHasRoleName
-	c.ContextFuncs["hasRoleWithError"] = c.tmplHasRoleWithError
-	c.ContextFuncs["hasRoleIDWithError"] = c.tmplHasRoleIDWithError
-	c.ContextFuncs["hasRoleNameWithError"] = c.tmplHasRoleNameWithError
-	c.ContextFuncs["targetHasRole"] = c.tmplTargetHasRole
-	c.ContextFuncs["targetHasRoleID"] = c.tmplTargetHasRoleID
-	c.ContextFuncs["targetHasRoleName"] = c.tmplTargetHasRoleName
-	c.ContextFuncs["targetHasRoleWithError"] = c.tmplTargetHasRoleWithError
-	c.ContextFuncs["targetHasRoleIDWithError"] = c.tmplTargetHasRoleIDWithError
-	c.ContextFuncs["targetHasRoleNameWithError"] = c.tmplTargetHasRoleNameWithError
-	c.ContextFuncs["giveRole"] = c.tmplGiveRole
-	c.ContextFuncs["giveRoleID"] = c.tmplGiveRoleID
-	c.ContextFuncs["giveRoleName"] = c.tmplGiveRoleName
-	c.ContextFuncs["giveRoleWithError"] = c.tmplGiveRoleWithError
-	c.ContextFuncs["giveRoleIDWithError"] = c.tmplGiveRoleIDWithError
-	c.ContextFuncs["giveRoleNameWithError"] = c.tmplGiveRoleNameWithError
-	c.ContextFuncs["addRole"] = c.tmplAddRole
-	c.ContextFuncs["addRoleID"] = c.tmplAddRoleID
-	c.ContextFuncs["addRoleName"] = c.tmplAddRoleName
-	c.ContextFuncs["addRoleWithError"] = c.tmplAddRoleWithError
-	c.ContextFuncs["addRoleIDWithError"] = c.tmplAddRoleIDWithError
-	c.ContextFuncs["addRoleNameWithError"] = c.tmplAddRoleNameWithError
-	c.ContextFuncs["takeRole"] = c.tmplTakeRole
-	c.ContextFuncs["takeRoleID"] = c.tmplTakeRoleID
-	c.ContextFuncs["takeRoleName"] = c.tmplTakeRoleName
-	c.ContextFuncs["takeRoleWithError"] = c.tmplTakeRoleWithError
-	c.ContextFuncs["takeRoleIDWithError"] = c.tmplTakeRoleIDWithError
-	c.ContextFuncs["takeRoleNameWithError"] = c.tmplTakeRoleNameWithError
-	c.ContextFuncs["removeRole"] = c.tmplRemoveRole
-	c.ContextFuncs["removeRoleID"] = c.tmplRemoveRoleID
-	c.ContextFuncs["removeRoleName"] = c.tmplRemoveRoleName
-	c.ContextFuncs["removeRoleWithError"] = c.tmplRemoveRoleWithError
-	c.ContextFuncs["removeRoleIDWithError"] = c.tmplRemoveRoleIDWithError
-	c.ContextFuncs["removeRoleNameWithError"] = c.tmplRemoveRoleNameWithError
-	c.ContextFuncs["setRoles"] = c.tmplSetRoles
+	c.addContextFunc("getRole", c.tmplGetRole)
+	c.addContextFunc("mentionRole", c.tmplMentionRole)
+	c.addContextFunc("mentionRoleID", c.tmplMentionRoleID)
+	c.addContextFunc("mentionRoleName", c.tmplMentionRoleName)
+	c.addContextFunc("hasRole", c.tmplHasRole)
+	c.addContextFunc("hasRoleID", c.tmplHasRoleID)
+	c.addContextFunc("hasRoleName", c.tmplHasRoleName)
+	c.addContextFunc("hasRoleWithError", c.tmplHasRoleWithError)
+	c.addContextFunc("hasRoleIDWithError", c.tmplHasRoleIDWithError)
+	c.addContextFunc("hasRoleNameWithError", c.tmplHasRoleNameWithError)
+	c.addContextFunc("targetHasRole", c.tmplTargetHasRole)
+	c.addContextFunc("targetHasRoleID", c.tmplTargetHasRoleID)
+	c.addContextFunc("targetHasRoleName", c.tmplTargetHasRoleName)
+	c.addContextFunc("targetHasRoleWithError", c.tmplTargetHasRoleWithError)
+	c.addContextFunc("targetHasRoleIDWithError", c.tmplTargetHasRoleIDWithError)
+	c.addContextFunc("targetHasRoleNameWithError", c.tmplTargetHasRoleNameWithError)
+	c.addContextFunc("giveRole", c.tmplGiveRole)
+	c.addContextFunc("giveRoleID", c.tmplGiveRoleID)
+	c.addContextFunc("giveRoleName", c.tmplGiveRoleName)
+	c.addContextFunc("giveRoleWithError", c.tmplGiveRoleWithError)
+	c.addContextFunc("giveRoleIDWithError", c.tmplGiveRoleIDWithError)
+	c.addContextFunc("giveRoleNameWithError", c.tmplGiveRoleNameWithError)
+	c.addContextFunc("addRole", c.tmplAddRole)
+	c.addContextFunc("addRoleID", c.tmplAddRoleID)
+	c.addContextFunc("addRoleName", c.tmplAddRoleName)
+	c.addContextFunc("addRoleWithError", c.tmplAddRoleWithError)
+	c.addContextFunc("addRoleIDWithError", c.tmplAddRoleIDWithError)
+	c.addContextFunc("addRoleNameWithError", c.tmplAddRoleNameWithError)
+	c.addContextFunc("takeRole", c.tmplTakeRole)
+	c.addContextFunc("takeRoleID", c.tmplTakeRoleID)
+	c.addContextFunc("takeRoleName", c.tmplTakeRoleName)
+	c.addContextFunc("takeRoleWithError", c.tmplTakeRoleWithError)
+	c.addContextFunc("takeRoleIDWithError", c.tmplTakeRoleIDWithError)
+	c.addContextFunc("takeRoleNameWithError", c.tmplTakeRoleNameWithError)
+	c.addContextFunc("removeRole", c.tmplRemoveRole)
+	c.addContextFunc("removeRoleID", c.tmplRemoveRoleID)
+	c.addContextFunc("removeRoleName", c.tmplRemoveRoleName)
+	c.addContextFunc("removeRoleWithError", c.tmplRemoveRoleWithError)
+	c.addContextFunc("removeRoleIDWithError", c.tmplRemoveRoleIDWithError)
+	c.addContextFunc("removeRoleNameWithError", c.tmplRemoveRoleNameWithError)
+	c.addContextFunc("setRoles", c.tmplSetRoles)
 
 	// Reactions
-	c.ContextFuncs["deleteMessageReaction"] = c.tmplDelMessageReaction
-	c.ContextFuncs["deleteAllMessageReactions"] = c.tmplDelAllMessageReactions
-	c.ContextFuncs["addReactions"] = c.tmplAddReactions
-	c.ContextFuncs["addResponseReactions"] = c.tmplAddResponseReactions
-	c.ContextFuncs["addMessageReactions"] = c.tmplAddMessageReactions
+	c.addContextFunc("deleteMessageReaction", c.tmplDelMessageReaction)
+	c.addContextFunc("deleteAllMessageReactions", c.tmplDelAllMessageReactions)
+	c.addContextFunc("addReactions", c.tmplAddReactions)
+	c.addContextFunc("addResponseReactions", c.tmplAddResponseReactions)
+	c.addContextFunc("addMessageReactions", c.tmplAddMessageReactions)
 
 	// Regex
-	c.ContextFuncs["reFind"] = c.reFind
-	c.ContextFuncs["reFindAll"] = c.reFindAll
-	c.ContextFuncs["reFindAllSubmatches"] = c.reFindAllSubmatches
-	c.ContextFuncs["reReplace"] = c.reReplace
-	c.ContextFuncs["reSplit"] = c.reSplit
+	c.addContextFunc("reFind", c.reFind)
+	c.addContextFunc("reFindAll", c.reFindAll)
+	c.addContextFunc("reFindAllSubmatches", c.reFindAllSubmatches)
+	c.addContextFunc("reReplace", c.reReplace)
+	c.addContextFunc("reSplit", c.reSplit)
 
 	// Channel
-	c.ContextFuncs["editChannelTopic"] = c.tmplEditChannelTopic
-	c.ContextFuncs["editChannelName"] = c.tmplEditChannelName
-	c.ContextFuncs["getChannel"] = c.tmplGetChannel
-	c.ContextFuncs["createChannel"] = c.tmplCreateChannel
-	c.ContextFuncs["createChannelComplex"] = c.tmplCreateChannelComplex
+	c.addContextFunc("editChannelTopic", c.tmplEditChannelTopic)
+	c.addContextFunc("editChannelName", c.tmplEditChannelName)
+	c.addContextFunc("getChannel", c.tmplGetChannel)
+	c.addContextFunc("createChannel", c.tmplCreateChannel)
+	c.addContextFunc("createChannelComplex", c.tmplCreateChannelComplex)
 
 	// Standardize
-	c.ContextFuncs["standardize"] = c.tmplStandardize
+	c.addContextFunc("standardize", c.tmplStandardize)
 
 	// Misc
-	c.ContextFuncs["getMember"] = c.tmplGetMember
-	c.ContextFuncs["currentUserCreated"] = c.tmplCurrentUserCreated
-	c.ContextFuncs["currentUserAgeHuman"] = c.tmplCurrentUserAgeHuman
-	c.ContextFuncs["currentUserAgeMinutes"] = c.tmplCurrentUserAgeMinutes
-	c.ContextFuncs["userCreated"] = c.tmplUserCreated
-	c.ContextFuncs["userAgeHuman"] = c.tmplUserAgeHuman
-	c.ContextFuncs["userAgeMinutes"] = c.tmplUserAgeMinutes
-	c.ContextFuncs["sleep"] = c.tmplSleep
-	c.ContextFuncs["onlineCount"] = c.tmplOnlineCount
-	c.ContextFuncs["onlineCountBots"] = c.tmplOnlineCountBots
-	c.ContextFuncs["editNickname"] = c.tmplEditNickname
-	c.ContextFuncs["editTargetNickname"] = c.tmplEditTargetNickName
-	c.ContextFuncs["sort"] = c.tmplSort
-	c.ContextFuncs["generatePerms"] = c.tmplGeneratePerms
+	c.addContextFunc("getMember", c.tmplGetMember)
+	c.addContextFunc("currentUserCreated", c.tmplCurrentUserCreated)
+	c.addContextFunc("currentUserAgeHuman", c.tmplCurrentUserAgeHuman)
+	c.addContextFunc("currentUserAgeMinutes", c.tmplCurrentUserAgeMinutes)
+	c.addContextFunc("userCreated", c.tmplUserCreated)
+	c.addContextFunc("userAgeHuman", c.tmplUserAgeHuman)
+	c.addContextFunc("userAgeMinutes", c.tmplUserAgeMinutes)
+	c.addContextFunc("sleep", c.tmplSleep)
+	c.addContextFunc("onlineCount", c.tmplOnlineCount)
+	c.addContextFunc("onlineCountBots", c.tmplOnlineCountBots)
+	c.addContextFunc("editNickname", c.tmplEditNickname)
+	c.addContextFunc("editTargetNickname", c.tmplEditTargetNickName)
+	c.addContextFunc("sort", c.tmplSort)
+	c.addContextFunc("generatePerms", c.tmplGeneratePerms)
 }
 
 type limitedWriter struct {
