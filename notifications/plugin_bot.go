@@ -283,8 +283,6 @@ func HandleChannelUpdate(evt *eventsystem.EventData) (retry bool, err error) {
 
 	oldTopic := curChannel.Topic
 
-	logger.Infof("Old topic -> %#v || New topic -> %#v", oldTopic, cur.Topic)
-
 	if oldTopic == cur.Topic {
 		return
 	}
