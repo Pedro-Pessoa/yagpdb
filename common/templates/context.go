@@ -613,9 +613,6 @@ func baseContextFuncs(c *Context) {
 	c.ContextFuncs["createChannel"] = c.tmplCreateChannel
 	c.ContextFuncs["createChannelComplex"] = c.tmplCreateChannelComplex
 
-	// TryCall
-	c.ContextFuncs["tryCall"] = c.tmplTryCall
-
 	// Standardize
 	c.ContextFuncs["standardize"] = c.tmplStandardize
 

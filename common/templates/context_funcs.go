@@ -18,7 +18,6 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/common/scheduledevents2"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
-	"github.com/Pedro-Pessoa/tidbot/pkgs/template"
 )
 
 var (
@@ -1561,130 +1560,6 @@ func (c *Context) tmplCreateChannelComplex(channelDataArgs ...interface{}) (*Ctx
 	}
 
 	return CtxChannelFromDGoChannel(dChannel), nil
-}
-
-// TryCall functions
-
-// tryCall attempts to call a non-builtin function by name.
-// Modified version of https://github.com/golang/go/blob/3b2a578166bdedd94110698c971ba8990771eb89/src/text/template/exec.go#L669
-func (c *Context) tmplTryCall(name string, args ...reflect.Value) ([]interface{}, error) {
-	// Probably will lead to oddities I haven't thought of, and no real reason to call tryCall using tryCall
-	if name == "tryCall" {
-		return nil, errors.New("can't call tryCall function using tryCall")
-	}
-
-	fun, ok := c.ContextFuncs[name]
-	if !ok {
-		// try looking up the name from StandardFuncMap
-		fun, ok = StandardFuncMap[name]
-		if !ok {
-			return nil, errors.Errorf("function %q not found", name)
-		}
-	}
-
-	funVal := reflect.ValueOf(fun)
-	typ := funVal.Type()
-
-	numIn := len(args)
-	numFixed := len(args)
-	if typ.IsVariadic() {
-		numFixed = typ.NumIn() - 1 // last arg is the variadic one.
-		if numIn < numFixed {
-			return nil, errors.Errorf("wrong number of args for %s: want at least %d got %d", name, typ.NumIn()-1, len(args))
-		}
-	} else if numIn != typ.NumIn() {
-		return nil, errors.Errorf("wrong number of args for %s: want %d got %d", name, typ.NumIn(), numIn)
-	}
-
-	if !template.GoodFunc(typ) {
-		return nil, errors.Errorf("can't call function %q with %d results", name, typ.NumOut())
-	}
-
-	argv := make([]reflect.Value, numIn)
-	var i int
-	// Validate fixed args.
-	for ; i < numFixed && i < len(args); i++ {
-		val, err := validateType(args[i], typ.In(i))
-		if err != nil {
-			return nil, err
-		}
-
-		argv[i] = val
-	}
-
-	// Now the ... args.
-	if typ.IsVariadic() {
-		argType := typ.In(typ.NumIn() - 1).Elem() // Argument is a slice.
-		for ; i < len(args); i++ {
-			val, err := validateType(args[i], argType)
-			if err != nil {
-				return nil, err
-			}
-
-			argv[i] = val
-		}
-	}
-
-	v, err, _ := template.SafeCall(funVal, argv)
-	if err != nil {
-		return []interface{}{nil, err}, nil
-	}
-
-	if v.Type() == reflectValueType {
-		v = v.Interface().(reflect.Value)
-	}
-
-	return []interface{}{v, nil}, nil
-}
-
-// validateType guarantees that the value is valid and assignable to the type.
-// Taken from https://github.com/golang/go/blob/3b2a578166bdedd94110698c971ba8990771eb89/src/text/template/exec.go#L746
-func validateType(value reflect.Value, typ reflect.Type) (reflect.Value, error) {
-	if !value.IsValid() {
-		if typ == nil {
-			// An untyped nil interface{}. Accept as a proper nil value.
-			return reflect.ValueOf(nil), nil
-		}
-
-		if template.CanBeNil(typ) {
-			// Like above, but use the zero value of the non-nil type.
-			return reflect.Zero(typ), nil
-		}
-
-		return reflect.Value{}, errors.Errorf("invalid value; expected %s", typ)
-	}
-
-	if typ == reflectValueType && value.Type() != typ {
-		return reflect.ValueOf(value), nil
-	}
-
-	if typ != nil && !value.Type().AssignableTo(typ) {
-		if value.Kind() == reflect.Interface && !value.IsNil() {
-			value = value.Elem()
-			if value.Type().AssignableTo(typ) {
-				return value, nil
-			}
-			// fallthrough
-		}
-
-		// Does one dereference or indirection work? We could do more, as we
-		// do with method receivers, but that gets messy and method receivers
-		// are much more constrained, so it makes more sense there than here.
-		// Besides, one is almost always all you need.
-		switch {
-		case value.Kind() == reflect.Ptr && value.Type().Elem().AssignableTo(typ):
-			value = value.Elem()
-			if !value.IsValid() {
-				return reflect.Value{}, errors.Errorf("dereference of nil pointer of type %s", typ)
-			}
-		case reflect.PtrTo(value.Type()).AssignableTo(typ) && value.CanAddr():
-			value = value.Addr()
-		default:
-			return reflect.Value{}, errors.Errorf("wrong type for value; expected %s; got %s", typ, value.Type())
-		}
-	}
-
-	return value, nil
 }
 
 // Standardize functions
