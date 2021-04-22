@@ -224,6 +224,7 @@ func (t *Tree) startParse(funcs []map[string]interface{}, lex *lexer, treeSet ma
 	t.vars = []string{"$"}
 	t.funcs = funcs
 	t.treeSet = treeSet
+	t.loopDepth = 0
 }
 
 // stopParse terminates parsing.
@@ -279,13 +280,15 @@ func IsEmptyTree(n Node) bool {
 			}
 		}
 		return true
-	case *RangeNode:
 	case *WhileNode:
+	case *RangeNode:
 	case *TemplateNode:
 	case *TryNode:
-	case *ReturnNode:
 	case *TextNode:
 		return len(bytes.TrimSpace(n.Text)) == 0
+	case *BreakNode:
+	case *ContinueNode:
+	case *ReturnNode:
 	case *WithNode:
 	default:
 		panic("unknown node: " + n.String())
@@ -388,10 +391,14 @@ func (t *Tree) clearActionLine() {
 // First word could be a keyword such as range.
 func (t *Tree) action() (n Node) {
 	switch token := t.nextNonSpace(); token.typ {
+	case itemBreak:
+		return t.breakControl()
 	case itemBlock:
 		return t.blockControl()
 	case itemCatch:
 		return t.catchControl()
+	case itemContinue:
+		return t.continueControl()
 	case itemElse:
 		return t.elseControl()
 	case itemEnd:
@@ -400,20 +407,16 @@ func (t *Tree) action() (n Node) {
 		return t.ifControl()
 	case itemRange:
 		return t.rangeControl()
-	case itemWhile:
-		return t.whileControl()
+	case itemReturn:
+		return t.returnControl()
 	case itemTemplate:
 		return t.templateControl()
 	case itemTry:
 		return t.tryControl()
 	case itemWith:
 		return t.withControl()
-	case itemBreak:
-		return t.breakControl()
-	case itemContinue:
-		return t.continueControl()
-	case itemReturn:
-		return t.returnControl()
+	case itemWhile:
+		return t.whileControl()
 	}
 	t.backup()
 	token := t.peek()

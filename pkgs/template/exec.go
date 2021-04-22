@@ -257,18 +257,18 @@ func (t *Template) DefinedTemplates() string {
 	return b.String()
 }
 
-type controlFlowSignal int8
+type controlFlowControl int8
 
 const (
-	signalLoopNone     controlFlowSignal = iota // no action.
-	signalLoopBreak                             // break out of range.
-	signalLoopContinue                          // continues next range iteration.
-	signalReturnValue                           // return a value to the caller.
+	controlFlowNone         controlFlowControl = iota // no action.
+	controlFlowLoopBreak                              // break out of loop.
+	controlFlowLoopContinue                           // continues next loop iteration.
+	controlFlowReturnValue                            // return a value.
 )
 
 // Walk functions step through the major pieces of the template structure,
 // generating output as they go.
-func (s *state) walk(dot reflect.Value, node parse.Node) controlFlowSignal {
+func (s *state) walk(dot reflect.Value, node parse.Node) controlFlowControl {
 	s.at(node)
 	switch node := node.(type) {
 	case *parse.ActionNode:
@@ -285,7 +285,7 @@ func (s *state) walk(dot reflect.Value, node parse.Node) controlFlowSignal {
 		return s.walkIfOrWith(parse.NodeIf, dot, node.Pipe, node.List, node.ElseList)
 	case *parse.ListNode:
 		for _, node := range node.Nodes {
-			if s := s.walk(dot, node); s != signalLoopNone {
+			if s := s.walk(dot, node); s != controlFlowNone {
 				return s
 			}
 		}
@@ -303,21 +303,21 @@ func (s *state) walk(dot reflect.Value, node parse.Node) controlFlowSignal {
 		return s.walkIfOrWith(parse.NodeWith, dot, node.Pipe, node.List, node.ElseList)
 	case *parse.ReturnNode:
 		s.walkReturn(dot, node.Pipe)
-		return signalReturnValue
+		return controlFlowReturnValue
 	case *parse.BreakNode:
 		if s.loopDepth == 0 {
 			s.errorf("invalid break outside of loop")
 		}
-		return signalLoopBreak
+		return controlFlowLoopBreak
 	case *parse.ContinueNode:
 		if s.loopDepth == 0 {
 			s.errorf("invalid continue outside of loop")
 		}
-		return signalLoopContinue
+		return controlFlowLoopContinue
 	default:
 		s.errorf("unknown node: %s", node)
 	}
-	return signalLoopNone
+	return controlFlowNone
 }
 
 func (s *state) walkTry(dot reflect.Value, list, catchList *parse.ListNode) {
@@ -340,7 +340,7 @@ func (s *state) walkTry(dot reflect.Value, list, catchList *parse.ListNode) {
 
 // walkIfOrWith walks an 'if' or 'with' node. The two control structures
 // are identical in behavior except that 'with' sets dot.
-func (s *state) walkIfOrWith(typ parse.NodeType, dot reflect.Value, pipe *parse.PipeNode, list, elseList *parse.ListNode) controlFlowSignal {
+func (s *state) walkIfOrWith(typ parse.NodeType, dot reflect.Value, pipe *parse.PipeNode, list, elseList *parse.ListNode) controlFlowControl {
 	defer s.pop(s.mark())
 	val := s.evalPipeline(dot, pipe)
 	truth, ok := isTrue(indirectInterface(val))
@@ -356,7 +356,7 @@ func (s *state) walkIfOrWith(typ parse.NodeType, dot reflect.Value, pipe *parse.
 	} else if elseList != nil {
 		return s.walk(dot, elseList)
 	}
-	return signalLoopNone
+	return controlFlowNone
 }
 
 // IsTrue reports whether the value is 'true', in the sense of not the zero of its type,
@@ -394,7 +394,7 @@ func isTrue(val reflect.Value) (truth, ok bool) {
 	return truth, true
 }
 
-func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSignal {
+func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowControl {
 	s.incrOPs(1)
 	s.at(r)
 	defer s.pop(s.mark())
@@ -402,7 +402,7 @@ func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSign
 	// mark top of stack before any variables in the body are pushed.
 	mark := s.mark()
 	s.loopDepth++
-	oneIteration := func(index, elem reflect.Value) controlFlowSignal {
+	oneIteration := func(index, elem reflect.Value) controlFlowControl {
 		s.incrOPs(1)
 
 		// Set top var (lexically the second if there are two) to the element.
@@ -413,9 +413,9 @@ func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSign
 		if len(r.Pipe.Decl) > 1 {
 			s.setTopVar(2, index)
 		}
-		signal := s.walk(elem, r.List)
+		ctrl := s.walk(elem, r.List)
 		s.pop(mark)
-		return signal
+		return ctrl
 	}
 	switch val.Kind() {
 	case reflect.String:
@@ -423,38 +423,46 @@ func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSign
 			break
 		}
 		for pos, char := range val.String() {
-			signal := oneIteration(reflect.ValueOf(pos), reflect.ValueOf(char))
-			if signal == signalLoopBreak || signal == signalReturnValue {
-				return signal
+			ctrl := oneIteration(reflect.ValueOf(pos), reflect.ValueOf(char))
+			if ctrl == controlFlowLoopBreak || ctrl == controlFlowReturnValue {
+				return ctrl
 			}
 		}
 		s.loopDepth--
-		return signalLoopNone
+		return controlFlowNone
 	case reflect.Array, reflect.Slice:
 		if val.Len() == 0 {
 			break
 		}
 		for i := 0; i < val.Len(); i++ {
-			signal := oneIteration(reflect.ValueOf(i), val.Index(i))
-			if signal == signalLoopBreak || signal == signalReturnValue {
-				return signal
+			ctrl := oneIteration(reflect.ValueOf(i), val.Index(i))
+			if ctrl == controlFlowLoopBreak {
+				break
+			}
+			if ctrl == controlFlowReturnValue {
+				s.loopDepth--
+				return controlFlowReturnValue
 			}
 		}
 		s.loopDepth--
-		return signalLoopNone
+		return controlFlowNone
 	case reflect.Map:
 		if val.Len() == 0 {
 			break
 		}
 		om := fmtsort.Sort(val)
 		for i, key := range om.Key {
-			signal := oneIteration(key, om.Value[i])
-			if signal == signalLoopBreak || signal == signalReturnValue {
-				return signal
+			ctrl := oneIteration(key, om.Value[i])
+			if ctrl == controlFlowLoopBreak {
+				break
+			}
+			if ctrl == controlFlowReturnValue {
+				s.loopDepth--
+				return controlFlowReturnValue
 			}
 		}
 		s.loopDepth--
-		return signalLoopNone
+		return controlFlowNone
 	case reflect.Chan:
 		if val.IsNil() {
 			break
@@ -469,16 +477,20 @@ func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSign
 			if !ok {
 				break
 			}
-			signal := oneIteration(reflect.ValueOf(i), elem)
-			if signal == signalLoopBreak || signal == signalReturnValue {
-				return signal
+			ctrl := oneIteration(reflect.ValueOf(i), elem)
+			if ctrl == controlFlowLoopBreak {
+				break
+			}
+			if ctrl == controlFlowReturnValue {
+				s.loopDepth--
+				return controlFlowReturnValue
 			}
 		}
 		if i == 0 {
 			break
 		}
 		s.loopDepth--
-		return signalLoopNone
+		return controlFlowNone
 	case reflect.Invalid:
 		break // An invalid value is likely a nil map, etc. and acts like an empty map.
 	default:
@@ -488,49 +500,48 @@ func (s *state) walkRange(dot reflect.Value, r *parse.RangeNode) controlFlowSign
 	if r.ElseList != nil {
 		return s.walk(dot, r.ElseList)
 	}
-	return signalLoopNone
+	return controlFlowNone
 }
 
-func (s *state) walkWhile(dot reflect.Value, w *parse.WhileNode) controlFlowSignal {
+func (s *state) walkWhile(dot reflect.Value, w *parse.WhileNode) controlFlowControl {
 	s.incrOPs(1)
+
 	s.at(w)
 	defer s.pop(s.mark())
 	// mark top of stack before any variables in the body are pushed.
 	mark := s.mark()
 	s.loopDepth++
 
-	isFirst := true
-	for {
-		s.incrOPs(1)
+	i := 0
+	for ; ; i++ {
+		s.incrOPs(5)
+
 		val, _ := indirect(s.evalPipeline(dot, w.Pipe))
 		truth, ok := isTrue(val)
 		if !ok {
 			s.errorf("while can't use %v", val)
 		}
-
 		if !truth {
-			s.loopDepth--
-			// Evaluate the else block if it is defined and this is the first iteration.
-			if isFirst && w.ElseList != nil {
-				s.walk(dot, w.ElseList)
-			}
-			return signalLoopNone
+			break
 		}
 
-		// Set top var to the result of evaluating the pipeline if it is truthy.
-		if len(w.Pipe.Decl) != 0 {
-			s.setTopVar(1, val)
-		}
-		signal := s.walk(dot, w.List)
+		ctrl := s.walk(dot, w.List)
 		s.pop(mark)
-		if signal == signalLoopBreak || signal == signalReturnValue {
-			return signal
+		if ctrl == controlFlowLoopBreak {
+			break
 		}
-
-		if isFirst {
-			isFirst = false
+		if ctrl == controlFlowReturnValue {
+			s.loopDepth--
+			return controlFlowReturnValue
 		}
 	}
+
+	s.loopDepth--
+	if i == 0 && w.ElseList != nil {
+		return s.walk(dot, w.ElseList)
+	}
+
+	return controlFlowNone
 }
 
 func (s *state) walkTemplate(dot reflect.Value, t *parse.TemplateNode) {
@@ -718,7 +729,7 @@ func (s *state) evalFunction(dot reflect.Value, node *parse.IdentifierNode, cmd 
 	if !ok {
 		s.errorf("%q is not a defined function", name)
 	}
-	return s.evalCall(dot, function, cmd, name, args, final)
+	return s.evalCall(dot, function, cmd, name, args, final, false)
 }
 
 // evalField evaluates an expression like (.Field) or (.Field arg1 arg2).
@@ -747,7 +758,7 @@ func (s *state) evalField(dot reflect.Value, fieldName string, node parse.Node, 
 		ptr = ptr.Addr()
 	}
 	if method := ptr.MethodByName(fieldName); method.IsValid() {
-		return s.evalCall(dot, method, node, fieldName, args, final)
+		return s.evalCall(dot, method, node, fieldName, args, final, false)
 	}
 	hasArgs := len(args) > 1 || final != missingVal
 	// It's not a method; must be a field of a struct or an element of a map.
@@ -803,6 +814,7 @@ func (s *state) evalField(dot reflect.Value, fieldName string, node parse.Node, 
 }
 
 var (
+	stringType       = reflect.TypeOf("")
 	errorType        = reflect.TypeOf((*error)(nil)).Elem()
 	fmtStringerType  = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 	reflectValueType = reflect.TypeOf((*reflect.Value)(nil)).Elem()
@@ -811,16 +823,26 @@ var (
 // evalCall executes a function or method call. If it's a method, fun already has the receiver bound, so
 // it looks just like a function call. The arg list, if non-nil, includes (in the manner of the shell), arg[0]
 // as the function itself.
-func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, args []parse.Node, final reflect.Value) reflect.Value {
+func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, args []parse.Node, final reflect.Value, isMethod bool) reflect.Value {
 	s.incrOPs(10)
+
 	if args != nil {
 		args = args[1:] // Zeroth arg is function name/node; not passed to function.
 	}
+
+	if !isMethod {
+		switch name {
+		case "execTemplate":
+			return s.callExecTemplate(dot, node, args, final)
+		}
+	}
+
 	typ := fun.Type()
 	numIn := len(args)
 	if final != missingVal {
 		numIn++
 	}
+
 	numFixed := len(args)
 	if typ.IsVariadic() {
 		numFixed = typ.NumIn() - 1 // last arg is the variadic one.
@@ -830,17 +852,21 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 	} else if numIn != typ.NumIn() {
 		s.errorf("wrong number of args for %s: want %d got %d", name, typ.NumIn(), numIn)
 	}
+
 	if !GoodFunc(typ) {
 		// TODO: This could still be a confusing error; maybe goodFunc should provide info.
 		s.errorf("can't call method/function %q with %d results", name, typ.NumOut())
 	}
+
 	// Build the arg list.
 	argv := make([]reflect.Value, numIn)
+
 	// Args must be evaluated. Fixed args first.
 	i := 0
 	for ; i < numFixed && i < len(args); i++ {
 		argv[i] = s.evalArg(dot, typ.In(i), args[i])
 	}
+
 	// Now the ... args.
 	if typ.IsVariadic() {
 		argType := typ.In(typ.NumIn() - 1).Elem() // Argument is a slice.
@@ -848,6 +874,7 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 			argv[i] = s.evalArg(dot, argType, args[i])
 		}
 	}
+
 	// Add final value if necessary.
 	if final != missingVal {
 		t := typ.In(typ.NumIn() - 1)
@@ -864,6 +891,7 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 		}
 		argv[i] = s.validateType(final, t)
 	}
+
 	v, err, paniced := SafeCall(fun, argv)
 	// If we have an error that is not nil:
 	if err != nil {
@@ -874,10 +902,79 @@ func (s *state) evalCall(dot, fun reflect.Value, node parse.Node, name string, a
 		}
 		panic(FuncCallError{err})
 	}
+
 	if v.Type() == reflectValueType {
 		v = v.Interface().(reflect.Value)
 	}
+
 	return v
+}
+
+func (s *state) callExecTemplate(dot reflect.Value, node parse.Node, args []parse.Node, final reflect.Value) reflect.Value {
+	s.at(node)
+	s.incrOPs(100)
+
+	var name string
+	var data reflect.Value
+	switch len(args) {
+	case 0:
+		if final == missingVal {
+			s.errorf("wrong number of args for execTemplate: want either 1 or 2 got 0")
+		}
+		name = s.validateType(final, stringType).String()
+	case 1:
+		name = s.evalArg(dot, stringType, args[0]).String()
+		if final != missingVal {
+			data = final
+		}
+	case 2:
+		name = s.evalArg(dot, stringType, args[0]).String()
+		data = s.evalArg(dot, reflectValueType, args[1])
+		if final != missingVal {
+			s.errorf("wrong number of args for execTemplate: want either 1 or 2 got 3")
+		}
+	default:
+		numIn := len(args)
+		if final != missingVal {
+			numIn++
+		}
+		s.errorf("wrong number of args for execTemplate: want either 1 or 2 got %d", numIn)
+	}
+
+	tmpl := s.tmpl.tmpl[name]
+	if tmpl == nil {
+		s.errorf("template %q not defined", name)
+	}
+	if s.depth == maxExecDepth {
+		s.errorf("exceeded maximum template depth (%v)", maxExecDepth)
+	}
+
+	data = unwrapValue(data)
+
+	newState := *s
+	newState.parent = s
+	newState.depth++
+	newState.tmpl = tmpl
+	newState.tmpl.maxOps = s.tmpl.maxOps
+	newState.vars = []variable{{"$", data}}
+	newState.walk(data, tmpl.Root)
+
+	return newState.returnValue
+}
+
+// unwrapValue unwraps the value as many times as possible as long as it is
+// still a reflect.Value.
+func unwrapValue(value reflect.Value) reflect.Value {
+	for value.IsValid() && value.Type() == reflectValueType {
+		switch v := value.Interface().(type) {
+		case reflect.Value:
+			value = v
+		default:
+			return value
+		}
+	}
+
+	return value
 }
 
 // CanBeNil reports whether an untyped nil can be assigned to the type. See reflect.Zero.
