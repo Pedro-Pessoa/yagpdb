@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"emperror.dev/errors"
@@ -216,6 +217,12 @@ func SlotExpired(ctx context.Context, slot *models.PremiumSlot) error {
 		return errors.WithMessage(err, "Detach")
 	}
 
+	if strings.EqualFold(slot.Source, "redeemed code") || strings.EqualFold(slot.Source, "code") {
+		defer func() {
+			DeleteSlot(ctx, slot)
+		}()
+	}
+
 	// Attempt migrating the guild attached to the epxired slot to the next available slot the owner of the slot has
 	tx, err := common.PQ.BeginTx(ctx, nil)
 	if err != nil {
@@ -250,6 +257,45 @@ func SlotExpired(ctx context.Context, slot *models.PremiumSlot) error {
 
 	err = common.RedisPool.Do(radix.FlatCmd(nil, "HSET", RedisKeyPremiumGuilds, slot.GuildID.Int64, slot.UserID))
 	return errors.WithMessage(err, "HSET")
+}
+
+func DeleteSlot(ctx context.Context, slot *models.PremiumSlot) {
+	tx, err := common.PQ.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Errorf("-> DELETE SLOT <- BeginTX err: %s", err)
+		return
+	}
+
+	code, err := models.PremiumCodes(qm.Where("slot_id = ?", slot.ID)).One(ctx, tx)
+	if err != nil {
+		_ = tx.Rollback()
+		logger.Errorf("-> DELETE SLOT <- models.PremiumCodes err: %s", err)
+		return
+	}
+
+	if code == nil {
+		logger.Error("-> DELETE SLOT <- CODE NOT FOUND")
+		return
+	}
+
+	_, err = code.DeleteG(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		logger.Errorf("-> DELETE SLOT <- code.DeleteG err: %s", err)
+		return
+	}
+
+	_, err = slot.DeleteG(ctx)
+	if err != nil {
+		_ = tx.Rollback()
+		logger.Errorf("-> DELETE SLOT <- slot.DeleteG err: %s", err)
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		logger.Errorf("-> DELETE SLOT <- commit err: %s", err)
+	}
 }
 
 // RemovePremiumSlots removes the specifues premium slots and attempts to migrate to other permanent available ones
