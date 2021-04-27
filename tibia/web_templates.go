@@ -18,6 +18,7 @@ func init() {
 func insertTemplates() map[string]interface{} {
 	out := map[string]interface{}{
 		"tibiaWorldDropDown": tmplTibiaWorldDropDown,
+		"exemplify":          tmplExemplify,
 	}
 
 	return out
@@ -29,6 +30,18 @@ func tmplTibiaWorldDropDown() template.HTML {
 	for i, w := range TibiaWorlds {
 		out.WriteString(`<option value="` + strconv.Itoa(i) + `">` + w + "</option>\n")
 	}
+
+	return template.HTML(out.String())
+}
+
+func tmplExemplify(in string) template.HTML {
+	var out strings.Builder
+	out.WriteString("{{ ")
+	for _, c := range in {
+		out.WriteRune(c)
+	}
+
+	out.WriteString(" }}")
 
 	return template.HTML(out.String())
 }
