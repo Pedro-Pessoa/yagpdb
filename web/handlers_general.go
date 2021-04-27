@@ -27,6 +27,7 @@ import (
 	"github.com/Pedro-Pessoa/tidbot/common/patreon"
 	"github.com/Pedro-Pessoa/tidbot/common/pubsub"
 	"github.com/Pedro-Pessoa/tidbot/pkgs/discordgo"
+	"github.com/Pedro-Pessoa/tidbot/pkgs/dstate"
 	"github.com/Pedro-Pessoa/tidbot/web/discordblog"
 )
 
@@ -162,6 +163,9 @@ func HandleLandingPage(w http.ResponseWriter, r *http.Request) (TemplateData, er
 
 	// Current Uptime
 	tmpl["Uptime"] = time.Since(bot.Started)
+
+	// Members Count index
+	tmpl["IndexMemberCount"] = totalMembers
 
 	return tmpl, nil
 }
@@ -390,6 +394,40 @@ func pollCCsRan() {
 
 		<-t.C
 	}
+}
+
+var totalMembers int
+
+func pollTotalMembers() {
+	t := time.NewTicker(time.Minute)
+
+	for {
+		state := bot.State
+		var guilds map[int64]*dstate.GuildState
+
+		if state != nil {
+			state.RLock()
+			guilds = state.Guilds
+			state.RUnlock()
+		}
+
+		var out int
+
+		for _, g := range guilds {
+			if g != nil {
+				g.RLock()
+				out += len(g.Members)
+				g.RUnlock()
+			}
+		}
+
+		if out > 0 {
+			totalMembers = out
+		}
+
+		<-t.C
+	}
+
 }
 
 func handleRobotsTXT(w http.ResponseWriter, r *http.Request) {

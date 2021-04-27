@@ -66,7 +66,7 @@
                     <a href="#" data-toggle="dropdown">
                         <figure class="profile-picture">
                             {{if and .ActiveGuild .ActiveGuild.Icon}}
-                                <img src="https://cdn.discordapp.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
+                                <img src="https://cdn.discord.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
                             {{else}}
                                 <img src="/static/img/questionmark.png" alt="Server Icon" class="rounded-circle" />
                             {{end}}
@@ -105,7 +105,7 @@
                     <a href="#" data-toggle="dropdown">
                         <figure class="profile-picture">
                             {{if .User.Avatar}}
-                                <img src="https://cdn.discordapp.com/avatars/{{.User.ID}}/{{.User.Avatar}}?size=64" alt="Joseph Doe" class="rounded-circle" data-lock-picture="img/!logged-user.jpg" />
+                                <img src="https://cdn.discord.com/avatars/{{.User.ID}}/{{.User.Avatar}}?size=64" alt="Joseph Doe" class="rounded-circle" data-lock-picture="img/!logged-user.jpg" />
                             {{end}}
                         </figure>
 
@@ -134,7 +134,7 @@
                     <a href="#" data-toggle="dropdown">
                         <figure class="profile-picture">
                             {{if and .ActiveGuild .ActiveGuild.Icon}}
-                                <img src="https://cdn.discordapp.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
+                                <img src="https://cdn.discord.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
                             {{else}}
                                 <img src="/static/img/questionmark.png" alt="Server Icon" class="rounded-circle" />
                             {{end}}
@@ -173,7 +173,7 @@
                     <a href="#" data-toggle="dropdown">
                         <figure class="profile-picture">
                             {{if .User.Avatar}}
-                                <img src="https://cdn.discordapp.com/avatars/{{.User.ID}}/{{.User.Avatar}}?size=64" alt="Joseph Doe" class="rounded-circle" data-lock-picture="img/!logged-user.jpg" />
+                                <img src="https://cdn.discord.com/avatars/{{.User.ID}}/{{.User.Avatar}}?size=64" alt="Joseph Doe" class="rounded-circle" data-lock-picture="img/!logged-user.jpg" />
                             {{end}}
                         </figure>
 
@@ -440,7 +440,7 @@
 <a href="#" data-toggle="dropdown">
     <figure class="profile-picture">
         {{if and .ActiveGuild .ActiveGuild.Icon}}
-            <img src="https://cdn.discordapp.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
+            <img src="https://cdn.discord.com/icons/{{.ActiveGuild.ID}}/{{.ActiveGuild.Icon}}?size=64" alt="Server Icon" class="rounded-circle" />
         {{else}}
             <img src="/static/img/questionmark.png" alt="Server Icon" class="rounded-circle" />
         {{end}}
@@ -487,7 +487,7 @@
             {{range $index, $element := .ManagedGuilds -}}
                 {{- if not $element.Connected -}}
                     <li>
-                        <a href="https://discordapp.com/oauth2/authorize?client_id={{$clientid}}&scope=applications.commands%20bot&permissions=2146827775&guild_id={{$element.ID}}&response_type=code&redirect_uri={{print $baseURL "/manage"}}"><i class="fas fa-plus"></i>
+                        <a href="https://discord.com/oauth2/authorize?client_id={{$clientid}}&scope=applications.commands%20bot&permissions=2146827775&guild_id={{$element.ID}}&response_type=code&redirect_uri={{print $baseURL "/manage"}}"><i class="fas fa-plus"></i>
                             {{- $element.Name -}}
                         </a>
                     </li>
