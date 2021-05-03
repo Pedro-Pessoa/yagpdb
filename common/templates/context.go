@@ -344,6 +344,9 @@ func (c *Context) executeParsed() (r string, err error) {
 			err = errors.New("response grew too big (>25k)")
 		}
 
+		fmt.Printf("%T\n", err)
+		fmt.Printf("%T\n", errors.Cause(err))
+
 		return result, errors.WithMessage(err, "Failed executing template")
 	}
 
