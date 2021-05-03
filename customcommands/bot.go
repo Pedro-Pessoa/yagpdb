@@ -686,6 +686,8 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 func formatCustomCommandRunErr(src string, err error) string {
 	// check if we can retrieve the original ExecError
 	cause := errors.Cause(err)
+	fmt.Printf("%T\n", err)
+	fmt.Printf("%T\n", cause)
 	if eerr, ok := cause.(template.ExecError); ok {
 		data := parseExecError(eerr)
 		// couldn't parse error, fall back to the original error message
