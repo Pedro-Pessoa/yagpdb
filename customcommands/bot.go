@@ -688,6 +688,7 @@ func formatCustomCommandRunErr(src string, err error) string {
 	cause := errors.Cause(err)
 	fmt.Printf("%T\n", err)
 	fmt.Printf("%T\n", cause)
+	fmt.Printf("v: %v || t: %T\n#v: %#v || s %s\n", cause, cause, cause, cause)
 	if eerr, ok := cause.(template.ExecError); ok {
 		data := parseExecError(eerr)
 		// couldn't parse error, fall back to the original error message
