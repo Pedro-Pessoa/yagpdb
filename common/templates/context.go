@@ -303,6 +303,10 @@ func (c *Context) Execute(source string) (string, error) {
 	return c.executeParsed()
 }
 
+type causer interface {
+	Cause() error
+}
+
 func (c *Context) executeParsed() (r string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -346,6 +350,8 @@ func (c *Context) executeParsed() (r string, err error) {
 
 		fmt.Printf("%T\n", err)
 		fmt.Printf("%T\n", errors.Cause(err))
+		_, ok := err.(causer)
+		fmt.Println("is the original ExecError a causer?", ok)
 
 		return result, errors.WithMessage(err, "Failed executing template")
 	}
