@@ -683,7 +683,13 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	return nil
 }
 
+type causer interface {
+	Cause() error
+}
+
 func formatCustomCommandRunErr(src string, err error) string {
+	_, ok := err.(causer)
+	fmt.Println("\n\n\nis the original ExecError a causer?\n\n\n", ok)
 	// check if we can retrieve the original ExecError
 	cause := errors.Cause(err)
 	fmt.Printf("%T\n", err)
