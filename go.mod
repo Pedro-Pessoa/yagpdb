@@ -3,7 +3,7 @@ module github.com/Pedro-Pessoa/tidbot
 go 1.16
 
 require (
-	emperror.dev/errors v0.8.0
+	emperror.dev/errors v0.4.3
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
