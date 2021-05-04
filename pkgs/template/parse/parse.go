@@ -132,7 +132,7 @@ func New(name string, funcs ...map[string]interface{}) *Tree {
 // ErrorContext returns a textual representation of the location of the node in the input text.
 // The receiver is only used when the node does not have a pointer to the tree inside,
 // which can occur in old code.
-func (t *Tree) ErrorContext(n Node) (location, context string) {
+func (t *Tree) ErrorContext(n Node) (location, context string, line, bytIndex int) {
 	pos := int(n.Position())
 	tree := n.tree()
 	if tree == nil {
@@ -151,7 +151,7 @@ func (t *Tree) ErrorContext(n Node) (location, context string) {
 	if len(context) > 20 {
 		context = fmt.Sprintf("%.20s...", context)
 	}
-	return fmt.Sprintf("%s:%d:%d", tree.ParseName, lineNum, byteNum), context
+	return fmt.Sprintf("%s:%d:%d", tree.ParseName, lineNum, byteNum), context, lineNum, byteNum
 }
 
 // errorf formats the error and terminates processing.

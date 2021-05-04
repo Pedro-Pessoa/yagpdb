@@ -683,39 +683,44 @@ func ExecuteCustomCommand(cmd *models.CustomCommand, tmplCtx *templates.Context)
 	return nil
 }
 
-type causer interface {
-	Cause() error
-}
-
 func formatCustomCommandRunErr(src string, err error) string {
-	_, ok := err.(causer)
-	fmt.Println("\n\n\nis the original ExecError a causer?\n\n\n", ok)
 	// check if we can retrieve the original ExecError
-	cause := errors.Cause(err)
-	fmt.Printf("%T\n", err)
-	fmt.Printf("%T\n", cause)
-	fmt.Printf("v: %v || t: %T\n#v: %#v || s %s\n", cause, cause, cause, cause)
-	if eerr, ok := cause.(template.ExecError); ok {
-		data := parseExecError(eerr)
-		// couldn't parse error, fall back to the original error message
-		if data == nil {
-			return "`" + err.Error() + "`"
-		}
+	cause := causeOf(err)
+	if execError, ok := cause.(template.ExecError); ok {
+		out := fmt.Sprintf("`Failed executing %s, line %d, byteIndex %d: %s`", execError.Name, execError.Line, execError.ByteIndex, execError.Err.Error())
 
-		out := fmt.Sprintf("`Failed executing CC #%d, line %d, row %d: %s`", data.CCID, data.Line, data.Row, data.Msg)
 		lines := strings.Split(src, "\n")
-		if len(lines) < int(data.Line) {
+		if len(lines) < execError.Line {
 			return out
 		}
 
 		out += "\n```"
-		out += getSurroundingLines(lines, int(data.Line-1)) // data.Line is 1-based, convert to 0-based.
+		out += getSurroundingLines(lines, execError.Line-1)
 		out += "\n```"
+
 		return out
 	}
 
 	// otherwise, fall back to the normal error message
 	return "`" + err.Error() + "`"
+}
+
+// check actual cause of the error
+func causeOf(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+
+		err = cause.Cause()
+	}
+
+	return err
 }
 
 // getSurroundingLines returns a string representing the lines close to a given
@@ -790,39 +795,6 @@ func getSurroundingLines(lines []string, lineIndex int) string {
 	}
 
 	return out.String()
-}
-
-type execErrorData struct {
-	CCID, Line, Row int64
-	Msg             string
-}
-
-var execErrorInfoRe = regexp.MustCompile(`\Atemplate: CC #(\d+):(\d+):(\d+): ([\S\s]+)`)
-
-// parseExecError uses regex to extract the individual parts out of an ExecError.
-// It returns nil if an error occurred during parsing.
-func parseExecError(err template.ExecError) *execErrorData {
-	parts := execErrorInfoRe.FindStringSubmatch(err.Error())
-	if parts == nil {
-		return nil
-	}
-
-	ccid, perr := strconv.ParseInt(parts[1], 10, 64)
-	if perr != nil {
-		return nil
-	}
-
-	line, perr := strconv.ParseInt(parts[2], 10, 64)
-	if perr != nil {
-		return nil
-	}
-
-	row, perr := strconv.ParseInt(parts[3], 10, 64)
-	if perr != nil {
-		return nil
-	}
-
-	return &execErrorData{ccid, line, row, parts[4]}
 }
 
 func onExecPanic(cmd *models.CustomCommand, err error, tmplCtx *templates.Context, logStack bool) {

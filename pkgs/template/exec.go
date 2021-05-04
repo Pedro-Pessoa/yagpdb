@@ -117,8 +117,10 @@ func doublePercent(str string) string {
 // error evaluating its template. (If a write error occurs, the actual
 // error is returned; it will not be of type ExecError.)
 type ExecError struct {
-	Name string // Name of template.
-	Err  error  // Pre-formatted error.
+	Name      string // Name of template.
+	Err       error  // Pre-formatted error.
+	Line      int    // Line where the error occurred.
+	ByteIndex int    // Byte index where the error ocurred.
 }
 
 func (e ExecError) Error() string {
@@ -128,15 +130,19 @@ func (e ExecError) Error() string {
 // errorf records an ExecError and terminates processing.
 func (s *state) errorf(format string, args ...interface{}) {
 	name := doublePercent(s.tmpl.Name())
+	var location, context string
+	var line, byteIndex int
 	if s.node == nil {
 		format = fmt.Sprintf("template: %s: %s", name, format)
 	} else {
-		location, context := s.tmpl.ErrorContext(s.node)
+		location, context, line, byteIndex = s.tmpl.ErrorContext(s.node)
 		format = fmt.Sprintf("template: %s: executing %q at <%s>: %s", location, name, doublePercent(context), format)
 	}
 	panic(ExecError{
-		Name: s.tmpl.Name(),
-		Err:  fmt.Errorf(format, args...),
+		Name:      s.tmpl.Name(),
+		Err:       fmt.Errorf(format, args...),
+		Line:      line,
+		ByteIndex: byteIndex,
 	})
 }
 
